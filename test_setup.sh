@@ -188,7 +188,39 @@ for p in ${packages[@]}; do
 done
 
 # Page 4: Setup NFS Server
+# this is just for the head node
 
+# Test 1: check for necessary directories
+# /op/{apps,data,service,site} and /export/{apps,data,service,site}
 
+primeDirs=(opt export)
+subDirs=(apps data service site)
+
+for p in ${primeDirs[@]}; do
+  for s in ${subDirs[@]}; do
+    if [[ ! -d "/$p/$s/" ]]; then
+      echo "($headname) Directory \""/$p/$s/"\" does not exist, see documentation page \"Setup NFS Server\""
+      echo "($headname) Directory \""/$p/$s/"\" does not exist." >> $out
+    elif [[ $p = export ]]; then
+      perm=$(stat -c %a /$p/$c)
+      if [[ ! $perm = 775 ]];then # Test 2: Check that /export/ has the permissions 775
+        echo "($headname) Directory \""/$p/$s/"\" has incorrect permissions, see documentation page \"Setup NFS Server\""
+        echo "($headname) Directory \""/$p/$s/"\" has permissions $perm - should be 775" >> $out
+      fi
+    fi
+  done
+done
+
+#Test 3: /etc/exports contains the correct information
+#Test 4: /etc/fstab contains the correct information
+
+#Test 5: systemctl status nfs-server.service is active with no errors
+systemctl status nfs-server.service 1>>/dev/null 2>>$out; result=$?
+if [[ result != 0 ]]; then
+  echo "($headname) nfs-server.service error, see documentation page \"Setup NFS Server\""
+  echo "($headname) nfs-server.service error, system status exit code $result" >> $out
+fi
+
+# Test 6: the correct stuff has been exported showmount --exports
 
 
