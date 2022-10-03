@@ -21,6 +21,13 @@ remove_item () {
   echo ${output[@]}
 }
 
+# ---------------Testing Zone ------------------------
+
+
+
+# ---------------------------------------------------
+
+
 # function to check for repo
 
 echo "Testing Begins Now:"
@@ -227,7 +234,9 @@ done
 # this is just for the head node
 # should i check to make sure nfs-utils is installed? probably
 
-# Test 1: check for necessary directories
+# Test 0: 
+
+# Test 1: check for necessary directories on the head node
 # /op/{apps,data,service,site} and /export/{apps,data,service,site}
 
 primeDirs=(opt export)
@@ -248,7 +257,6 @@ for p in ${primeDirs[@]}; do
   done
 done
 unset primeDirs
-unset subDirs
 
 #Test 3: /etc/exports contains the correct information
 # idea: go through every line until all the content has been found?
@@ -280,9 +288,46 @@ done
 
 # Test 7: check that all compute nodes are mounted
 
-mounted=$(showmount --no-header)
+mounted=($(showmount --no-header))
 
-echo $mounted  
+for c in ${cnodeList[@]};do
+  nodeIP=$(ssh $c "hostname -I")
+  found=false
+  for m in ${mounted[@]};do
+    if [[ "$m " == "$nodeIP" ]];then
+      found=true
+      break
+    fi
+  done
+  if [[ $found = "false" ]]; then
+    echo "($c) Node is not detectably mounted, see documentation pages: \"Setup NFS Server\" and \"Setup NFS Clients\""
+    echo "($c) NFS issue, node is not detectably mounted." >> $out
+  fi
+done
+
+# Page 5: Setup NFS Clients
+
+# Test 1: check that /opt/ exists
+
+# "opt"
+subDirs=(apps data service site)
+
+for c in ${cnodeList[@]}; do
+  for s in ${subDirs[@]}; do
+    outDir=$(ssh $c '[ -d /opt/'"$s"'/ ] ; echo $?')
+   
+    
+    if [[ $outDir != 0 ]]; then
+      echo "($c) Directory \""/opt/$s/"\" does not exist, see documentation page \"Setup NFS Clients\""
+      echo "($c) Directory \""/opt/$s/"\" does not exist." >> $out
+    fi
+  done
+done
+unset outDir
+
+# Test 2: check that $(df -t nfs) shows what we're expecting
 
 
+unset result
 
+result=$(ssh cnode01 '
