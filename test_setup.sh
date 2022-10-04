@@ -21,6 +21,14 @@ remove_item () {
   echo ${output[@]}
 }
 
+remove_cnode(){
+  local remove=$1
+  temp=$(remove_item $remove ${cnodeList[*]})
+  unset cnodeList
+  cnodeList=${temp[*]}
+  unset temp
+}
+
 # ---------------Testing Zone ------------------------
 
 
@@ -92,14 +100,7 @@ for c in ${cnodeList[@]}; do
 	then
 		echo "($c) ping command failed, check doc page \"Node Setup\"."
 		echo "($c) ping failed, no further testing on this node" >> $out
-
-    # remove the ping failer from list of nodes
-    temp=$(remove_item $c ${cnodeList[*]})
-    unset cnodeList
-    cnodeList=${temp[*]}
-    unset temp
-    # end remove
-
+    remove_cnode $c
 	else
 		echo "($c) ping successful" >> $out
 	fi
@@ -145,13 +146,7 @@ for c in ${cnodeList[@]}; do
 	then
 		echo "($c) SSH failed, check doc page \"SSH Keys for Root\" "
 		echo "($c) SSH failed with exit code ${sshOut}, no more testing on this node." >> $out
-
-    # remove the ssh failer from list of nodes
-    temp=$(remove_item $c ${cnodeList[*]})
-    unset cnodeList
-    cnodeList=${temp[*]}
-    unset temp
-    # end remove
+    remove_cnode $c
 	fi
 done
 
@@ -161,8 +156,11 @@ for c in ${cnodeList[@]}; do
   selinuxState=$(ssh $c "getenforce" exit) # doesn't work with routing the output to other places
   if [[ $selinuxState = Permissive ]] || [[ $selinuxState = Disabled ]]; then
     if [[ $(ssh $c "grep disabled /etc/selinux/config -c") < 2 ]]; then
-      echo "($c) SELinux not disabled in config file, check doc page \"Node Setup\"."
+      echo "($c) SELinux not disabled in config file, see documentation \"Node Setup\"."
     fi
+  else
+    echo "($c) SELinux is enforcing, see documentation page \"Node Setup\"."
+   
   fi
   echo "($c) SELinux state: $selinuxState" >> $out
 done
@@ -237,7 +235,7 @@ done
 # Test 0: 
 
 # Test 1: check for necessary directories on the head node
-# /op/{apps,data,service,site} and /export/{apps,data,service,site}
+# /opt/{apps,data,service,site} and /export/{apps,data,service,site}
 
 primeDirs=(opt export)
 subDirs=(apps data service site)
@@ -327,7 +325,120 @@ unset outDir
 
 # Test 2: check that $(df -t nfs) shows what we're expecting
 
+for c in ${cnodeList[@]};do
+  unset result
 
+  result=($(ssh $c 'df -t nfs' 2>>$out))
+
+  if [[ ${#result[@]} -eq 0 ]]; then
+    echo "($c) No directories mounted, see documentation page \"Setup NFS Clients\""
+    echo "($c) No directories mounted. " >> $out
+    break
+  fi
+
+  remotes=()
+  locals=()
+  for r in ${result[@]};do
+    if [[ $r == *'/'* ]]; then
+      if [[ $r == *"$headname"* ]];then
+        cut="$( echo "$r" | sed 's/'"$headname"'://g')"
+        remotes+=("$( echo "$cut" | sed 's/\/export//g')")
+      else
+        locals+=("$( echo "$r" | sed 's/opt\///g')")
+      fi
+    fi
+  done
+  unset cut
+
+  if [[ $remotes != $locals ]];then
+    echo "($c) Directories not mounted properly, see documentation page \"Setup NFS Clients\""
+    echo "($c) Directories not mounted properly. Remote: $remotes || $ Local: $locals" >> $out
+  fi
+
+done
+
+# Page 6: Install Flight
+# perform all tests on the head node
+# perform all tests on compute nodes
+
+
+# Test 1: check if the repos are enabled
+
+repos=(openflight powertools)
+
+repolist=$(dnf repolist)
+
+#echo $repolist
+
+for r in ${repos[@]};do
+  echo $repolist | grep $r 1>>/dev/null 2>>$out ; result=$?
+  if [[ $result != 0 ]]; then
+    echo "($headname) [EXIT] repository $r not found, see documentation page \"Install Flight\""
+    echo "($headname) [EXIT] repository $r not found" >> $out
+    exit 1
+  fi
+done
+unset result
+unset repolist
+
+
+# Test 2: make sure packages are installed
+
+packages=(flight-user-suite flight-plugin-system-systemd-service)
+
+for p in ${packages[@]};do
+  dnf list installed $p 1>>/dev/null 2>>$out ; result=$?
+  if [[ $result != 0 ]]; then
+    echo "($headname) [EXIT] package $p not installed, see documentation page \"Install Flight\""
+    echo "($headname) [EXIT] package $p not installed, system status exit code $result" >> $out
+    exit 1
+  fi
+done
 unset result
 
-result=$(ssh cnode01 '
+# Test 3: make sure flight-service is started
+
+systemctl status flight-service 1>>/dev/null 2>>$out; result=$?
+
+if [[ $result != 0 ]];then
+  echo "($headname) [EXIT] flight-service error, see documentation page \"Install Flight\""
+  echo "($headname) [EXIT] flight-service error, system status exit code $result" >>$out
+  exit 1
+fi
+
+# Test 4: make sure flight has been started (exit/drop node if not)
+
+flout=$(flight)
+
+#echo $flout
+
+echo $(flight) | grep "not currently active" 1>>/dev/null 2>>$out; result=$?
+if [[ $result = 0 ]];then
+  echo   
+fi
+flight start 1>>/dev/null 2>>$out; result=$?
+
+if [[ $result != 0 ]]; then # this trips if the user hasn't logged out and back in
+  echo "($headname) [EXIT] flight path not set, see documentation page \"Install Flight\""
+  echo "($headname) [EXIT] flight path not set, system status exit code $result" >>$out
+  exit 1
+
+else # if the user has done that
+  echo $(flight) | grep "not currently active" 1>>/dev/null 2>>$out; result=$?
+  if [[ $result = 0 ]];then
+    echo "($headname) [EXIT] flight not started, see documentation page \"Install Flight\""
+    echo "($headname) [EXIT] flight not started, system status exit code $result" >>$out
+    exit 1
+  fi
+fi
+
+# Test 5: make sure that cluster has the correct name
+
+clustername=$(flight config get cluster.name)
+
+if [[ $name = "your cluster" ]];then
+  echo "($headname) cluster name not set, see documentation page \"Install Flight\""
+  echo "($headname) cluster name not set" >>$out
+fi
+
+
