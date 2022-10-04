@@ -367,9 +367,6 @@ done
 repos=(openflight powertools)
 
 repolist=$(dnf repolist)
-
-#echo $repolist
-
 for r in ${repos[@]};do
   echo $repolist | grep $r 1>>/dev/null 2>>$out ; result=$?
   if [[ $result != 0 ]]; then
@@ -381,9 +378,25 @@ done
 unset result
 unset repolist
 
+# now compute node
+
+for c in ${cnodeList[@]}; do
+  repolist=$(ssh $c "dnf repolist")
+  for r in ${repos[@]};do
+    echo $repolist | grep $r 1>>/dev/null 2>>$out ; result=$?
+    if [[ $result != 0 ]]; then
+      echo "($c) [END] repository $r not found, see documentation page \"Install Flight\""
+      echo "($c) [END] repository $r not found" >> $out
+      remove_cnode $c
+    fi
+  done
+done
+unset result
+unset repolist
 
 # Test 2: make sure packages are installed
 
+unset packages
 packages=(flight-user-suite flight-plugin-system-systemd-service)
 
 for p in ${packages[@]};do
@@ -396,6 +409,18 @@ for p in ${packages[@]};do
 done
 unset result
 
+# now compute node
+for c in ${cnodeList[@]};do
+  for p in ${packages[@]};do
+    ssh $c "dnf list installed $p" exit 1>>/dev/null 2>>$out ; result=$?
+    if [[ $result != 0 ]]; then
+      echo "($c) [END] package $p not installed, see documentation page \"Install Flight\""
+      echo "($c) [END] package $p not installed, system status exit code $result" >> $out
+      remove_cnode $c
+    fi
+  done
+done
+
 # Test 3: make sure flight-service is started
 
 systemctl status flight-service 1>>/dev/null 2>>$out; result=$?
@@ -405,6 +430,17 @@ if [[ $result != 0 ]];then
   echo "($headname) [EXIT] flight-service error, system status exit code $result" >>$out
   exit 1
 fi
+
+# now compute nodes
+
+for c in ${cnodeList[@]};do
+  ssh $c "systemctl status flight-service"  1>> /dev/null 2>>$out; result=$?
+  if [[ $result != 0 ]];then
+    echo "($c) [END] flight-service error, see documentation page \"Install Flight\""
+    echo "($c) [END] flight-service error, system status exit code $result" >>$out
+    remove_cnode $c
+  fi
+done
 
 # Test 4: make sure flight has been started (exit/drop node if not)
 
@@ -422,7 +458,6 @@ if [[ $result != 0 ]]; then # this trips if the user hasn't logged out and back 
   echo "($headname) [EXIT] flight path not set, see documentation page \"Install Flight\""
   echo "($headname) [EXIT] flight path not set, system status exit code $result" >>$out
   exit 1
-
 else # if the user has done that
   echo $(flight) | grep "not currently active" 1>>/dev/null 2>>$out; result=$?
   if [[ $result = 0 ]];then
@@ -432,7 +467,7 @@ else # if the user has done that
   fi
 fi
 
-# Test 5: make sure that cluster has the correct name
+# Test 5: make sure that the cluster has the correct name
 
 clustername=$(flight config get cluster.name)
 
@@ -440,5 +475,6 @@ if [[ $name = "your cluster" ]];then
   echo "($headname) cluster name not set, see documentation page \"Install Flight\""
   echo "($headname) cluster name not set" >>$out
 fi
+
 
 
