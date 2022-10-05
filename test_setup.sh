@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -l
 
 # this script should be run as root from the head node
 
@@ -31,8 +31,6 @@ remove_cnode(){
 
 # ---------------Testing Zone ------------------------
 
-
-
 # ---------------------------------------------------
 
 
@@ -63,7 +61,6 @@ do
 done
 
 # ---------------------- Testing Zone -------------------------
-
 #--------------------------------------------------------------
 
 
@@ -80,8 +77,6 @@ echo "-----------" >> $out
 
 
 # ---------------------- Testing Zone -------------------------
-
-
 #--------------------------------------------------------------
 
 
@@ -444,28 +439,46 @@ done
 
 # Test 4: make sure flight has been started (exit/drop node if not)
 
-flout=$(flight)
-
-#echo $flout
-
-echo $(flight) | grep "not currently active" 1>>/dev/null 2>>$out; result=$?
-if [[ $result = 0 ]];then
-  echo   
-fi
-flight start 1>>/dev/null 2>>$out; result=$?
-
-if [[ $result != 0 ]]; then # this trips if the user hasn't logged out and back in
+flight 1>>/dev/null 2>>$out; result=$?
+if [[ $result = 127 ]];then
   echo "($headname) [EXIT] flight path not set, see documentation page \"Install Flight\""
   echo "($headname) [EXIT] flight path not set, system status exit code $result" >>$out
   exit 1
-else # if the user has done that
-  echo $(flight) | grep "not currently active" 1>>/dev/null 2>>$out; result=$?
+else
+  flight | grep -q  "not currently active" 2>>$out; result=$?
   if [[ $result = 0 ]];then
     echo "($headname) [EXIT] flight not started, see documentation page \"Install Flight\""
-    echo "($headname) [EXIT] flight not started, system status exit code $result" >>$out
+    echo "($headname) [EXIT] flight not started" >>$out
     exit 1
+  elif [[ $result = 1 ]]; then
+    echo "($headname) Flight running successfully" >>$out
   fi
 fi
+
+# now compute nodes
+
+for c in ${cnodeList[@]};do
+  ssh $c "flight" 1>>/dev/null 2>>$out; result=$?
+  #echo "($c) flight exit code is: $result"
+  if [[ $result = 127 ]];then
+    echo "($c) [END] flight path not set, see documentation page \"Install Flight\""
+    echo "($c) [END] flight path not set, system status exit code $result" >>$out
+    remove_cnode $c
+  else
+    
+    ssh $c 'flight | grep -q "not currently active"' ; result=$?
+
+    if [[ $result = 0 ]];then
+      echo "($c) [END] flight not started or not set to always on, see documentation page \"Install Flight\""
+      echo "($c) [END] flight not started or not set to always on" >>$out
+      remove_cnode $c
+    elif [[ $result = 1 ]];then
+      echo "($c) Flight running successfully" >>$out
+    fi
+  fi
+done
+
+
 
 # Test 5: make sure that the cluster has the correct name
 
@@ -476,5 +489,149 @@ if [[ $name = "your cluster" ]];then
   echo "($headname) cluster name not set" >>$out
 fi
 
+for c in ${cnodeList[@]};do
+  clustername=$(ssh $c 'flight config get cluster.name')
+  if [[ $clustername = "your cluster" ]];then
+    echo "($c) cluster name not set, see documentation page \"Install Flight\""
+    echo "($c) cluster name not set" >>$out
+  fi
+done
 
 
+# Page 7: Install Flight Web Suite
+
+# head only
+
+# Test 1: is flight web suite installed?
+
+unset packages
+packages=(flight-web-suite)
+
+for p in ${packages[@]};do
+  dnf list installed $p 1>>/dev/null 2>>$out ; result=$?
+  if [[ $result != 0 ]]; then
+    echo "($headname) [EXIT] package $p not installed, see documentation page \"Install Flight Web Suite\""
+    echo "($headname) [EXIT] package $p not installed, system status exit code $result" >> $out
+    exit 1
+  fi
+done
+unset result
+unset packages
+
+# Test 2: check that the domain is correct
+#uh i guess there isn't really a way to test this, the domain is up to the user
+
+# i could output it so they know what it is
+
+domain=$(flight web-suite get-domain)
+
+echo "($headname) the domain name for web-suite is $domain, if this is incorrect see documentation page \"Install Flight Web Suite\""
+echo "($headname) web-suite domain name is $domain" >> $out
+
+unset domain
+
+# Test 3: check that services have been started
+
+services=(console-api desktop-restapi file-manager-api job-script-api login-api www)
+list=$(flight service list)
+
+for s in ${services[@]};do
+  echo $list | grep -q $s; result=$?
+  if [[ $result != 0 ]]; then
+    echo "($headname) Flight Web-Suite service $s not started, see documentation page \"Install Flight Web Suite\""
+    echo "($headname) Flight Web-Suite service $s not started." >>$out
+  fi
+done
+unset list
+
+# Test 4: check that the web suite is enabled
+
+list=$(flight service stack status)
+
+for s in ${services[@]};do
+  echo $list | grep -q $s; result=$?
+  if [[ $result != 0 ]]; then
+    echo "($headname) Flight Web-Suite service $s not enabled, see documentation page \"Install Flight Web Suite\""
+    echo "($headname) Flight Web-Suite service $s not enabled." >>$out
+  fi
+done
+unset list
+
+unset services
+
+# Test 5: check that the cluster name for the landing page has been set?
+# no
+
+
+# Page 8: Setup SLURM Server
+
+# Test 1: check that everything is installed
+
+unset packages
+packages=(munge munge-libs perl-Switch numactl flight-slurm flight-slurm-slurmctld flight-slurm-devel flight-slurm-perlapi flight-slurm-torque flight-slurm-slurmd flight-slurm-example-configs flight-slurm-libpmi)
+
+exitme=false
+for p in ${packages[@]};do
+  dnf list installed $p 1>>/dev/null 2>>$out ; result=$?
+  if [[ $result != 0 ]]; then
+    echo "($headname) [EXIT] package $p not installed, see documentation page \"Setup SLURM Server\""
+    echo "($headname) [EXIT] package $p not installed, system status exit code $result" >> $out
+    exitme=true
+  fi
+done
+
+if [[ $exitme = true ]];then
+  exit 1
+fi
+unset result
+unset packages
+
+
+# Test 2: check that the correct information is in the slurm conf file at /opt/flight/opt/slurm/etc/slurm.conf
+
+
+# Test 3: make sure directories /opt/flight/opt/slurm/var/{log,run,spool/slurm.state} exist
+
+
+
+# Test 4: make sure owner of the directores  chown -R nobody: /opt/flight/opt/slurm/var/{log,run,spool}
+
+# Test 5: make sure munge key is in munge file /etc/munge/munge.key
+
+# Test 6: make sure owner of munge key is correct chown munge: /etc/munge/munge.key
+
+# Test 7: make sure permission are correct on munge key chmod 400 /etc/munge/munge.key
+
+# Test 8: make sure munge is active and enabled, do the same for flight-slurmctld
+
+
+
+#Page 9: Setup SLURM Clients
+
+# Test 1 make sure the correct things are installed on compute nodes
+
+
+# Test 2: make sure slurm conf file on compute nodes is the same as on head node
+
+# Test 3: create directories for slurm mkdir -p /opt/flight/opt/slurm/var/{log,run,spool}
+
+# Test 4: set owner of directories chown -R nobody: /opt/flight/opt/slurm/var/{log,run,spool}
+
+# Tst 5: make sure the munge key is the same on this node as it is on the head node
+
+# Test 6: set the owner of the munge key chown munge: /etc/munge/munge.key
+
+# Test 7: Set the permission of the munge key chmod 400 /etc/munge/munge.key
+
+# Test 8: make sure than slurm is enabled o
+
+# Test 9 make sure than slurm is started
+
+
+
+
+# Page 10: Create Shared User
+
+
+
+# Page 11: Install Genders and PDSH
