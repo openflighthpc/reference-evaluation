@@ -36,8 +36,6 @@ remove_cnode(){
 
 # function to check for repo
 
-echo "Testing Begins Now:"
-
 echo "Node names required, enter name or leave blank if all have been named."
 
 # change this back later, im making it hard coded for faster testing
@@ -589,48 +587,270 @@ unset packages
 
 # Test 2: check that the correct information is in the slurm conf file at /opt/flight/opt/slurm/etc/slurm.conf
 
+# going to put in a check that this info is the same on head node as on all compute nodes, but also not empty
+
+headSlurmConf=0
+slurmConfFile='/opt/flight/opt/slurm/etc/slurm.conf'
+if [[ ! -f $slurmConfFile ]]; then
+  echo "($headname) slurm conf file does not exist, see documentation page \"Setup SLURM Server\""
+  echo "($headname) $slurmConfFile does not exist" >>$out
+else # if it does exist, then is it empty?
+  if [[ ! -s $slurmConfFile ]]; then
+    echo "($headname) slurm configuration not set, see documentation page \"Setup SLURM Server\""
+    echo "($headname) slurm configuration not set." >> $out
+  else
+    headSlurmConf=$(cat $slurmConfFile)
+  fi
+fi
 
 # Test 3: make sure directories /opt/flight/opt/slurm/var/{log,run,spool/slurm.state} exist
-
-
-
 # Test 4: make sure owner of the directores  chown -R nobody: /opt/flight/opt/slurm/var/{log,run,spool}
+
+
+primeDir='/opt/flight/opt/slurm/var/'
+
+subDirs=(log run spool 'spool/slurm.state')
+
+for s in ${subDirs[@]};do
+  if [[ ! -d "$primeDir""$s" ]];then # Test 3 - does the "-d" need to be a "-f" ?
+    echo "($headname) Directory/File \""$primeDir""$s"\" does not exist, see documentation page \"Setup SLURM Server\""
+    echo "($headname) Directory/File \""$primeDir""$s"\" does not exist." >> $out
+  else # Test 4
+    user=$(stat -c '%U' "$primeDir""$s") 
+    if [[ ! $user = nobody ]];then
+      echo "($headname) Directory/File \""$primeDir""$s"\" is owned by the wrong user, see documentation page \"Setup SLURM Server\""
+      echo "($headname) Directory/File \""$primeDir""$s"\" is owned by \"$user\", should be owned by \"nobody\"" >> $out
+    fi
+  fi
+done
+unset user
 
 # Test 5: make sure munge key is in munge file /etc/munge/munge.key
 
-# Test 6: make sure owner of munge key is correct chown munge: /etc/munge/munge.key
+# can't know what the munge key is, but can check that munge.key exists, that it is not empty and then later that it is the same as on compute nodes
+headMunge=0
+mungeFile='/etc/munge/munge.key'
+if [[ ! -f $mungeFile ]]; then
+  echo "($headname) munge key does not exist, see documentation page \"Setup SLURM Server\""
+  echo "($headname) munge.key does not exist" >>$out
+else # if it does exist, then is it empty?
+  if [[ ! -s $mungeFile ]]; then
+    echo "($headname) munge key not set, see documentation page \"Setup SLURM Server\""
+    echo "($headname) munge key not set." >> $out
+  else
+    headMunge=$(cat $mungeFile)
+  fi
+  # test 6: make sure owner of munge key is correct
+  user=$(stat -c '%U' $mungeFile) 
+  if [[ ! $user = "munge" ]]; then
+    echo "($headname) munge.key is owned by the wrong user, see documentation page \"Setup SLURM Server\""
+    echo "($headname) munge.key is owned by \"$user\", should be owned by \"munge\"" >>$out
+  fi
+  # Test 7: make sure permission are correct on munge key chmod 400 /etc/munge/munge.key
+  perm=$(stat -c %a $mungeFile)
+  if [[ ! $perm = 400 ]];then
+     echo "($headname) munge.key permissions are incorrect, see documentation page \"Setup SLURM Server\""
+     echo "($headname) munge.key permissions are \"$perm\", should be \"400\"">>$out
+  fi
+fi
 
-# Test 7: make sure permission are correct on munge key chmod 400 /etc/munge/munge.key
 
-# Test 8: make sure munge is active and enabled, do the same for flight-slurmctld
+# Test 8: make sure munge is active and enabled
+# Test 9: make sure flight-slurmctld is active and enabled
 
+services=(munge flight-slurmctld)
+
+for s in ${services[@]}; do
+  systemctl status $s 1>>/dev/null 2>>$out; result=$?
+  if [[ $result != 0 ]];then
+    echo "($headname) $s not started, see documentation page \"Setup SLURM Server\""
+    echo "($headname) $s not started, system status exit code $result" >>$out
+    exitme=true
+  fi
+  if [[ $(systemctl is-enabled $s) != "enabled" ]]; then
+    echo "($headname) $s is not enabled, see documentation page \"Setup SLURM Server\""
+    echo "($headname) $s is not enabled." >> $out
+  fi
+done
 
 
 #Page 9: Setup SLURM Clients
 
 # Test 1 make sure the correct things are installed on compute nodes
 
+unset packages
+packages=(munge munge-libs perl-Switch numactl flight-slurm flight-slurm-devel flight-slurm-perlapi flight-slurm-torque flight-slurm-slurmd flight-slurm-example-configs flight-slurm-libpmi)
+
+for c in ${cnodeList[@]};do
+  exitme=false
+  for p in ${packages[@]};do
+    ssh $c "dnf list installed $p" 1>>/dev/null 2>>$out ; result=$?
+    if [[ $result != 0 ]]; then
+      echo "($c) package $p not installed, see documentation page \"Setup SLURM Clients\""
+      echo "($c) package $p not installed, system status exit code $result" >> $out
+      exitme=true
+    fi
+  done
+
+  if [[ $exitme = true ]];then
+    remove_cnode $c
+    echo "($c) no further tests on this node"
+    echo "($c) no further tests on this node" >> $out
+  fi
+done
+
 
 # Test 2: make sure slurm conf file on compute nodes is the same as on head node
 
-# Test 3: create directories for slurm mkdir -p /opt/flight/opt/slurm/var/{log,run,spool}
+for c in ${cnodeList[@]}; do 
+  # slurmConfFile is unchanged
+  if [[ $(ssh $c '[ -f '"$slurmConfFile"' ] ; echo $?') != 0 ]]; then
+    echo "($c) slurm conf file does not exist, see documentation page \"Setup SLURM Clients\""
+    echo "($c) $slurmConfFile does not exist" >>$out
+  else # if it does exist, then is it empty?
+    if [[ $(ssh $c '[ -s '"$slurmConfFile"' ] ; echo $?') != 0 ]]; then
+      echo "($c) slurm configuration not set, see documentation page \"Setup SLURM Clients\""
+      echo "($c) slurm configuration not set." >> $out
+    else
+      cnodeSlurmConf=$(ssh $c "cat $slurmConfFile" 2>>$out) 
+      if [[ "$cnodeSlurmConf" != "$headSlurmConf" ]];then
+        echo "($c)/($headname) slurm configuration is not consistent between nodes, see documentation pages \"Setup SLURM Server\" and \"Setup SLURM Clients\""
+        echo "($c)/($headname) slurm configuration is not consistent between nodes" >>$out
+      fi
+    fi
+  fi
+done
 
-# Test 4: set owner of directories chown -R nobody: /opt/flight/opt/slurm/var/{log,run,spool}
+# Test 3: check  /opt/flight/opt/slurm/var/{log,run,spool} exist
+# Test 4: check owner of directories: /opt/flight/opt/slurm/var/{log,run,spool}
 
-# Tst 5: make sure the munge key is the same on this node as it is on the head node
+for c in ${cnodeList[@]}; do
+  exitme=false
+  primeDir='/opt/flight/opt/slurm/var/'
 
-# Test 6: set the owner of the munge key chown munge: /etc/munge/munge.key
+  subDirs=(log run spool)
+  for s in ${subDirs[@]};do
+    if [[ $(ssh $c '[ -d '"$primeDir""$s"' ] ; echo $?') != 0 ]]; then # Test 3
+      echo "($c) Directory/File \""$primeDir""$s"\" does not exist, see documentation page \"Setup SLURM Server\""
+      echo "($c) Directory/File \""$primeDir""$s"\" does not exist." >> $out
+      exitme=true
+    else # Test 4
+      user=$(ssh $c 'stat -c ''%U '"$primeDir""$s" 2>>$out)
+      if [[ ! $user = nobody ]];then
+        echo "($c) Directory/File \""$primeDir""$s"\" is owned by the wrong user, see documentation page \"Setup SLURM Server\""
+        echo "($c) Directory/File \""$primeDir""$s"\" is owned by \"$user\", should be owned by \"nobody\"" >> $out
+        exitme=true
+      fi
+    fi
+  done
+  unset user
 
-# Test 7: Set the permission of the munge key chmod 400 /etc/munge/munge.key
+  # Test 5: make sure the munge key is the same on this node as it is on the head node
+  
+  # headMunge contains the head munge key
+  # mungeFile contains the file location of the munge key
+  if [[ $(ssh $c '[ -f '"$mungeFile"' ] ; echo $?') != 0 ]]; then
+    echo "($c) munge key does not exist, see documentation page \"Setup SLURM Clients\""
+    echo "($c) munge.key does not exist" >>$out
+    exitme=true
+  else # if it does exist, then is it empty?
+    if [[ $(ssh $c '[ -s '"$mungeFile"' ] ; echo $?') != 0 ]]; then
+      echo "($c) munge key not set, see documentation page \"Setup SLURM Clients\""
+      echo "($c) munge key not set." >> $out
+      exitme=true
+    else
+      cnodeMunge=$(ssh $c 'cat '"$mungeFile")
+    fi
+    # test 6: make sure owner of munge key is correct
+    user=$(ssh $c 'stat -c ''%U'" $mungeFile" 2>>$out)
+    if [[ ! $user = "munge" ]]; then
+      echo "($c) munge.key is owned by the wrong user, see documentation page \"Setup SLURM Clients\""
+      echo "($c) munge.key is owned by \"$user\", should be owned by \"munge\"" >>$out
+      exitme=true
+    fi
+    # Test 7: make sure permission are correct on munge key chmod 400 /etc/munge/munge.key
+    perm=$(ssh $c 'stat -c ''%a'" $mungeFile")
+    if [[ ! $perm = 400 ]];then
+       echo "($c) munge.key permissions are incorrect, see documentation page \"Setup SLURM Clients\""
+       echo "($c) munge.key permissions are \"$perm\", should be \"400\"">>$out
+       exitme=true
+    fi
+    if [[ "$headMunge" != "$cnodeMunge" ]];then
+      echo "($c) ($headname) munge key is not consistent between nodes, see documentation pages \"Setup SLURM Server\" and \"Setup SLURM Clients\""
+      echo "($c) ($headname) munge key is not consistent between nodes" >>$out
+      exitme=true
+    fi
+  fi
 
-# Test 8: make sure than slurm is enabled o
+  if [[ "$exitme" = true ]];then
+    remove_cnode $c
+    continue
+  fi
 
-# Test 9 make sure than slurm is started
+  # Test 8: make sure than slurm is enabled
+  # Test 9 make sure than slurm is started
 
+  services=(munge flight-slurmd)
+
+  for s in ${services[@]}; do
+    ssh $c 'systemctl status '"$s" 1>>/dev/null 2>>$out; result=$?
+    if [[ $result != 0 ]];then
+      echo "($c) $s not started, see documentation page \"Setup SLURM Clients\""
+      echo "($c) $s not started, system status exit code $result" >>$out
+      exitme=true
+    fi
+    if [[ $(ssh $c 'systemctl is-enabled '"$s") != "enabled" ]]; then
+      echo "($c) $s is not enabled, see documentation page \"Setup SLURM Clients\""
+      echo "($c) $s is not enabled." >> $out
+      exitme=true
+    fi
+  done
+
+   if [[ "$exitme" = true ]];then
+    echo "($c) [EXIT] No further testing possible on this node."
+    echo "($c) [EXIT]" >>$out
+    remove_cnode $c
+    continue
+  fi
+
+done
 
 
 
 # Page 10: Create Shared User
+
+#headnode
+
+# Test 1: check if the user exists
+
+# Test 2: check if  the user has a password
+
+sharedUser="flight"
+if id \"$sharedUser\" 1>>/dev/null 2>>$out; then
+  passwdStatus=$(passwd --status "$sharedUser" | awk '{print $2}')
+  if [[ "$passwdStatus" != "PS" ]];then
+    echo "($headname) shared user \"$sharedUser\" does not have a password on this node, see documentation page \"Create Shared User\""
+    echo "($headname) shared user \"$sharedUser\" does not have a password on this node, passwd state $passwdStatus" >>$out
+  fi
+else
+  echo "($headname) shared user \"$sharedUser\" does not exist on this node, see documentation page \"Create Shared User\""
+  echo "($headname) shared user \"$sharedUser\" does not exist on this node." >>$out
+fi
+
+for c in ${cnodeList[@]};do
+  if ssh $c "id $sharedUser" 1>>/dev/null 2>>$out; then
+    passwdStatus=$(ssh $c 'passwd --status '"$sharedUser"' | awk '\''{print $2}'\')
+    echo $passwdStatus
+    if [[ "$passwdStatus" != "PS" ]];then
+      echo "($c) shared user \"$sharedUser\" does not have a password on this node, see documentation page \"Create Shared User\""
+      echo "($c) shared user \"$sharedUser\" does not have a password on this node, passwd state $passwdStatus" >>$out
+    fi
+  else
+    echo "($c) shared user \"$sharedUser\" does not exist on this node, see documentation page \"Create Shared User\""
+    echo "($c) shared user \"$sharedUser\" does not exist on this node." >>$out
+  fi
+done
+
 
 
 
