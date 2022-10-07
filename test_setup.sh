@@ -2,7 +2,7 @@
 
 # these lines turn the input option into just the first non dash character
 outputStyle=$1 #options include: -v/--verbose -q/--quiet -e/--error
-temp=$(echo "$outputStyle" | sed -e 's/-//g')
+temp=$(echoplus 0 "$outputStyle" | sed -e 's/-//g')
 outputStyle=$(echo $temp |  cut -c 1)
 
 case $outputStyle in
@@ -79,7 +79,7 @@ do
 	if [[ ! " ${cnodeList[*]} " =~ " ${cnodeName} " ]]; then # make duplicate inputs impossible
 		cnodeList+=($cnodeName)
 	fi
-	echo "Enter COMPUTE node name (leave blank if all named)"
+	echoplus 0 "Enter COMPUTE node name (leave blank if all named)"
 	read cnodeName
 done
 
@@ -91,14 +91,14 @@ done
 
 # print them out to make sure we're doing things right
 
-echo "-----------" >> $out
-echo "Head node is: $headname" > $out
-echo "-----------" >> $out
-echo "All compute nodes are: " >> $out
+echoplus 0 "-----------" >> $out
+echoplus 0 "Head node is: $headname" > $out
+echoplus 0 "-----------" >> $out
+echoplus 0 "All compute nodes are: " >> $out
 for c in ${cnodeList[@]}; do
 	echo $c >> $out
 done
-echo "-----------" >> $out
+echoplus 0 "-----------" >> $out
 
 
 # ---------------------- Testing Zone -------------------------
@@ -119,11 +119,11 @@ for c in ${cnodeList[@]}; do
 
 	if [[ $pingOut != 0 ]]
 	then
-		echo "($c) ping command failed, check doc page \"Node Setup\"."
-		echo "($c) ping failed, no further testing on this node" >> $out
+		echoplus 0 "($c) ping command failed, check doc page \"Node Setup\"."
+		echoplus 0 "($c) ping failed, no further testing on this node" >> $out
     remove_cnode $c
 	else
-		echo "($c) ping successful" >> $out
+		echoplus 0 "($c) ping successful" >> $out
 	fi
 done
 
@@ -138,10 +138,10 @@ then
 		"($headname) SELinux not disabled in config file, check doc page \"Node Setup\"."
 	fi
 else
-	echo "($headname) SELinux state incorrect, check doc page \"Node Setup\"."
+	echoplus 0 "($headname) SELinux state incorrect, check doc page \"Node Setup\"."
 fi
 
-echo "($headname) SELinux state: $selinuxState" >> $out
+echoplus 0 "($headname) SELinux state: $selinuxState" >> $out
 
 
 # Test 3: Check that head node ip address is the same as in /etc/hosts
@@ -149,8 +149,8 @@ echo "($headname) SELinux state: $selinuxState" >> $out
 headIP=$(hostname -I)
 
 if [[ $(awk "/$headname/{ print NR; exit }" /etc/hosts) != $(awk "/$headIP/{ print NR; exit }" /etc/hosts) ]]; then
-  echo "($headname) not set to correct IP in hosts file, see documenatation page \"Node Setup\"."
-  echo "($headname) IP set incorrectly in /etc/hosts file, should be $headIP"
+  echoplus 0 "($headname) not set to correct IP in hosts file, see documenatation page \"Node Setup\"."
+  echoplus 0 "($headname) IP set incorrectly in /etc/hosts file, should be $headIP"
 fi
 
 
@@ -165,8 +165,8 @@ for c in ${cnodeList[@]}; do
   sshOut=$?
 	if [[ $sshOut != 0 ]]
 	then
-		echo "($c) SSH failed, check doc page \"SSH Keys for Root\" "
-		echo "($c) SSH failed with exit code ${sshOut}, no more testing on this node." >> $out
+		echoplus 0 "($c) SSH failed, check doc page \"SSH Keys for Root\" "
+		echoplus 0 "($c) SSH failed with exit code ${sshOut}, no more testing on this node." >> $out
     remove_cnode $c
 	fi
 done
@@ -177,13 +177,13 @@ for c in ${cnodeList[@]}; do
   selinuxState=$(ssh $c "getenforce" exit) # doesn't work with routing the output to other places
   if [[ $selinuxState = Permissive ]] || [[ $selinuxState = Disabled ]]; then
     if [[ $(ssh $c "grep disabled /etc/selinux/config -c") < 2 ]]; then
-      echo "($c) SELinux not disabled in config file, see documentation \"Node Setup\"."
+      echoplus 0 "($c) SELinux not disabled in config file, see documentation \"Node Setup\"."
     fi
   else
-    echo "($c) SELinux is enforcing, see documentation page \"Node Setup\"."
+    echoplus 0 "($c) SELinux is enforcing, see documentation page \"Node Setup\"."
    
   fi
-  echo "($c) SELinux state: $selinuxState" >> $out
+  echoplus 0 "($c) SELinux state: $selinuxState" >> $out
 done
 
 
@@ -201,8 +201,8 @@ done
 
 for i in ${!allNodes[@]}; do # check headnode hosts file
   if [[ $(awk "/${allNodes[$i]}/{ print NR; exit }" /etc/hosts) != $(awk "/${ipList[$i]}/{ print NR; exit }" /etc/hosts) ]]; then
-    echo "($headname) In hosts file, IP error for ${allNodes[$i]}, see documenatation page \"Node Setup\"."
-    echo "($headname) In /etc/hosts, ${allNodes[$i]} IP should be ${allNodes[$i]}" >> $out
+    echoplus 0 "($headname) In hosts file, IP error for ${allNodes[$i]}, see documenatation page \"Node Setup\"."
+    echoplus 0 "($headname) In /etc/hosts, ${allNodes[$i]} IP should be ${allNodes[$i]}" >> $out
   fi
 done
 
@@ -213,8 +213,8 @@ for c in ${cnodeList[@]}; do # now check compute nodes
     ipLine=$(ssh $c "awk '/${ipList[$i]}/{ print NR; exit }' /etc/hosts")
 
     if [[ $nodeLine != $ipLine ]]; then
-      echo "($c) In hosts file, IP error for ${allNodes[$i]}, see documenatation page \"Node Setup\"."
-      echo "($c) In /etc/hosts, ${allNodes[$i]} IP should be ${ipList[$i]}" >> $out
+      echoplus 0 "($c) In hosts file, IP error for ${allNodes[$i]}, see documenatation page \"Node Setup\"."
+      echoplus 0 "($c) In /etc/hosts, ${allNodes[$i]} IP should be ${ipList[$i]}" >> $out
     fi
   done
 done
@@ -231,8 +231,8 @@ for p in ${packages[@]}; do
 
 	if [[ $result != 0 ]]
 	then
-		echo "($headname) $p package error, check doc page \"Install Repositories\" "
-		echo "($headname) $p package error code: $result" >> $out
+		echoplus 0 "($headname) $p package error, check doc page \"Install Repositories\" "
+		echoplus 0 "($headname) $p package error code: $result" >> $out
 	fi
 done
 
@@ -243,8 +243,8 @@ for p in ${packages[@]}; do
     ssh $c "dnf list installed $p" exit 1>>/dev/null 2>>$out ; result=$?
 
     if [[ $result != 0 ]]; then
-      echo "($c) $p package error, check doc page \"Install Repositories\" "
-      echo "($c) $p package error code: $result" >> $out
+      echoplus 0 "($c) $p package error, check doc page \"Install Repositories\" "
+      echoplus 0 "($c) $p package error code: $result" >> $out
     fi
 	done
 done
@@ -264,13 +264,13 @@ subDirs=(apps data service site)
 for p in ${primeDirs[@]}; do
   for s in ${subDirs[@]}; do
     if [[ ! -d "/$p/$s/" ]]; then
-      echo "($headname) Directory \""/$p/$s/"\" does not exist, see documentation page \"Setup NFS Server\""
-      echo "($headname) Directory \""/$p/$s/"\" does not exist." >> $out
+      echoplus 0 "($headname) Directory \""/$p/$s/"\" does not exist, see documentation page \"Setup NFS Server\""
+      echoplus 0 "($headname) Directory \""/$p/$s/"\" does not exist." >> $out
     elif [[ $p = export ]]; then
       perm=$(stat -c %a /$p/$s)
       if [[ ! $perm = 775 ]];then # Test 2: Check that /export/ has the permissions 775
-        echo "($headname) Directory \""/$p/$s/"\" has incorrect permissions, see documentation page \"Setup NFS Server\""
-        echo "($headname) Directory \""/$p/$s/"\" has permissions $perm - should be 775" >> $out
+        echoplus 0 "($headname) Directory \""/$p/$s/"\" has incorrect permissions, see documentation page \"Setup NFS Server\""
+        echoplus 0 "($headname) Directory \""/$p/$s/"\" has permissions $perm - should be 775" >> $out
       fi
     fi
   done
@@ -284,8 +284,8 @@ unset primeDirs
 #Test 5: systemctl status nfs-server.service is active with no errors
 systemctl status nfs-server.service 1>>/dev/null 2>>$out; result=$?
 if [[ $result != 0 ]]; then
-  echo "($headname) nfs-server.service error, see documentation page \"Setup NFS Server\""
-  echo "($headname) nfs-server.service error, system status exit code $result" >> $out
+  echoplus 0 "($headname) nfs-server.service error, see documentation page \"Setup NFS Server\""
+  echoplus 0 "($headname) nfs-server.service error, system status exit code $result" >> $out
 fi
 
 # Test 6: the correct stuff has been exported showmount --exports
@@ -296,12 +296,12 @@ headExport=$(showmount --exports --no-header)
 for c in ${cnodeList[@]};do
   nodeExport=$(ssh $c "showmount -e $headname --no-header")
   if [[ $headExport != $nodeExport ]]; then
-    echo "($headname/$c) Mismatched mount points, see documentation pages: \"Setup NFS Server\" and \"Setup NFS Clients\""
-    echo "($headname/$c) Mismatched mount points: " >> $out
-    echo "$headname export:" >> $out
-    echo "$headExport" >> $out
-    echo "$c export:" >> $out
-    echo "$nodeExport" >> $out
+    echoplus 0 "($headname/$c) Mismatched mount points, see documentation pages: \"Setup NFS Server\" and \"Setup NFS Clients\""
+    echoplus 0 "($headname/$c) Mismatched mount points: " >> $out
+    echoplus 0 "$headname export:" >> $out
+    echoplus 0 "$headExport" >> $out
+    echoplus 0 "$c export:" >> $out
+    echoplus 0 "$nodeExport" >> $out
   fi
 done
 
@@ -319,8 +319,8 @@ for c in ${cnodeList[@]};do
     fi
   done
   if [[ $found = "false" ]]; then
-    echo "($c) Node is not detectably mounted, see documentation pages: \"Setup NFS Server\" and \"Setup NFS Clients\""
-    echo "($c) NFS issue, node is not detectably mounted." >> $out
+    echoplus 0 "($c) Node is not detectably mounted, see documentation pages: \"Setup NFS Server\" and \"Setup NFS Clients\""
+    echoplus 0 "($c) NFS issue, node is not detectably mounted." >> $out
   fi
 done
 
@@ -337,8 +337,8 @@ for c in ${cnodeList[@]}; do
    
     
     if [[ $outDir != 0 ]]; then
-      echo "($c) Directory \""/opt/$s/"\" does not exist, see documentation page \"Setup NFS Clients\""
-      echo "($c) Directory \""/opt/$s/"\" does not exist." >> $out
+      echoplus 0 "($c) Directory \""/opt/$s/"\" does not exist, see documentation page \"Setup NFS Clients\""
+      echoplus 0 "($c) Directory \""/opt/$s/"\" does not exist." >> $out
     fi
   done
 done
@@ -352,8 +352,8 @@ for c in ${cnodeList[@]};do
   result=($(ssh $c 'df -t nfs' 2>>$out))
 
   if [[ ${#result[@]} -eq 0 ]]; then
-    echo "($c) No directories mounted, see documentation page \"Setup NFS Clients\""
-    echo "($c) No directories mounted. " >> $out
+    echoplus 0 "($c) No directories mounted, see documentation page \"Setup NFS Clients\""
+    echoplus 0 "($c) No directories mounted. " >> $out
     break
   fi
 
@@ -362,18 +362,18 @@ for c in ${cnodeList[@]};do
   for r in ${result[@]};do
     if [[ $r == *'/'* ]]; then
       if [[ $r == *"$headname"* ]];then
-        cut="$( echo "$r" | sed 's/'"$headname"'://g')"
-        remotes+=("$( echo "$cut" | sed 's/\/export//g')")
+        cut="$(echo "$r" | sed 's/'"$headname"'://g')"
+        remotes+=("$(echo "$cut" | sed 's/\/export//g')")
       else
-        locals+=("$( echo "$r" | sed 's/opt\///g')")
+        locals+=("$(echo "$r" | sed 's/opt\///g')")
       fi
     fi
   done
   unset cut
 
   if [[ $remotes != $locals ]];then
-    echo "($c) Directories not mounted properly, see documentation page \"Setup NFS Clients\""
-    echo "($c) Directories not mounted properly. Remote: $remotes || $ Local: $locals" >> $out
+    echoplus 0 "($c) Directories not mounted properly, see documentation page \"Setup NFS Clients\""
+    echoplus 0 "($c) Directories not mounted properly. Remote: $remotes || $ Local: $locals" >> $out
   fi
 
 done
@@ -391,8 +391,8 @@ repolist=$(dnf repolist)
 for r in ${repos[@]};do
   echo $repolist | grep $r 1>>/dev/null 2>>$out ; result=$?
   if [[ $result != 0 ]]; then
-    echo "($headname) [EXIT] repository $r not found, see documentation page \"Install Flight\""
-    echo "($headname) [EXIT] repository $r not found" >> $out
+    echoplus 0 "($headname) [EXIT] repository $r not found, see documentation page \"Install Flight\""
+    echoplus 0 "($headname) [EXIT] repository $r not found" >> $out
     exit 1
   fi
 done
@@ -406,8 +406,8 @@ for c in ${cnodeList[@]}; do
   for r in ${repos[@]};do
     echo $repolist | grep $r 1>>/dev/null 2>>$out ; result=$?
     if [[ $result != 0 ]]; then
-      echo "($c) [END] repository $r not found, see documentation page \"Install Flight\""
-      echo "($c) [END] repository $r not found" >> $out
+      echoplus 0 "($c) [END] repository $r not found, see documentation page \"Install Flight\""
+      echoplus 0 "($c) [END] repository $r not found" >> $out
       remove_cnode $c
     fi
   done
@@ -423,8 +423,8 @@ packages=(flight-user-suite flight-plugin-system-systemd-service)
 for p in ${packages[@]};do
   dnf list installed $p 1>>/dev/null 2>>$out ; result=$?
   if [[ $result != 0 ]]; then
-    echo "($headname) [EXIT] package $p not installed, see documentation page \"Install Flight\""
-    echo "($headname) [EXIT] package $p not installed, system status exit code $result" >> $out
+    echoplus 0 "($headname) [EXIT] package $p not installed, see documentation page \"Install Flight\""
+    echoplus 0 "($headname) [EXIT] package $p not installed, system status exit code $result" >> $out
     exit 1
   fi
 done
@@ -435,8 +435,8 @@ for c in ${cnodeList[@]};do
   for p in ${packages[@]};do
     ssh $c "dnf list installed $p" exit 1>>/dev/null 2>>$out ; result=$?
     if [[ $result != 0 ]]; then
-      echo "($c) [END] package $p not installed, see documentation page \"Install Flight\""
-      echo "($c) [END] package $p not installed, system status exit code $result" >> $out
+      echoplus 0 "($c) [END] package $p not installed, see documentation page \"Install Flight\""
+      echoplus 0 "($c) [END] package $p not installed, system status exit code $result" >> $out
       remove_cnode $c
     fi
   done
@@ -447,8 +447,8 @@ done
 systemctl status flight-service 1>>/dev/null 2>>$out; result=$?
 
 if [[ $result != 0 ]];then
-  echo "($headname) [EXIT] flight-service error, see documentation page \"Install Flight\""
-  echo "($headname) [EXIT] flight-service error, system status exit code $result" >>$out
+  echoplus 0 "($headname) [EXIT] flight-service error, see documentation page \"Install Flight\""
+  echoplus 0 "($headname) [EXIT] flight-service error, system status exit code $result" >>$out
   exit 1
 fi
 
@@ -457,8 +457,8 @@ fi
 for c in ${cnodeList[@]};do
   ssh $c "systemctl status flight-service"  1>> /dev/null 2>>$out; result=$?
   if [[ $result != 0 ]];then
-    echo "($c) [END] flight-service error, see documentation page \"Install Flight\""
-    echo "($c) [END] flight-service error, system status exit code $result" >>$out
+    echoplus 0 "($c) [END] flight-service error, see documentation page \"Install Flight\""
+    echoplus 0 "($c) [END] flight-service error, system status exit code $result" >>$out
     remove_cnode $c
   fi
 done
@@ -467,17 +467,17 @@ done
 
 flight 1>>/dev/null 2>>$out; result=$?
 if [[ $result = 127 ]];then
-  echo "($headname) [EXIT] flight path not set, see documentation page \"Install Flight\""
-  echo "($headname) [EXIT] flight path not set, system status exit code $result" >>$out
+  echoplus 0 "($headname) [EXIT] flight path not set, see documentation page \"Install Flight\""
+  echoplus 0 "($headname) [EXIT] flight path not set, system status exit code $result" >>$out
   exit 1
 else
   flight | grep -q  "not currently active" 2>>$out; result=$?
   if [[ $result = 0 ]];then
-    echo "($headname) [EXIT] flight not started, see documentation page \"Install Flight\""
-    echo "($headname) [EXIT] flight not started" >>$out
+    echoplus 0 "($headname) [EXIT] flight not started, see documentation page \"Install Flight\""
+    echoplus 0 "($headname) [EXIT] flight not started" >>$out
     exit 1
   elif [[ $result = 1 ]]; then
-    echo "($headname) Flight running successfully" >>$out
+    echoplus 0 "($headname) Flight running successfully" >>$out
   fi
 fi
 
@@ -485,21 +485,21 @@ fi
 
 for c in ${cnodeList[@]};do
   ssh $c "flight" 1>>/dev/null 2>>$out; result=$?
-  #echo "($c) flight exit code is: $result"
+  #echoplus 0 "($c) flight exit code is: $result"
   if [[ $result = 127 ]];then
-    echo "($c) [END] flight path not set, see documentation page \"Install Flight\""
-    echo "($c) [END] flight path not set, system status exit code $result" >>$out
+    echoplus 0 "($c) [END] flight path not set, see documentation page \"Install Flight\""
+    echoplus 0 "($c) [END] flight path not set, system status exit code $result" >>$out
     remove_cnode $c
   else
     
     ssh $c 'flight | grep -q "not currently active"' ; result=$?
 
     if [[ $result = 0 ]];then
-      echo "($c) [END] flight not started or not set to always on, see documentation page \"Install Flight\""
-      echo "($c) [END] flight not started or not set to always on" >>$out
+      echoplus 0 "($c) [END] flight not started or not set to always on, see documentation page \"Install Flight\""
+      echoplus 0 "($c) [END] flight not started or not set to always on" >>$out
       remove_cnode $c
     elif [[ $result = 1 ]];then
-      echo "($c) Flight running successfully" >>$out
+      echoplus 0 "($c) Flight running successfully" >>$out
     fi
   fi
 done
@@ -511,15 +511,15 @@ done
 clustername=$(flight config get cluster.name)
 
 if [[ $name = "your cluster" ]];then
-  echo "($headname) cluster name not set, see documentation page \"Install Flight\""
-  echo "($headname) cluster name not set" >>$out
+  echoplus 0 "($headname) cluster name not set, see documentation page \"Install Flight\""
+  echoplus 0 "($headname) cluster name not set" >>$out
 fi
 
 for c in ${cnodeList[@]};do
   clustername=$(ssh $c 'flight config get cluster.name')
   if [[ $clustername = "your cluster" ]];then
-    echo "($c) cluster name not set, see documentation page \"Install Flight\""
-    echo "($c) cluster name not set" >>$out
+    echoplus 0 "($c) cluster name not set, see documentation page \"Install Flight\""
+    echoplus 0 "($c) cluster name not set" >>$out
   fi
 done
 # check that clustername is consistent across nodes
@@ -536,8 +536,8 @@ packages=(flight-web-suite)
 for p in ${packages[@]};do
   dnf list installed $p 1>>/dev/null 2>>$out ; result=$?
   if [[ $result != 0 ]]; then
-    echo "($headname) [EXIT] package $p not installed, see documentation page \"Install Flight Web Suite\""
-    echo "($headname) [EXIT] package $p not installed, system status exit code $result" >> $out
+    echoplus 0 "($headname) [EXIT] package $p not installed, see documentation page \"Install Flight Web Suite\""
+    echoplus 0 "($headname) [EXIT] package $p not installed, system status exit code $result" >> $out
     exit 1
   fi
 done
@@ -551,8 +551,8 @@ unset packages
 
 domain=$(flight web-suite get-domain)
 
-echo "($headname) the domain name for web-suite is $domain, if this is incorrect see documentation page \"Install Flight Web Suite\""
-echo "($headname) web-suite domain name is $domain" >> $out
+echoplus 0 "($headname) the domain name for web-suite is $domain, if this is incorrect see documentation page \"Install Flight Web Suite\""
+echoplus 0 "($headname) web-suite domain name is $domain" >> $out
 
 unset domain
 
@@ -564,8 +564,8 @@ list=$(flight service list)
 for s in ${services[@]};do
   echo $list | grep -q $s; result=$?
   if [[ $result != 0 ]]; then
-    echo "($headname) Flight Web-Suite service $s not started, see documentation page \"Install Flight Web Suite\""
-    echo "($headname) Flight Web-Suite service $s not started." >>$out
+    echoplus 0 "($headname) Flight Web-Suite service $s not started, see documentation page \"Install Flight Web Suite\""
+    echoplus 0 "($headname) Flight Web-Suite service $s not started." >>$out
   fi
 done
 unset list
@@ -577,8 +577,8 @@ list=$(flight service stack status)
 for s in ${services[@]};do
   echo $list | grep -q $s; result=$?
   if [[ $result != 0 ]]; then
-    echo "($headname) Flight Web-Suite service $s not enabled, see documentation page \"Install Flight Web Suite\""
-    echo "($headname) Flight Web-Suite service $s not enabled." >>$out
+    echoplus 0 "($headname) Flight Web-Suite service $s not enabled, see documentation page \"Install Flight Web Suite\""
+    echoplus 0 "($headname) Flight Web-Suite service $s not enabled." >>$out
   fi
 done
 unset list
@@ -600,8 +600,8 @@ exitme=false
 for p in ${packages[@]};do
   dnf list installed $p 1>>/dev/null 2>>$out ; result=$?
   if [[ $result != 0 ]]; then
-    echo "($headname) [EXIT] package $p not installed, see documentation page \"Setup SLURM Server\""
-    echo "($headname) [EXIT] package $p not installed, system status exit code $result" >> $out
+    echoplus 0 "($headname) [EXIT] package $p not installed, see documentation page \"Setup SLURM Server\""
+    echoplus 0 "($headname) [EXIT] package $p not installed, system status exit code $result" >> $out
     exitme=true
   fi
 done
@@ -620,12 +620,12 @@ unset packages
 headSlurmConf=0
 slurmConfFile='/opt/flight/opt/slurm/etc/slurm.conf'
 if [[ ! -f $slurmConfFile ]]; then
-  echo "($headname) slurm conf file does not exist, see documentation page \"Setup SLURM Server\""
-  echo "($headname) $slurmConfFile does not exist" >>$out
+  echoplus 0 "($headname) slurm conf file does not exist, see documentation page \"Setup SLURM Server\""
+  echoplus 0 "($headname) $slurmConfFile does not exist" >>$out
 else # if it does exist, then is it empty?
   if [[ ! -s $slurmConfFile ]]; then
-    echo "($headname) slurm configuration not set, see documentation page \"Setup SLURM Server\""
-    echo "($headname) slurm configuration not set." >> $out
+    echoplus 0 "($headname) slurm configuration not set, see documentation page \"Setup SLURM Server\""
+    echoplus 0 "($headname) slurm configuration not set." >> $out
   else
     headSlurmConf=$(cat $slurmConfFile)
   fi
@@ -641,13 +641,13 @@ subDirs=(log run spool 'spool/slurm.state')
 
 for s in ${subDirs[@]};do
   if [[ ! -d "$primeDir""$s" ]];then # Test 3 - does the "-d" need to be a "-f" ?
-    echo "($headname) Directory/File \""$primeDir""$s"\" does not exist, see documentation page \"Setup SLURM Server\""
-    echo "($headname) Directory/File \""$primeDir""$s"\" does not exist." >> $out
+    echoplus 0 "($headname) Directory/File \""$primeDir""$s"\" does not exist, see documentation page \"Setup SLURM Server\""
+    echoplus 0 "($headname) Directory/File \""$primeDir""$s"\" does not exist." >> $out
   else # Test 4
     user=$(stat -c '%U' "$primeDir""$s") 
     if [[ ! $user = nobody ]];then
-      echo "($headname) Directory/File \""$primeDir""$s"\" is owned by the wrong user, see documentation page \"Setup SLURM Server\""
-      echo "($headname) Directory/File \""$primeDir""$s"\" is owned by \"$user\", should be owned by \"nobody\"" >> $out
+      echoplus 0 "($headname) Directory/File \""$primeDir""$s"\" is owned by the wrong user, see documentation page \"Setup SLURM Server\""
+      echoplus 0 "($headname) Directory/File \""$primeDir""$s"\" is owned by \"$user\", should be owned by \"nobody\"" >> $out
     fi
   fi
 done
@@ -659,26 +659,26 @@ unset user
 headMunge=0
 mungeFile='/etc/munge/munge.key'
 if [[ ! -f $mungeFile ]]; then
-  echo "($headname) munge key does not exist, see documentation page \"Setup SLURM Server\""
-  echo "($headname) munge.key does not exist" >>$out
+  echoplus 0 "($headname) munge key does not exist, see documentation page \"Setup SLURM Server\""
+  echoplus 0 "($headname) munge.key does not exist" >>$out
 else # if it does exist, then is it empty?
   if [[ ! -s $mungeFile ]]; then
-    echo "($headname) munge key not set, see documentation page \"Setup SLURM Server\""
-    echo "($headname) munge key not set." >> $out
+    echoplus 0 "($headname) munge key not set, see documentation page \"Setup SLURM Server\""
+    echoplus 0 "($headname) munge key not set." >> $out
   else
     headMunge=$(cat $mungeFile)
   fi
   # test 6: make sure owner of munge key is correct
   user=$(stat -c '%U' $mungeFile) 
   if [[ ! $user = "munge" ]]; then
-    echo "($headname) munge.key is owned by the wrong user, see documentation page \"Setup SLURM Server\""
-    echo "($headname) munge.key is owned by \"$user\", should be owned by \"munge\"" >>$out
+    echoplus 0 "($headname) munge.key is owned by the wrong user, see documentation page \"Setup SLURM Server\""
+    echoplus 0 "($headname) munge.key is owned by \"$user\", should be owned by \"munge\"" >>$out
   fi
   # Test 7: make sure permission are correct on munge key chmod 400 /etc/munge/munge.key
   perm=$(stat -c %a $mungeFile)
   if [[ ! $perm = 400 ]];then
-     echo "($headname) munge.key permissions are incorrect, see documentation page \"Setup SLURM Server\""
-     echo "($headname) munge.key permissions are \"$perm\", should be \"400\"">>$out
+     echoplus 0 "($headname) munge.key permissions are incorrect, see documentation page \"Setup SLURM Server\""
+     echoplus 0 "($headname) munge.key permissions are \"$perm\", should be \"400\"">>$out
   fi
 fi
 
@@ -691,13 +691,13 @@ services=(munge flight-slurmctld)
 for s in ${services[@]}; do
   systemctl status $s 1>>/dev/null 2>>$out; result=$?
   if [[ $result != 0 ]];then
-    echo "($headname) $s not started, see documentation page \"Setup SLURM Server\""
-    echo "($headname) $s not started, system status exit code $result" >>$out
+    echoplus 0 "($headname) $s not started, see documentation page \"Setup SLURM Server\""
+    echoplus 0 "($headname) $s not started, system status exit code $result" >>$out
     exitme=true
   fi
   if [[ $(systemctl is-enabled $s) != "enabled" ]]; then
-    echo "($headname) $s is not enabled, see documentation page \"Setup SLURM Server\""
-    echo "($headname) $s is not enabled." >> $out
+    echoplus 0 "($headname) $s is not enabled, see documentation page \"Setup SLURM Server\""
+    echoplus 0 "($headname) $s is not enabled." >> $out
   fi
 done
 
@@ -714,16 +714,16 @@ for c in ${cnodeList[@]};do
   for p in ${packages[@]};do
     ssh $c "dnf list installed $p" 1>>/dev/null 2>>$out ; result=$?
     if [[ $result != 0 ]]; then
-      echo "($c) package $p not installed, see documentation page \"Setup SLURM Clients\""
-      echo "($c) package $p not installed, system status exit code $result" >> $out
+      echoplus 0 "($c) package $p not installed, see documentation page \"Setup SLURM Clients\""
+      echoplus 0 "($c) package $p not installed, system status exit code $result" >> $out
       exitme=true
     fi
   done
 
   if [[ $exitme = true ]];then
     remove_cnode $c
-    echo "($c) no further tests on this node"
-    echo "($c) no further tests on this node" >> $out
+    echoplus 0 "($c) no further tests on this node"
+    echoplus 0 "($c) no further tests on this node" >> $out
   fi
 done
 
@@ -733,17 +733,17 @@ done
 for c in ${cnodeList[@]}; do 
   # slurmConfFile is unchanged
   if [[ $(ssh $c '[ -f '"$slurmConfFile"' ] ; echo $?') != 0 ]]; then
-    echo "($c) slurm conf file does not exist, see documentation page \"Setup SLURM Clients\""
-    echo "($c) $slurmConfFile does not exist" >>$out
+    echoplus 0 "($c) slurm conf file does not exist, see documentation page \"Setup SLURM Clients\""
+    echoplus 0 "($c) $slurmConfFile does not exist" >>$out
   else # if it does exist, then is it empty?
     if [[ $(ssh $c '[ -s '"$slurmConfFile"' ] ; echo $?') != 0 ]]; then
-      echo "($c) slurm configuration not set, see documentation page \"Setup SLURM Clients\""
-      echo "($c) slurm configuration not set." >> $out
+      echoplus 0 "($c) slurm configuration not set, see documentation page \"Setup SLURM Clients\""
+      echoplus 0 "($c) slurm configuration not set." >> $out
     else
       cnodeSlurmConf=$(ssh $c "cat $slurmConfFile" 2>>$out) 
       if [[ "$cnodeSlurmConf" != "$headSlurmConf" ]];then
-        echo "($c)/($headname) slurm configuration is not consistent between nodes, see documentation pages \"Setup SLURM Server\" and \"Setup SLURM Clients\""
-        echo "($c)/($headname) slurm configuration is not consistent between nodes" >>$out
+        echoplus 0 "($c)/($headname) slurm configuration is not consistent between nodes, see documentation pages \"Setup SLURM Server\" and \"Setup SLURM Clients\""
+        echoplus 0 "($c)/($headname) slurm configuration is not consistent between nodes" >>$out
       fi
     fi
   fi
@@ -759,14 +759,14 @@ for c in ${cnodeList[@]}; do
   subDirs=(log run spool)
   for s in ${subDirs[@]};do
     if [[ $(ssh $c '[ -d '"$primeDir""$s"' ] ; echo $?') != 0 ]]; then # Test 3
-      echo "($c) Directory/File \""$primeDir""$s"\" does not exist, see documentation page \"Setup SLURM Server\""
-      echo "($c) Directory/File \""$primeDir""$s"\" does not exist." >> $out
+      echoplus 0 "($c) Directory/File \""$primeDir""$s"\" does not exist, see documentation page \"Setup SLURM Server\""
+      echoplus 0 "($c) Directory/File \""$primeDir""$s"\" does not exist." >> $out
       exitme=true
     else # Test 4
       user=$(ssh $c 'stat -c ''%U '"$primeDir""$s" 2>>$out)
       if [[ ! $user = nobody ]];then
-        echo "($c) Directory/File \""$primeDir""$s"\" is owned by the wrong user, see documentation page \"Setup SLURM Server\""
-        echo "($c) Directory/File \""$primeDir""$s"\" is owned by \"$user\", should be owned by \"nobody\"" >> $out
+        echoplus 0 "($c) Directory/File \""$primeDir""$s"\" is owned by the wrong user, see documentation page \"Setup SLURM Server\""
+        echoplus 0 "($c) Directory/File \""$primeDir""$s"\" is owned by \"$user\", should be owned by \"nobody\"" >> $out
         exitme=true
       fi
     fi
@@ -778,13 +778,13 @@ for c in ${cnodeList[@]}; do
   # headMunge contains the head munge key
   # mungeFile contains the file location of the munge key
   if [[ $(ssh $c '[ -f '"$mungeFile"' ] ; echo $?') != 0 ]]; then
-    echo "($c) munge key does not exist, see documentation page \"Setup SLURM Clients\""
-    echo "($c) munge.key does not exist" >>$out
+    echoplus 0 "($c) munge key does not exist, see documentation page \"Setup SLURM Clients\""
+    echoplus 0 "($c) munge.key does not exist" >>$out
     exitme=true
   else # if it does exist, then is it empty?
     if [[ $(ssh $c '[ -s '"$mungeFile"' ] ; echo $?') != 0 ]]; then
-      echo "($c) munge key not set, see documentation page \"Setup SLURM Clients\""
-      echo "($c) munge key not set." >> $out
+      echoplus 0 "($c) munge key not set, see documentation page \"Setup SLURM Clients\""
+      echoplus 0 "($c) munge key not set." >> $out
       exitme=true
     else
       cnodeMunge=$(ssh $c 'cat '"$mungeFile")
@@ -792,20 +792,20 @@ for c in ${cnodeList[@]}; do
     # test 6: make sure owner of munge key is correct
     user=$(ssh $c 'stat -c ''%U'" $mungeFile" 2>>$out)
     if [[ ! $user = "munge" ]]; then
-      echo "($c) munge.key is owned by the wrong user, see documentation page \"Setup SLURM Clients\""
-      echo "($c) munge.key is owned by \"$user\", should be owned by \"munge\"" >>$out
+      echoplus 0 "($c) munge.key is owned by the wrong user, see documentation page \"Setup SLURM Clients\""
+      echoplus 0 "($c) munge.key is owned by \"$user\", should be owned by \"munge\"" >>$out
       exitme=true
     fi
     # Test 7: make sure permission are correct on munge key chmod 400 /etc/munge/munge.key
     perm=$(ssh $c 'stat -c ''%a'" $mungeFile")
     if [[ ! $perm = 400 ]];then
-       echo "($c) munge.key permissions are incorrect, see documentation page \"Setup SLURM Clients\""
-       echo "($c) munge.key permissions are \"$perm\", should be \"400\"">>$out
+       echoplus 0 "($c) munge.key permissions are incorrect, see documentation page \"Setup SLURM Clients\""
+       echoplus 0 "($c) munge.key permissions are \"$perm\", should be \"400\"">>$out
        exitme=true
     fi
     if [[ "$headMunge" != "$cnodeMunge" ]];then
-      echo "($c) ($headname) munge key is not consistent between nodes, see documentation pages \"Setup SLURM Server\" and \"Setup SLURM Clients\""
-      echo "($c) ($headname) munge key is not consistent between nodes" >>$out
+      echoplus 0 "($c) ($headname) munge key is not consistent between nodes, see documentation pages \"Setup SLURM Server\" and \"Setup SLURM Clients\""
+      echoplus 0 "($c) ($headname) munge key is not consistent between nodes" >>$out
       exitme=true
     fi
   fi
@@ -823,20 +823,20 @@ for c in ${cnodeList[@]}; do
   for s in ${services[@]}; do
     ssh $c 'systemctl status '"$s" 1>>/dev/null 2>>$out; result=$?
     if [[ $result != 0 ]];then
-      echo "($c) $s not started, see documentation page \"Setup SLURM Clients\""
-      echo "($c) $s not started, system status exit code $result" >>$out
+      echoplus 0 "($c) $s not started, see documentation page \"Setup SLURM Clients\""
+      echoplus 0 "($c) $s not started, system status exit code $result" >>$out
       exitme=true
     fi
     if [[ $(ssh $c 'systemctl is-enabled '"$s") != "enabled" ]]; then
-      echo "($c) $s is not enabled, see documentation page \"Setup SLURM Clients\""
-      echo "($c) $s is not enabled." >> $out
+      echoplus 0 "($c) $s is not enabled, see documentation page \"Setup SLURM Clients\""
+      echoplus 0 "($c) $s is not enabled." >> $out
       exitme=true
     fi
   done
 
    if [[ "$exitme" = true ]];then
-    echo "($c) [EXIT] No further testing possible on this node."
-    echo "($c) [EXIT]" >>$out
+    echoplus 0 "($c) [EXIT] No further testing possible on this node."
+    echoplus 0 "($c) [EXIT]" >>$out
     remove_cnode $c
     continue
   fi
@@ -857,24 +857,24 @@ sharedUser="flight"
 if id $sharedUser 1>>/dev/null 2>>$out; then
   passwdStatus=$(passwd --status "$sharedUser" | awk '{print $2}')
   if [[ "$passwdStatus" != "PS" ]];then
-    echo "($headname) shared user \"$sharedUser\" does not have a password on this node, see documentation page \"Create Shared User\""
-    echo "($headname) shared user \"$sharedUser\" does not have a password on this node, passwd state $passwdStatus" >>$out
+    echoplus 0 "($headname) shared user \"$sharedUser\" does not have a password on this node, see documentation page \"Create Shared User\""
+    echoplus 0 "($headname) shared user \"$sharedUser\" does not have a password on this node, passwd state $passwdStatus" >>$out
   fi
 else
-  echo "($headname) shared user \"$sharedUser\" does not exist on this node, see documentation page \"Create Shared User\""
-  echo "($headname) shared user \"$sharedUser\" does not exist on this node." >>$out
+  echoplus 0 "($headname) shared user \"$sharedUser\" does not exist on this node, see documentation page \"Create Shared User\""
+  echoplus 0 "($headname) shared user \"$sharedUser\" does not exist on this node." >>$out
 fi
 
 for c in ${cnodeList[@]};do
   if ssh $c "id $sharedUser" 1>>/dev/null 2>>$out; then
     passwdStatus=$(ssh $c 'passwd --status '"$sharedUser"' | awk '\''{print $2}'\')
     if [[ "$passwdStatus" != "PS" ]];then
-      echo "($c) shared user \"$sharedUser\" does not have a password on this node, see documentation page \"Create Shared User\""
-      echo "($c) shared user \"$sharedUser\" does not have a password on this node, passwd state $passwdStatus" >>$out
+      echoplus 0 "($c) shared user \"$sharedUser\" does not have a password on this node, see documentation page \"Create Shared User\""
+      echoplus 0 "($c) shared user \"$sharedUser\" does not have a password on this node, passwd state $passwdStatus" >>$out
     fi
   else
-    echo "($c) shared user \"$sharedUser\" does not exist on this node, see documentation page \"Create Shared User\""
-    echo "($c) shared user \"$sharedUser\" does not exist on this node." >>$out
+    echoplus 0 "($c) shared user \"$sharedUser\" does not exist on this node, see documentation page \"Create Shared User\""
+    echoplus 0 "($c) shared user \"$sharedUser\" does not exist on this node." >>$out
   fi
 done
 
@@ -894,8 +894,8 @@ exitme=false
 for p in ${packages[@]};do
   dnf list installed $p 1>>/dev/null 2>>$out ; result=$?
   if [[ $result != 0 ]]; then
-    echo "($headname) package $p not installed, see documentation page \"Install Genders and PDSH\""
-    echo "($headname) package $p not installed, system status exit code $result" >> $out
+    echoplus 0 "($headname) package $p not installed, see documentation page \"Install Genders and PDSH\""
+    echoplus 0 "($headname) package $p not installed, system status exit code $result" >> $out
     exitme=true
   fi
 done
