@@ -59,6 +59,8 @@ do
 done
 
 # ---------------------- Testing Zone -------------------------
+  
+
 #--------------------------------------------------------------
 
 
@@ -826,7 +828,7 @@ done
 # Test 2: check if  the user has a password
 
 sharedUser="flight"
-if id \"$sharedUser\" 1>>/dev/null 2>>$out; then
+if id $sharedUser 1>>/dev/null 2>>$out; then
   passwdStatus=$(passwd --status "$sharedUser" | awk '{print $2}')
   if [[ "$passwdStatus" != "PS" ]];then
     echo "($headname) shared user \"$sharedUser\" does not have a password on this node, see documentation page \"Create Shared User\""
@@ -840,7 +842,6 @@ fi
 for c in ${cnodeList[@]};do
   if ssh $c "id $sharedUser" 1>>/dev/null 2>>$out; then
     passwdStatus=$(ssh $c 'passwd --status '"$sharedUser"' | awk '\''{print $2}'\')
-    echo $passwdStatus
     if [[ "$passwdStatus" != "PS" ]];then
       echo "($c) shared user \"$sharedUser\" does not have a password on this node, see documentation page \"Create Shared User\""
       echo "($c) shared user \"$sharedUser\" does not have a password on this node, passwd state $passwdStatus" >>$out
@@ -855,3 +856,27 @@ done
 
 
 # Page 11: Install Genders and PDSH
+
+# only on head node
+
+# Test 1: check that its installed
+
+unset packages
+packages=(flight-pdsh)
+
+exitme=false
+for p in ${packages[@]};do
+  dnf list installed $p 1>>/dev/null 2>>$out ; result=$?
+  if [[ $result != 0 ]]; then
+    echo "($headname) package $p not installed, see documentation page \"Install Genders and PDSH\""
+    echo "($headname) package $p not installed, system status exit code $result" >> $out
+    exitme=true
+  fi
+done
+
+if [[ $exitme = true ]];then
+  exit 1
+fi
+unset result
+unset packages
+
