@@ -1,10 +1,28 @@
 #!/bin/bash -l
 
+# these lines turn the input option into just the first non dash character
+outputStyle=$1 #options include: -v/--verbose -q/--quiet -e/--error
+temp=$(echo "$outputStyle" | sed -e 's/-//g')
+outputStyle=$(echo $temp |  cut -c 1)
+
+case $outputStyle in
+  "v" )
+    outputStyle=3;;
+  "q" )
+    outputStyle=1;;
+  "e" ) 
+    outputStyle=0;;
+  * )
+    outputStyle=2;;
+esac
+
 # this script should be run as root from the head node
 
 # ok we'll make a script to test if the head node has been setup properly
 
 out=/var/log/setup_test.out
+
+# ----------------Function Zone---------------------
 
 # function to remove items
 remove_item () {
@@ -29,21 +47,28 @@ remove_cnode(){
   unset temp
 }
 
-# ---------------Testing Zone ------------------------
 
-# ---------------------------------------------------
+echoplus() { # adds options to echo like verbose etc
+  local verbosity=$1
+  shift
+  local text=("$@")
+  if [[ "$verbosity" -le "$outputStyle" ]];then
+    echo "${text[*]}"
+  fi     
+}
+
+# -----------------END------------------------------
 
 
 # function to check for repo
 
-echo "Node names required, enter name or leave blank if all have been named."
+echoplus 0 "Node names required, enter name or leave blank if all have been named."
 
 # change this back later, im making it hard coded for faster testing
-#echo "Enter HEAD node name: "
-# read headname
-headname="chead1"
+echoplus 0 "Enter HEAD node name: "
+read headname
 
-echo "Enter COMPUTE node name (leave blank if all named)"
+echoplus 0 "Enter COMPUTE node name (leave blank if all named)"
 
 read cnodeName
 
@@ -82,10 +107,11 @@ echo "-----------" >> $out
 
 # now we know what all the compute nodes are we can get onto testing
 
+echoplus 2 "Performing tests for Node Setup."
 # Page 1: Node Setup
 
 # Test 1: ping all nodes
-
+echoplus 3 "Test 1: ping all nodes"
 for c in ${cnodeList[@]}; do
 	ping $c -c 1  >> /dev/null 2>>$out 
 	
@@ -496,7 +522,7 @@ for c in ${cnodeList[@]};do
     echo "($c) cluster name not set" >>$out
   fi
 done
-
+# check that clustername is consistent across nodes
 
 # Page 7: Install Flight Web Suite
 
