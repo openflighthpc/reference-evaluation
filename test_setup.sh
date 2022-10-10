@@ -20,7 +20,7 @@ esac
 
 # ok we'll make a script to test if the head node has been setup properly
 
-out=/var/log/setup_test.out
+out=/var/log/configuration_test.out
 
 # ----------------Function Zone---------------------
 
