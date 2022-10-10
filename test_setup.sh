@@ -74,8 +74,8 @@ check_installed () {
     fi
     # error messages are the same regardless of node
     if [[ "$result" != "0" ]]; then
-        echo "($node) $i not installed, see documentation page \"$docpage\""
-        echo "($node) $i not installed, exit code $result" >> $out
+        echoplus 0 "($node) $i is not installed, see documentation page \"$docpage\""
+        echoplus 0 "($node) $i is not installed, exit code $result" >> $out
         badinstall=true
       fi
   done
@@ -88,6 +88,8 @@ check_installed () {
     else
       remove_cnode $node
     fi
+  else
+    echoplus 3 "($node) All necessary packages are installed"
   fi
 }
 
@@ -261,42 +263,25 @@ for c in ${cnodeList[@]}; do # now check compute nodes
   done
 done
 
-echoplus 2 ""
-# Page 3: Install Repositories
-echoplus 1 "Performing tests for Install Repositories"
 
+# Page 3: Install Repositories
+echoplus 2 ""
+echoplus 1 "Performing tests for Install Repositories"
 
 # Test 1: check if the epel repo is installed on the head
 echoplus 2 "Test 1: Check if epel-release is installed on $headname"
+
 packages=(epel-release)
-
-
-for p in ${packages[@]}; do
-	dnf list installed $p 1>>/dev/null 2>>$out; result=$?
-
-	if [[ $result != 0 ]]
-	then
-		echoplus 0 "($headname) $p package error, check doc page \"Install Repositories\" "
-		echoplus 0 "($headname) $p package error code: $result" >> $out
-	fi
-done
+check_installed 'Install Repositories' "$headname" "${packages[*]}"
 
 # Test 2: (SSH) Check if the epel repo is installed on the other nodes
 echoplus 2 "Test 2: Check if epel-release is installed on compute nodes"
 
-
-for p in ${packages[@]}; do
-	for c in ${cnodeList[@]}; do
-    ssh $c "dnf list installed $p" exit 1>>/dev/null 2>>$out ; result=$?
-
-    if [[ $result != 0 ]]; then
-      echoplus 0 "($c) $p package error, check doc page \"Install Repositories\" "
-      echoplus 0 "($c) $p package error code: $result" >> $out
-    else
-      echoplus 3 "($c) package $p is installed."
-    fi
-	done
+for c in ${cnodeList[@]};do
+  check_installed 'Install Repositories' "$c" "${packages[*]}"
 done
+unset packages
+
 
 echoplus 2 ""
 # Page 4: Setup NFS Server
@@ -307,6 +292,10 @@ echoplus 1 "Performing tests for Setup NFS Server"
 # Test 1: make sure nfs-utils is installed
 
 echoplus 2 "Test 1: Check if nfs-utils is installed"
+
+packages=(nfs-utils)
+check_installed 'Setup NFS Server' "$headname" "${packages[*]}"
+
 
 # Test 2: check for necessary directories on the head node
 echoplus 2 "Test 2: Check existence of directories for nfs"
@@ -396,8 +385,15 @@ echoplus 2 ""
 # Page 5: Setup NFS Clients
 echoplus 1 "Performing tests for Setup NFS Clients"
 
+echoplus 2 "Test 1: Check nfs installation"
+
+for c in ${cnodeList[@]};do
+  check_installed 'Setup NFS Clients' "$c" "${packages[*]}"
+done
+unset packages
+
 # Test 1: check that /opt/ exists
-echoplus 2 "Test 1: Check existence of /opt"
+echoplus 2 "Test 2: Check existence of /opt"
 
 subDirs=(apps data service site)
 
@@ -416,7 +412,7 @@ done
 unset outDir
 
 # Test 2: check that $(df -t nfs) shows what we're expecting
-echoplus 2 "Test 2: Confirm mount points"
+echoplus 2 "Test 3: Confirm mount points"
 
 for c in ${cnodeList[@]};do
   unset result
@@ -469,7 +465,7 @@ for r in ${repos[@]};do
     echoplus 0 "($headname) repository $r not found" >> $out
     exit 1
   else
-    echoplus 3 "($headname) reposity $r is installed."
+    echoplus 3 "($headname) reposity $r is enabled."
   fi
 done
 unset result
@@ -486,7 +482,7 @@ for c in ${cnodeList[@]}; do
       echoplus 0 "($c) repository $r not found" >> $out
       remove_cnode $c
     else
-      echoplus 3 "($c) reposity $r is installed"
+      echoplus 3 "($c) reposity $r is enabled"
     fi
   done
 done
@@ -499,31 +495,12 @@ echoplus 2 "Test 2: Check that necessary packages are installed"
 unset packages
 packages=(flight-user-suite flight-plugin-system-systemd-service)
 
-for p in ${packages[@]};do
-  dnf list installed $p 1>>/dev/null 2>>$out ; result=$?
-  if [[ $result != 0 ]]; then
-    echoplus 0 "($headname) package $p not installed, see documentation page \"Install Flight\""
-    echoplus 0 "($headname) package $p not installed, system status exit code $result" >> $out
-    exit 1
-  else
-    echoplus 3 "($headname) package $p is installed."
-  fi
-done
-unset result
-
-# now compute node
+check_installed 'Install Flight' "$headname" "${packages[*]}"
 for c in ${cnodeList[@]};do
-  for p in ${packages[@]};do
-    ssh $c "dnf list installed $p" exit 1>>/dev/null 2>>$out ; result=$?
-    if [[ $result != 0 ]]; then
-      echoplus 0 "($c) package $p not installed, see documentation page \"Install Flight\""
-      echoplus 0 "($c) package $p not installed, system status exit code $result" >> $out
-      remove_cnode $c
-    else
-      echoplus 3 "($c) package $p is installed."
-    fi
-  done
+  check_installed 'Install Flight' "$c" "${packages[*]}"
 done
+unset packages
+
 
 # Test 3: make sure flight-service is started
 echoplus 2 "Test 3: Check if flight-service has started"
@@ -576,16 +553,16 @@ for c in ${cnodeList[@]};do
   ssh $c "flight" 1>>/dev/null 2>>$out; result=$?
   #echoplus 0 "($c) flight exit code is: $result"
   if [[ $result = 127 ]];then
-    echoplus 0 "($c) [END] flight path not set, see documentation page \"Install Flight\""
-    echoplus 0 "($c) [END] flight path not set, system status exit code $result" >>$out
+    echoplus 0 "($c) flight path not set, see documentation page \"Install Flight\""
+    echoplus 0 "($c) flight path not set, system status exit code $result" >>$out
     remove_cnode $c
   else
     
     ssh $c 'flight | grep -q "not currently active"' ; result=$?
 
     if [[ $result = 0 ]];then
-      echoplus 0 "($c) [END] flight not started or not set to always on, see documentation page \"Install Flight\""
-      echoplus 0 "($c) [END] flight not started or not set to always on" >>$out
+      echoplus 0 "($c) flight not started or not set to always on, see documentation page \"Install Flight\""
+      echoplus 0 "($c) flight not started or not set to always on" >>$out
       remove_cnode $c
     elif [[ $result = 1 ]];then
       echoplus 3 "($c) Flight running without errors"
@@ -629,16 +606,7 @@ echoplus 2 "Test 1: Check if Flight Web Suite has been installed"
 
 unset packages
 packages=(flight-web-suite)
-
-for p in ${packages[@]};do
-  dnf list installed $p 1>>/dev/null 2>>$out ; result=$?
-  if [[ $result != 0 ]]; then
-    echoplus 0 "($headname) package $p not installed, see documentation page \"Install Flight Web Suite\""
-    echoplus 0 "($headname) package $p not installed, system status exit code $result" >> $out
-    exit 1
-  fi
-done
-unset result
+check_installed 'Install Flight Web Suite' "$headname" "${packages[*]}" 
 unset packages
 
 # Test 2: check that the domain is correct
@@ -693,25 +661,8 @@ echoplus 2 "Test 1: Check that necessary packages are installed"
 
 unset packages
 packages=(munge munge-libs perl-Switch numactl flight-slurm flight-slurm-slurmctld flight-slurm-devel flight-slurm-perlapi flight-slurm-torque flight-slurm-slurmd flight-slurm-example-configs flight-slurm-libpmi)
-
-exitme=false
-for p in ${packages[@]};do
-  dnf list installed $p 1>>/dev/null 2>>$out ; result=$?
-  if [[ $result != 0 ]]; then
-    echoplus 0 "($headname) package $p not installed, see documentation page \"Setup SLURM Server\""
-    echoplus 0 "($headname) package $p not installed, system status exit code $result" >> $out
-    exitme=true
-  else
-    echoplus 3 "($headname) package $p is installed."
-  fi
-done
-
-if [[ $exitme = true ]];then
-  exit 1
-fi
-unset result
+check_installed 'Setup SLURM Server' "$headname" "${packages[*]}"
 unset packages
-
 
 # Test 2: check that the correct information is in the slurm conf file at /opt/flight/opt/slurm/etc/slurm.conf
 echoplus 2 "Test 2: Check validity of slurm.conf file"
@@ -825,27 +776,10 @@ echoplus 1 "Performing tests for Setup SLURM Clients"
 echoplus 2 "Test 1: Check installation of necessary packages"
 unset packages
 packages=(munge munge-libs perl-Switch numactl flight-slurm flight-slurm-devel flight-slurm-perlapi flight-slurm-torque flight-slurm-slurmd flight-slurm-example-configs flight-slurm-libpmi)
-
 for c in ${cnodeList[@]};do
-  exitme=false
-  for p in ${packages[@]};do
-    ssh $c "dnf list installed $p" 1>>/dev/null 2>>$out ; result=$?
-    if [[ $result != 0 ]]; then
-      echoplus 0 "($c) package $p not installed, see documentation page \"Setup SLURM Clients\""
-      echoplus 0 "($c) package $p not installed, system status exit code $result" >> $out
-      exitme=true
-    fi
-  done
-
-  if [[ $exitme = true ]];then
-    remove_cnode $c
-    echoplus 0 "($c) no further tests on this node"
-    echoplus 0 "($c) no further tests on this node" >> $out
-  else
-    echoplus 3 "($c) All packages installed on this node"
-  fi
+  check_installed 'Setup SLURM Clients' "$c" "${packages[*]}"
 done
-
+unset packages
 
 # Test 2: make sure slurm conf file on compute nodes is the same as on head node
 echoplus 2 "Test 2: Check validity of slurm.conf file"
@@ -1026,21 +960,5 @@ echoplus 2 "Test 1: Check flight-pdsh installation"
 unset packages
 packages=(flight-pdsh)
 
-exitme=false
-for p in ${packages[@]};do
-  dnf list installed $p 1>>/dev/null 2>>$out ; result=$?
-  if [[ $result != 0 ]]; then
-    echoplus 0 "($headname) package $p not installed, see documentation page \"Install Genders and PDSH\""
-    echoplus 0 "($headname) package $p not installed, system status exit code $result" >> $out
-    exitme=true
-  fi
-done
-
-if [[ $exitme = true ]];then
-  exit 1
-else
-  echoplus 3 "($c) flight-pdsh is installed."
-fi
-unset result
+check_installed 'Install Genders and PDSH' "$headname" "${packages[*]}"
 unset packages
-
