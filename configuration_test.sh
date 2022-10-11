@@ -60,12 +60,11 @@ echoplus() { # adds options to echo like verbose etc
 # Function to check if stuff is installed
 
 check_installed () {
-  local docPage=$1 # the relevant doc page for use in the error message
+  local docpage=$1 # the relevant doc page for use in the error message
   local node=$2 # the node this check should be done on
   shift; shift
   local installs=("$@") # the installs that need to be checked
   badinstall=false
-
   for i in ${installs[@]};do
     if [[ "$node" = "$headname" ]];then
       dnf list installed $i 1>>/dev/null 2>>$out ; result=$?
@@ -118,15 +117,8 @@ do
 	echoplus 0 "Enter COMPUTE node name (leave blank if all named)"
 	read cnodeName
 done
-
-# ---------------------- Testing Zone -------------------------
   
-
-#--------------------------------------------------------------
-
-
 # print them out to make sure we're doing things right
-
 echoplus 0 "-----------" >> $out
 echoplus 0 "Head node is: $headname" > $out
 echoplus 0 "-----------" >> $out
@@ -135,11 +127,6 @@ for c in ${cnodeList[@]}; do
 	echo $c >> $out
 done
 echoplus 0 "-----------" >> $out
-
-
-# ---------------------- Testing Zone -------------------------
-#--------------------------------------------------------------
-
 
 # now we know what all the compute nodes are we can get onto testing
 echoplus 2 ""
@@ -196,7 +183,7 @@ echoplus 2 ""
 echoplus 1 "Performing tests for SSH Keys for Root"
 
 # Test 1: should be able to ssh into other nodes
-echoplus 2 "Test 1: should be able to ssh into other nodes"
+echoplus 2 "Test 1: Check ability to ssh into compute nodes"
 
 sshList=()
 
@@ -272,7 +259,7 @@ echoplus 1 "Performing tests for Install Repositories"
 echoplus 2 "Test 1: Check if epel-release is installed on $headname"
 
 packages=(epel-release)
-check_installed 'Install Repositories' "$headname" "${packages[*]}"
+check_installed "Install Repositories" "$headname" "${packages[*]}"
 
 # Test 2: (SSH) Check if the epel repo is installed on the other nodes
 echoplus 2 "Test 2: Check if epel-release is installed on compute nodes"
@@ -575,9 +562,9 @@ done
 
 # Test 5: make sure that the cluster has the correct name
 echoplus 2 "Test 5: check that cluster has the correct name"
-clustername=$(flight config get cluster.name)
+headclustername=$(flight config get cluster.name)
 
-if [[ $name = "your cluster" ]];then
+if [[ $headclustername = "your cluster" ]];then
   echoplus 0 "($headname) cluster name not set, see documentation page \"Install Flight\""
   echoplus 0 "($headname) cluster name not set" >>$out
 else
@@ -589,11 +576,16 @@ for c in ${cnodeList[@]};do
   if [[ $clustername = "your cluster" ]];then
     echoplus 0 "($c) cluster name not set, see documentation page \"Install Flight\""
     echoplus 0 "($c) cluster name not set" >>$out
+  elif [[ $clustername != $headclustername ]];then
+    echoplus 0 "($c/$headname) cluster name not consistent between nodes, see documentation page \"Install Flight\""
+    echoplus 0 "($c/$headname) cluster name not consistent between nodes" >>$out
   else
-    echoplus 3 "($c) cluster name has been set"
+    echoplus 3 "($c) cluster name has been set correctly"
   fi
 done
 # check that clustername is consistent across nodes
+
+
 
 echoplus 2 ""
 # Page 7: Install Flight Web Suite
@@ -962,3 +954,4 @@ packages=(flight-pdsh)
 
 check_installed 'Install Genders and PDSH' "$headname" "${packages[*]}"
 unset packages
+
