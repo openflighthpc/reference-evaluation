@@ -183,7 +183,7 @@ echoplus 2 ""
 echoplus 1 "Performing tests for SSH Keys for Root"
 
 # Test 1: should be able to ssh into other nodes
-echoplus 2 "Test 1: should be able to ssh into other nodes"
+echoplus 2 "Test 1: Check ability to ssh into compute nodes"
 
 sshList=()
 
