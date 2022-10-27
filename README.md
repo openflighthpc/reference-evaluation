@@ -1,2 +1,7 @@
 # reference-evaluation
-A script to test if you've set up your cluster correctly. See Documentation at https://docs.openflighthpc.org/reference_clusters/ref_cluster_centos8/configuration_testing/
+
+A series of scripts to evaluate the configuration and functionality  of a cluster.
+
+See [here](https://docs.openflighthpc.org/reference_clusters/ref_cluster_centos8/configuration_testing/) for information about the configuration tests.
+
+Documentation for functionality testing incoming.
