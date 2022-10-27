@@ -57,7 +57,7 @@
         ["xpath=//input[@id='login']", "xpath:attributes"],
         ["xpath=//input", "xpath:position"]
       ],
-      "value": "flight"
+      "value": "username"
     }, {
       "id": "b7e6f225-62da-4064-b8dd-47b8819c45c9",
       "comment": "",
@@ -70,7 +70,7 @@
         ["xpath=//input[@id='password']", "xpath:attributes"],
         ["xpath=//div[2]/input", "xpath:position"]
       ],
-      "value": "moosefly"
+      "value": "password"
     }, {
       "id": "36ad7507-fab2-4119-af57-b41af6d83152",
       "comment": "",
