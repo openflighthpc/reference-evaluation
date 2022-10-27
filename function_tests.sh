@@ -3,9 +3,10 @@
 
 # verbosity
 # 0 is errors only, not output otherwise
-# 1 is quiet
-outputlvl=4 # is default level
-# 3 is verbose, more text
+# 2 is quiet - errors and group headings
+outputlvl=3 # is default level- also adds individual tests to output
+# 4 is verbose, all the previous output and also warning and success messages
+
 
 #output
 out=test-functionality.out
