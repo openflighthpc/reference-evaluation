@@ -8,21 +8,35 @@
     "name": "1-login-test",
     "commands": [{
       "id": "40756392-3ff3-4da8-abe9-a74714876d6f",
-      "comment": "",
+      "comment": "open webpage",
       "command": "open",
       "target": "/",
       "targets": [],
       "value": ""
     }, {
       "id": "fc547d98-eacc-41ce-8b23-6a5c0e8b5945",
-      "comment": "",
+      "comment": "fullscreen",
       "command": "setWindowSize",
       "target": "1920x1048",
       "targets": [],
       "value": ""
     }, {
-      "id": "9b229af7-cc15-49a9-9b03-45ddb39cd8db",
-      "comment": "",
+      "id": "0f791771-0c80-4d15-9319-16f5bdbe879c",
+      "comment": "Check for a login button",
+      "command": "storeXpathCount",
+      "target": "xpath=//div[@id='flight-account-menu']/button",
+      "targets": [],
+      "value": "error"
+    }, {
+      "id": "e77353c3-1df6-4511-a2bd-40adeae97422",
+      "comment": "IF no login button",
+      "command": "if",
+      "target": "${error}>0",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "cb12380e-9c74-45e9-811c-a7f5d2e8ad37",
+      "comment": "Click \"Log In\"",
       "command": "click",
       "target": "css=.ml-3",
       "targets": [
@@ -33,21 +47,8 @@
       ],
       "value": ""
     }, {
-      "id": "22e1f106-069c-41fb-bb67-94ad2ef28376",
-      "comment": "",
-      "command": "click",
-      "target": "id=login",
-      "targets": [
-        ["id=login", "id"],
-        ["name=login", "name"],
-        ["css=#login", "css:finder"],
-        ["xpath=//input[@id='login']", "xpath:attributes"],
-        ["xpath=//input", "xpath:position"]
-      ],
-      "value": ""
-    }, {
       "id": "2e09c488-4127-4b15-8655-079806d647f6",
-      "comment": "",
+      "comment": "Enter Username",
       "command": "type",
       "target": "id=login",
       "targets": [
@@ -60,7 +61,7 @@
       "value": "username"
     }, {
       "id": "b7e6f225-62da-4064-b8dd-47b8819c45c9",
-      "comment": "",
+      "comment": "Enter Password",
       "command": "type",
       "target": "id=password",
       "targets": [
@@ -72,21 +73,8 @@
       ],
       "value": "password"
     }, {
-      "id": "36ad7507-fab2-4119-af57-b41af6d83152",
-      "comment": "",
-      "command": "sendKeys",
-      "target": "id=password",
-      "targets": [
-        ["id=password", "id"],
-        ["name=password", "name"],
-        ["css=#password", "css:finder"],
-        ["xpath=//input[@id='password']", "xpath:attributes"],
-        ["xpath=//div[2]/input", "xpath:position"]
-      ],
-      "value": "${KEY_ENTER}"
-    }, {
-      "id": "735b6d71-c109-4f33-b992-cbee190db62e",
-      "comment": "",
+      "id": "db468dfd-b703-46d1-ae6a-c85b503f80cb",
+      "comment": "Click \"sign in\"",
       "command": "click",
       "target": "css=.modal-footer > .btn-primary",
       "targets": [
@@ -96,27 +84,55 @@
         ["xpath=//button[contains(.,'Sign in')]", "xpath:innerText"]
       ],
       "value": ""
+    }, {
+      "id": "27ca005a-a511-4e32-b14f-9b5f7716a809",
+      "comment": "Confirm if signed in correctly",
+      "command": "waitForElementNotPresent",
+      "target": "css=.modal-footer > .btn-primary",
+      "targets": [],
+      "value": "15000"
+    }, {
+      "id": "6ad5bbff-b8b8-4bcc-8cbf-e5ed9066fdcd",
+      "comment": "ELSE",
+      "command": "else",
+      "target": "",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "1bcb42bf-07cd-4ebc-bc4e-f83ea69aa1c6",
+      "comment": "",
+      "command": "echo",
+      "target": "No login test, already signed in",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "44f9f41e-3a01-4edb-b484-c0b0ab1852dc",
+      "comment": "",
+      "command": "end",
+      "target": "",
+      "targets": [],
+      "value": ""
     }]
   }, {
     "id": "0279dfc2-64a1-437b-b4ec-b055bdf66459",
     "name": "2-console-test",
     "commands": [{
       "id": "9d077210-05ed-402b-a08b-f7e4812c2a00",
-      "comment": "",
+      "comment": "Open webpage",
       "command": "open",
       "target": "/",
       "targets": [],
       "value": ""
     }, {
-      "id": "3b38602a-dc4a-4cf4-8791-2fe2bbc6dd49",
-      "comment": "",
+      "id": "8c26b3ce-3245-4a67-9134-077cbb9cbf5f",
+      "comment": "Fullscreen",
       "command": "setWindowSize",
-      "target": "668x691",
+      "target": "1920x1048",
       "targets": [],
       "value": ""
     }, {
       "id": "f8a568af-07ac-40f7-90ad-0b7f802a0e0e",
-      "comment": "",
+      "comment": "Click on \"Console\" quick access button",
       "command": "click",
       "target": "css=li:nth-child(1) .title",
       "targets": [
@@ -127,7 +143,7 @@
       "value": ""
     }, {
       "id": "2576ff44-8bdc-4544-931f-56d68142cb67",
-      "comment": "",
+      "comment": "Press \"Connect to Terminal\"",
       "command": "click",
       "target": "linkText=Connect to terminal",
       "targets": [
@@ -141,7 +157,7 @@
       "value": ""
     }, {
       "id": "c746eca1-7887-4caf-ba20-200ee1839b81",
-      "comment": "",
+      "comment": "Click on console",
       "command": "click",
       "target": "css=.xterm-cursor-layer",
       "targets": [
@@ -152,7 +168,7 @@
       "value": ""
     }, {
       "id": "7fa5011c-3382-4d93-afba-9e963894f198",
-      "comment": "",
+      "comment": "Send test command",
       "command": "sendKeys",
       "target": "id=terminal-container",
       "targets": [
@@ -162,10 +178,22 @@
         ["xpath=//div[@id='main']/div[2]/div/div/div/div/div/div/div/div[2]/div", "xpath:idRelative"],
         ["xpath=//div/div/div/div/div[2]/div", "xpath:position"]
       ],
-      "value": "echo \"test\" > bing.out"
+      "value": "echo \"test\""
+    }, {
+      "id": "ee36284e-3423-441e-9d3e-c0082c74244e",
+      "comment": "Disconnect from console",
+      "command": "click",
+      "target": "css=.btn-secondary > span",
+      "targets": [
+        ["css=.btn-secondary > span", "css:finder"],
+        ["xpath=//div[@id='main']/div[2]/div/div/div/div/div/div/div/div/div/div/div/div/button/span", "xpath:idRelative"],
+        ["xpath=//div[2]/div/div/div/div/div/div/div/div/div/div/div/div/button/span", "xpath:position"],
+        ["xpath=//span[contains(.,'Disconnect')]", "xpath:innerText"]
+      ],
+      "value": ""
     }, {
       "id": "b941037e-7bdd-46f0-9626-7caa6ab322ba",
-      "comment": "",
+      "comment": "Return to home page",
       "command": "click",
       "target": "css=.branding-brandbar-logo",
       "targets": [
@@ -180,21 +208,21 @@
     "name": "3-desktop-test",
     "commands": [{
       "id": "c08a2fc5-9be3-46d1-9bd8-2e4c2c074020",
-      "comment": "",
+      "comment": "Open Webpage",
       "command": "open",
       "target": "/",
       "targets": [],
       "value": ""
     }, {
-      "id": "93265231-3de6-4073-b030-86b306eaae84",
-      "comment": "",
+      "id": "993aaf8f-f284-4686-ac9b-427f2b9dabc2",
+      "comment": "Fullscreen",
       "command": "setWindowSize",
-      "target": "890x982",
+      "target": "1920x1048",
       "targets": [],
       "value": ""
     }, {
       "id": "df780847-87a6-4f48-b688-7ad7c80cfb2f",
-      "comment": "",
+      "comment": "Click \"Desktops\" from Quick Access",
       "command": "click",
       "target": "css=li:nth-child(2) > a > .title",
       "targets": [
@@ -205,7 +233,7 @@
       "value": ""
     }, {
       "id": "7a6060b0-9275-40d1-9a36-650b06e4668b",
-      "comment": "",
+      "comment": "Click \"Launch\"",
       "command": "click",
       "target": "linkText=Launch",
       "targets": [
@@ -218,7 +246,7 @@
       "value": ""
     }, {
       "id": "1d9ca392-2563-4c78-b435-33101d0edc18",
-      "comment": "",
+      "comment": "Click \"launch\" for a desktop type",
       "command": "click",
       "target": "css=.btn > span",
       "targets": [
@@ -230,7 +258,7 @@
       "value": ""
     }, {
       "id": "23af1f2a-5462-4c71-aa8e-bdd859d3811d",
-      "comment": "",
+      "comment": "Confirm Launch",
       "command": "click",
       "target": "css=.ml-2",
       "targets": [
@@ -240,8 +268,20 @@
       ],
       "value": ""
     }, {
+      "id": "b33be58f-84fe-444f-8824-7c57a60082d1",
+      "comment": "Wait for desktop to load",
+      "command": "waitForElementPresent",
+      "target": "css=.btn:nth-child(4)",
+      "targets": [
+        ["css=.btn:nth-child(4)", "css:finder"],
+        ["xpath=//div[@id='main']/div[2]/div/div/div/div/div/div/div/div/div/div/div/div/button[3]", "xpath:idRelative"],
+        ["xpath=//button[3]", "xpath:position"],
+        ["xpath=//button[contains(.,'Disconnect')]", "xpath:innerText"]
+      ],
+      "value": "30000"
+    }, {
       "id": "62cc9167-354f-40eb-92f1-4c92c3bc8598",
-      "comment": "",
+      "comment": "Click on screen",
       "command": "click",
       "target": "css=canvas",
       "targets": [
@@ -252,7 +292,7 @@
       "value": ""
     }, {
       "id": "dfcc6e8f-ccd3-4560-b4b2-f1e7c6810450",
-      "comment": "",
+      "comment": "Click on \"Terminate\" button",
       "command": "click",
       "target": "xpath=//button[4]/span",
       "targets": [
@@ -264,7 +304,7 @@
       "value": ""
     }, {
       "id": "bb2fa1e5-cf10-4ecb-a5dd-f90e44ec4bf2",
-      "comment": "",
+      "comment": "Cancel termination",
       "command": "click",
       "target": "css=.btn-secondary:nth-child(1)",
       "targets": [
@@ -276,32 +316,8 @@
       "value": ""
     }, {
       "id": "1099ea10-4a12-457d-8987-87d58fd532ae",
-      "comment": "",
+      "comment": "Click on \"Prepare Paste\"",
       "command": "click",
-      "target": "css=.btn:nth-child(6)",
-      "targets": [
-        ["css=.btn:nth-child(6)", "css:finder"],
-        ["xpath=//div[@id='main']/div[2]/div/div/div/div/div/div/div/div/div/div/div/div/button[5]", "xpath:idRelative"],
-        ["xpath=//button[5]", "xpath:position"],
-        ["xpath=//button[contains(.,'Prepare paste')]", "xpath:innerText"]
-      ],
-      "value": ""
-    }, {
-      "id": "7bc5e121-13b1-4bdb-a031-fa2d0e78b04e",
-      "comment": "",
-      "command": "mouseOver",
-      "target": "css=.btn:nth-child(6)",
-      "targets": [
-        ["css=.btn:nth-child(6)", "css:finder"],
-        ["xpath=//div[@id='main']/div[2]/div/div/div/div/div/div/div/div/div/div/div/div/button[5]", "xpath:idRelative"],
-        ["xpath=//button[5]", "xpath:position"],
-        ["xpath=//button[contains(.,'Prepare paste')]", "xpath:innerText"]
-      ],
-      "value": ""
-    }, {
-      "id": "d7d70397-4286-43c4-aa29-b99ec71c7edb",
-      "comment": "",
-      "command": "mouseOut",
       "target": "css=.btn:nth-child(6)",
       "targets": [
         ["css=.btn:nth-child(6)", "css:finder"],
@@ -312,7 +328,7 @@
       "value": ""
     }, {
       "id": "3b370238-df7f-4958-990f-e95de76b2586",
-      "comment": "",
+      "comment": "Click on textbox",
       "command": "click",
       "target": "css=textarea:nth-child(3)",
       "targets": [
@@ -322,17 +338,17 @@
       "value": ""
     }, {
       "id": "9b16d0b9-4d73-4565-8984-68980b9451a7",
-      "comment": "",
+      "comment": "Type into textbox",
       "command": "type",
       "target": "css=textarea:nth-child(3)",
       "targets": [
         ["css=textarea:nth-child(3)", "css:finder"],
         ["xpath=//div[2]/textarea", "xpath:position"]
       ],
-      "value": "shoe"
+      "value": "test-paste"
     }, {
       "id": "fa0761c2-d3a5-4226-a13f-5cae16a8c3d8",
-      "comment": "",
+      "comment": "Click \"OK\"",
       "command": "click",
       "target": "css=.btn-primary",
       "targets": [
@@ -343,7 +359,7 @@
       "value": ""
     }, {
       "id": "70119d9a-4d45-4070-90cf-65306903921d",
-      "comment": "",
+      "comment": "Close paste prepared popup",
       "command": "click",
       "target": "css=.close > span",
       "targets": [
@@ -355,7 +371,7 @@
       "value": ""
     }, {
       "id": "a0e070d7-6158-46e7-8d7d-5cd4ead5de43",
-      "comment": "",
+      "comment": "Click \"Rename\"",
       "command": "click",
       "target": "xpath=//div[@id='main']/div[2]/div/div/div/div/div/div/div/div/div/div/div/div/button",
       "targets": [
@@ -369,7 +385,7 @@
       "value": ""
     }, {
       "id": "19c7f597-4a44-4f00-905b-d75363c79832",
-      "comment": "",
+      "comment": "Type new name",
       "command": "type",
       "target": "id=session-name",
       "targets": [
@@ -382,7 +398,7 @@
       "value": "name"
     }, {
       "id": "e5f32628-7152-41f3-a2f8-064ea6f362b0",
-      "comment": "",
+      "comment": "Confirm renaming",
       "command": "click",
       "target": "css=.btn-primary",
       "targets": [
@@ -393,7 +409,7 @@
       "value": ""
     }, {
       "id": "971ba44c-dd6e-4dc5-a03a-34fecf5b18cf",
-      "comment": "",
+      "comment": "Click \"Fullscreen\"",
       "command": "click",
       "target": "css=.btn:nth-child(1)",
       "targets": [
@@ -406,7 +422,7 @@
       "value": ""
     }, {
       "id": "af4f64e8-ac38-439b-9d79-3d6186b4dbcd",
-      "comment": "",
+      "comment": "Click \"Exit Fullscreen\"",
       "command": "click",
       "target": "css=.btn:nth-child(1) > span",
       "targets": [
@@ -418,7 +434,7 @@
       "value": ""
     }, {
       "id": "94ba975c-adb6-405e-abc9-2c5d89ea9331",
-      "comment": "",
+      "comment": "Click Rename",
       "command": "click",
       "target": "xpath=//div[2]/div/div/div/div/div/div/div/div/div/div/div/div/button/span",
       "targets": [
@@ -430,7 +446,7 @@
       "value": ""
     }, {
       "id": "504f4f2a-7f72-48e6-82c3-a1881456abe5",
-      "comment": "",
+      "comment": "Cancel renaming",
       "command": "click",
       "target": "css=.btn-secondary:nth-child(1)",
       "targets": [
@@ -442,7 +458,7 @@
       "value": ""
     }, {
       "id": "f605d140-1322-41ee-a890-23393613f062",
-      "comment": "",
+      "comment": "Go to homepage",
       "command": "click",
       "target": "css=.branding-brandbar-logo",
       "targets": [
@@ -453,7 +469,7 @@
       "value": ""
     }, {
       "id": "113a7829-2df4-4625-856a-7cbac514376e",
-      "comment": "",
+      "comment": "Click on \"Desktops\" under quick access",
       "command": "click",
       "target": "css=li:nth-child(2) > a > .title",
       "targets": [
@@ -463,19 +479,8 @@
       ],
       "value": ""
     }, {
-      "id": "4644ebed-568a-4b15-bb04-5253392337ae",
-      "comment": "",
-      "command": "click",
-      "target": "css=.card:nth-child(1) > .card-footer",
-      "targets": [
-        ["css=.card:nth-child(1) > .card-footer", "css:finder"],
-        ["xpath=//div[@id='main']/div[2]/div/div/div/div/div[2]/div/div[2]", "xpath:idRelative"],
-        ["xpath=//div[2]/div/div[2]", "xpath:position"]
-      ],
-      "value": ""
-    }, {
       "id": "74a90412-c415-4510-b477-fde83f702c1b",
-      "comment": "",
+      "comment": "Click on \"View sessions\"",
       "command": "click",
       "target": "linkText=View sessions",
       "targets": [
@@ -488,8 +493,22 @@
       ],
       "value": ""
     }, {
+      "id": "63a49dc1-c437-4b3b-9850-3692dfc64091",
+      "comment": "Wait for available desktop sessions to appear",
+      "command": "waitForElementPresent",
+      "target": "linkText=Connect",
+      "targets": [
+        ["linkText=Connect", "linkText"],
+        ["css=.card:nth-child(1) .btn:nth-child(1)", "css:finder"],
+        ["xpath=//div[@id='main']/div[2]/div/div/div/div[2]/div/div[2]/div/a", "xpath:idRelative"],
+        ["xpath=(//a[contains(@href, '/desktop/sessions/0f9d5d71-aadc-4092-80ab-faf31a5b3a3c')])[2]", "xpath:href"],
+        ["xpath=//div[2]/div/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Connect')]", "xpath:innerText"]
+      ],
+      "value": "30000"
+    }, {
       "id": "260c52ba-3e71-46f0-8011-5923a2c6d910",
-      "comment": "",
+      "comment": "Connect to session from list",
       "command": "click",
       "target": "css=.card:nth-child(1) .btn:nth-child(1)",
       "targets": [
@@ -500,10 +519,34 @@
       ],
       "value": ""
     }, {
+      "id": "42b4a297-6690-4d53-b492-112ff179aac8",
+      "comment": "Wait for desktop to load",
+      "command": "waitForElementPresent",
+      "target": "css=.btn:nth-child(4)",
+      "targets": [
+        ["css=.btn:nth-child(4)", "css:finder"],
+        ["xpath=//div[@id='main']/div[2]/div/div/div/div/div/div/div/div/div/div/div/div/button[3]", "xpath:idRelative"],
+        ["xpath=//button[3]", "xpath:position"],
+        ["xpath=//button[contains(.,'Disconnect')]", "xpath:innerText"]
+      ],
+      "value": "30000"
+    }, {
+      "id": "19d6d873-b56b-4217-b1d2-79f80ef5823d",
+      "comment": "Disconnect from session",
+      "command": "click",
+      "target": "css=.btn:nth-child(4)",
+      "targets": [
+        ["css=.btn:nth-child(4)", "css:finder"],
+        ["xpath=//div[@id='main']/div[2]/div/div/div/div/div/div/div/div/div/div/div/div/button[3]", "xpath:idRelative"],
+        ["xpath=//button[3]", "xpath:position"],
+        ["xpath=//button[contains(.,'Disconnect')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
       "id": "74af95a9-2c7b-4c70-8307-8d995ed7b9a4",
       "comment": "terminate session",
       "command": "click",
-      "target": "xpath=//div[2]/div/button/span",
+      "target": "xpath=//span[contains(.,'Terminate')]",
       "targets": [
         ["css=#terminate-session-e152bf46-122d-482f-8214-cce1ba722a10 > span", "css:finder"],
         ["xpath=//button[@id='terminate-session-e152bf46-122d-482f-8214-cce1ba722a10']/span", "xpath:idRelative"],
@@ -523,7 +566,7 @@
       "value": ""
     }, {
       "id": "d9aa9cdf-c184-4710-a160-27a92a132bcd",
-      "comment": "",
+      "comment": "Return to homepage",
       "command": "click",
       "target": "css=.branding-brandbar-logo",
       "targets": [
@@ -538,21 +581,21 @@
     "name": "3-job-test",
     "commands": [{
       "id": "9fb45c85-8960-49cb-af03-42cda086a240",
-      "comment": "",
+      "comment": "Open Webpage",
       "command": "open",
       "target": "/",
       "targets": [],
       "value": ""
     }, {
       "id": "0a43b1d8-f8ba-42ec-9d0d-4e0ed58b5448",
-      "comment": "",
+      "comment": "Fullscreen",
       "command": "setWindowSize",
       "target": "1920x1048",
       "targets": [],
       "value": ""
     }, {
       "id": "e8bff7f6-b589-424e-994e-3f61077008b4",
-      "comment": "",
+      "comment": "Go to \"Jobs\" in quick access",
       "command": "click",
       "target": "css=li:nth-child(4) .title",
       "targets": [
@@ -563,7 +606,7 @@
       "value": ""
     }, {
       "id": "b0660c06-5277-4f7d-a776-218ec4dae348",
-      "comment": "",
+      "comment": "Click \"Browse script templates\"",
       "command": "click",
       "target": "linkText=Browse script templates",
       "targets": [
@@ -577,14 +620,18 @@
       "value": ""
     }, {
       "id": "a82de31c-50f0-4431-9620-a822af7ec2f4",
-      "comment": "",
+      "comment": "Wait for script options",
       "command": "waitForElementVisible",
-      "target": "css=.card-deck:nth-child(3) > .card:nth-child(1) .btn",
-      "targets": [],
+      "target": "xpath=//div[3]/div/div[2]/div/a/span",
+      "targets": [
+        ["css=.card-deck:nth-child(3) > .card:nth-child(1) span", "css:finder"],
+        ["xpath=//div[@id='main']/div[2]/div/div/div/div[3]/div/div[2]/div/a/span", "xpath:idRelative"],
+        ["xpath=//div[3]/div/div[2]/div/a/span", "xpath:position"]
+      ],
       "value": "30000"
     }, {
       "id": "9713e4d2-349f-4eea-82a3-6c37fee9dc4b",
-      "comment": "",
+      "comment": "Create Simple Serial Script",
       "command": "click",
       "target": "css=.card-deck:nth-child(3) > .card:nth-child(1) .btn",
       "targets": [
@@ -596,7 +643,7 @@
       "value": ""
     }, {
       "id": "82aada27-c022-4a4d-9db8-0a510f6efe11",
-      "comment": "",
+      "comment": "Leave working directory default, Click Next",
       "command": "click",
       "target": "css=.ml-2",
       "targets": [
@@ -608,34 +655,8 @@
       ],
       "value": ""
     }, {
-      "id": "37464171-f9a9-42df-8746-658f6de2aa43",
-      "comment": "",
-      "command": "mouseOver",
-      "target": "css=.ml-2",
-      "targets": [
-        ["css=.ml-2", "css:finder"],
-        ["xpath=//button[@type='button']", "xpath:attributes"],
-        ["xpath=//div[@id='main']/div[2]/div/div/div/div/div[2]/div/button", "xpath:idRelative"],
-        ["xpath=//button", "xpath:position"],
-        ["xpath=//button[contains(.,'Next')]", "xpath:innerText"]
-      ],
-      "value": ""
-    }, {
-      "id": "8c07e7a0-2a0b-4800-bda3-a0d9fec4400f",
-      "comment": "",
-      "command": "mouseOut",
-      "target": "css=.ml-2",
-      "targets": [
-        ["css=.ml-2", "css:finder"],
-        ["xpath=(//button[@type='button'])[2]", "xpath:attributes"],
-        ["xpath=//div[@id='main']/div[2]/div/div/div/div/div[2]/div/button[2]", "xpath:idRelative"],
-        ["xpath=//button[2]", "xpath:position"],
-        ["xpath=//button[contains(.,'Next')]", "xpath:innerText"]
-      ],
-      "value": ""
-    }, {
       "id": "463ed108-b265-4a6b-bdca-eaffa7fcc4db",
-      "comment": "",
+      "comment": "Leave STDOUT default, Click Next",
       "command": "click",
       "target": "css=.ml-2",
       "targets": [
@@ -648,7 +669,7 @@
       "value": ""
     }, {
       "id": "03463de2-7980-468f-aef6-bbdf8c962916",
-      "comment": "",
+      "comment": "Leabe STDERR merge default, Click Next",
       "command": "click",
       "target": "css=.ml-2",
       "targets": [
@@ -661,7 +682,7 @@
       "value": ""
     }, {
       "id": "b5553d82-ab01-4909-bdd3-11bda22cae06",
-      "comment": "",
+      "comment": "Leave notifications default, Click Next",
       "command": "click",
       "target": "css=.ml-2",
       "targets": [
@@ -674,7 +695,7 @@
       "value": ""
     }, {
       "id": "77e161ee-0ec5-4522-8cbc-2411cd502b37",
-      "comment": "",
+      "comment": "Leave email address default, Click Next",
       "command": "click",
       "target": "css=.ml-2",
       "targets": [
@@ -687,7 +708,7 @@
       "value": ""
     }, {
       "id": "ec0038c0-47ae-488a-89e2-22e455196022",
-      "comment": "",
+      "comment": "Leave notification conditions default, Click Next",
       "command": "click",
       "target": "css=.ml-2",
       "targets": [
@@ -700,7 +721,7 @@
       "value": ""
     }, {
       "id": "9ecf8123-5dc2-47c8-b18b-4fddca6f1ea4",
-      "comment": "",
+      "comment": "Leave name default, Click Finish",
       "command": "click",
       "target": "css=.ml-2",
       "targets": [
@@ -713,7 +734,7 @@
       "value": ""
     }, {
       "id": "28be198f-c9be-4fc7-a873-c02a8a52b003",
-      "comment": "",
+      "comment": "Click \"Save job script\"",
       "command": "click",
       "target": "css=.ml-2",
       "targets": [
@@ -726,7 +747,7 @@
       "value": ""
     }, {
       "id": "78ea66e0-4d66-40ac-af81-d1dd5cd1a0de",
-      "comment": "",
+      "comment": "Submit the newly created job script",
       "command": "click",
       "target": "css=.fa-rocket",
       "targets": [
@@ -737,7 +758,7 @@
       "value": ""
     }, {
       "id": "0b2869c0-8a08-4530-881c-38dfe94b0822",
-      "comment": "",
+      "comment": "Leave expected runtime default, Click Next",
       "command": "click",
       "target": "css=.ml-2",
       "targets": [
@@ -749,7 +770,7 @@
       "value": ""
     }, {
       "id": "96e23db6-2624-494e-9e70-d571a45ab82a",
-      "comment": "",
+      "comment": "Click on the hard memory textbox",
       "command": "click",
       "target": "id=memory_limit",
       "targets": [
@@ -762,7 +783,7 @@
       "value": ""
     }, {
       "id": "864469a4-51ef-451a-aef5-2de2aeb91ee4",
-      "comment": "",
+      "comment": "Write 1",
       "command": "type",
       "target": "id=memory_limit",
       "targets": [
@@ -775,7 +796,7 @@
       "value": "1"
     }, {
       "id": "d57c26b0-0c6b-4454-be32-a26f0bef5f91",
-      "comment": "",
+      "comment": "With hard memory changed, Click Next",
       "command": "click",
       "target": "css=.ml-2",
       "targets": [
@@ -787,7 +808,7 @@
       "value": ""
     }, {
       "id": "8fc2c8aa-7e0f-4225-a190-2a4baeb4cee4",
-      "comment": "",
+      "comment": "Leave job name default, Click Next",
       "command": "click",
       "target": "css=.ml-2",
       "targets": [
@@ -799,7 +820,7 @@
       "value": ""
     }, {
       "id": "4f66bc4b-0a48-49e7-8ecd-e9ce5a14ad89",
-      "comment": "",
+      "comment": "Leave greeting default, Click Finish",
       "command": "click",
       "target": "css=.ml-2",
       "targets": [
@@ -811,7 +832,7 @@
       "value": ""
     }, {
       "id": "21374c65-cb70-4f0e-b155-724eddf71573",
-      "comment": "",
+      "comment": "Click \"Submit\" to finish submitting the job script",
       "command": "click",
       "target": "css=.ml-2",
       "targets": [
@@ -822,7 +843,7 @@
       "value": ""
     }, {
       "id": "982e8b56-52d8-4ccd-ae6f-dde2f36f8842",
-      "comment": "",
+      "comment": "Click \"Remove\"",
       "command": "click",
       "target": "xpath=//button/span",
       "targets": [
@@ -834,7 +855,7 @@
       "value": ""
     }, {
       "id": "cbf16df2-528c-4aff-aeb1-7eccc6d57846",
-      "comment": "",
+      "comment": "Confirm removal",
       "command": "click",
       "target": "css=.btn:nth-child(2) > span",
       "targets": [
@@ -844,7 +865,7 @@
       "value": ""
     }, {
       "id": "baa09f30-ed8b-4153-bc35-062b9e815ebe",
-      "comment": "",
+      "comment": "Return to homepage",
       "command": "click",
       "target": "css=.branding-brandbar-logo",
       "targets": [
@@ -855,7 +876,7 @@
       "value": ""
     }, {
       "id": "0c2d6ce9-a9f9-4c5f-bab3-bfac0912fde5",
-      "comment": "",
+      "comment": "Go to Jobs under Quick Access",
       "command": "click",
       "target": "css=li:nth-child(4) .title",
       "targets": [
@@ -866,7 +887,7 @@
       "value": ""
     }, {
       "id": "b3f781c7-9427-463a-8b7a-b66139ceb011",
-      "comment": "",
+      "comment": "Click \"Browse scripts\"",
       "command": "click",
       "target": "css=.card:nth-child(2) span",
       "targets": [
@@ -878,7 +899,7 @@
       "value": ""
     }, {
       "id": "7c4cfe41-4a19-4adb-a0f9-91600d83161d",
-      "comment": "",
+      "comment": "Select the most recently created script",
       "command": "click",
       "target": "css=td:nth-child(4)",
       "targets": [
@@ -889,50 +910,19 @@
       ],
       "value": ""
     }, {
-      "id": "8ea2e2cb-3cd6-40cd-9c58-90b76238628f",
-      "comment": "",
-      "command": "mouseOver",
-      "target": "id=delete-script-simple",
-      "targets": [
-        ["id=delete-script-simple", "id"],
-        ["css=#delete-script-simple", "css:finder"],
-        ["xpath=//button[@id='delete-script-simple']", "xpath:attributes"],
-        ["xpath=//div[@id='main']/div[2]/div/div/div/div[2]/div/div[2]/div/div/div/button", "xpath:idRelative"],
-        ["xpath=//div[2]/div/div/div/button", "xpath:position"],
-        ["xpath=//button[contains(.,'Delete')]", "xpath:innerText"]
-      ],
-      "value": ""
-    }, {
       "id": "d50d0c50-4f2f-43f4-8319-006cbf9b8062",
-      "comment": "",
+      "comment": "Click the delete button",
       "command": "click",
-      "target": "id=delete-script-simple",
+      "target": "css=.fa-trash",
       "targets": [
-        ["id=delete-script-simple", "id"],
-        ["css=#delete-script-simple", "css:finder"],
-        ["xpath=//button[@id='delete-script-simple']", "xpath:attributes"],
-        ["xpath=//div[@id='main']/div[2]/div/div/div/div[2]/div/div[2]/div/div/div/button", "xpath:idRelative"],
-        ["xpath=//div[2]/div/div/div/button", "xpath:position"],
-        ["xpath=//button[contains(.,'Delete')]", "xpath:innerText"]
-      ],
-      "value": ""
-    }, {
-      "id": "70019fcc-958a-43d3-907c-166defb41e70",
-      "comment": "",
-      "command": "mouseOut",
-      "target": "id=delete-script-simple",
-      "targets": [
-        ["id=delete-script-simple", "id"],
-        ["css=#delete-script-simple", "css:finder"],
-        ["xpath=//button[@id='delete-script-simple']", "xpath:attributes"],
-        ["xpath=//div[@id='main']/div[2]/div/div/div/div[2]/div/div[2]/div/div/div/button", "xpath:idRelative"],
-        ["xpath=//div[2]/div/div/div/button", "xpath:position"],
-        ["xpath=//button[contains(.,'Delete')]", "xpath:innerText"]
+        ["css=.fa-trash", "css:finder"],
+        ["xpath=//button[@id='delete-script-simple-1']/i", "xpath:idRelative"],
+        ["xpath=//div[2]/div/div/div/button/i", "xpath:position"]
       ],
       "value": ""
     }, {
       "id": "44865ce6-25f9-4d49-815f-7c69de736db3",
-      "comment": "",
+      "comment": "Confirm deletion",
       "command": "click",
       "target": "css=.btn:nth-child(2) > span",
       "targets": [
@@ -942,7 +932,7 @@
       "value": ""
     }, {
       "id": "bbfe2bfc-3a6b-480f-b087-1a2af0f4e78f",
-      "comment": "",
+      "comment": "Return to homepage",
       "command": "click",
       "target": "css=.branding-brandbar-logo",
       "targets": [
@@ -953,7 +943,7 @@
       "value": ""
     }, {
       "id": "4b7c9048-41e4-4523-bb64-5ba41f639185",
-      "comment": "",
+      "comment": "Click on \"Jobs\" under Quick Access",
       "command": "click",
       "target": "css=li:nth-child(4) .title",
       "targets": [
@@ -964,7 +954,7 @@
       "value": ""
     }, {
       "id": "aa24a3e4-b4eb-477a-a78a-89da295e850b",
-      "comment": "",
+      "comment": "Click on \"Monitor Jobs\"",
       "command": "click",
       "target": "css=.card-deck:nth-child(4) span",
       "targets": [
@@ -976,7 +966,7 @@
       "value": ""
     }, {
       "id": "37137da0-0a7b-4eda-84c1-c54693249bea",
-      "comment": "",
+      "comment": "Click on the most recently created job",
       "command": "click",
       "target": "css=tr:nth-child(1) > td:nth-child(3)",
       "targets": [
@@ -988,19 +978,18 @@
       "value": ""
     }, {
       "id": "d7e242d8-b65d-4589-8f8a-a01a26e72440",
-      "comment": "",
+      "comment": "Click on \"Remove\"",
       "command": "click",
-      "target": "xpath=//span[contains(.,'Remove')]",
+      "target": "css=.fa-trash",
       "targets": [
-        ["css=#delete-job-simple-2 > span", "css:finder"],
-        ["xpath=//button[@id='delete-job-simple-2']/span", "xpath:idRelative"],
-        ["xpath=//button/span", "xpath:position"],
-        ["xpath=//span[contains(.,'Remove')]", "xpath:innerText"]
+        ["css=.fa-trash", "css:finder"],
+        ["xpath=//button[@id='delete-job-simple-1']/i", "xpath:idRelative"],
+        ["xpath=//i", "xpath:position"]
       ],
       "value": ""
     }, {
       "id": "bbbf4024-edcb-4cb7-b3e3-529bf70a5f86",
-      "comment": "",
+      "comment": "Confirm removal",
       "command": "click",
       "target": "css=.btn:nth-child(2)",
       "targets": [
@@ -1011,7 +1000,7 @@
       "value": ""
     }, {
       "id": "be9c2033-5677-4d75-ac60-0ce3dfb350bd",
-      "comment": "",
+      "comment": "Return to homepage",
       "command": "click",
       "target": "css=.branding-brandbar-logo",
       "targets": [
@@ -1026,14 +1015,14 @@
     "name": "4-files-test",
     "commands": [{
       "id": "a4bc20e2-5d67-468b-8405-9c2ebcaa980b",
-      "comment": "",
+      "comment": "Open Webpage",
       "command": "open",
       "target": "/",
       "targets": [],
       "value": ""
     }, {
       "id": "a4a5c15f-87c6-4087-9146-c4acf4e99f3d",
-      "comment": "",
+      "comment": "Fullscreen",
       "command": "setWindowSize",
       "target": "1920x1048",
       "targets": [],
@@ -1061,6 +1050,18 @@
         ["xpath=(//a[contains(@href, '/files/browse')])[2]", "xpath:href"],
         ["xpath=//div[2]/a", "xpath:position"],
         ["xpath=//a[contains(.,'Manage files')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "1ee8f88a-e9bf-42dd-90b3-8f9bcdea7af1",
+      "comment": "",
+      "command": "mouseOver",
+      "target": "css=.mr-2:nth-child(2) > .btn:nth-child(2)",
+      "targets": [
+        ["css=.mr-2:nth-child(2) > .btn:nth-child(2)", "css:finder"],
+        ["xpath=(//button[@type='button'])[3]", "xpath:attributes"],
+        ["xpath=//div[@id='main']/div[2]/div/div/div/div/div/div/div/div/div/div/div/div/div[2]/button[2]", "xpath:idRelative"],
+        ["xpath=//button[2]", "xpath:position"]
       ],
       "value": ""
     }, {
@@ -1207,7 +1208,7 @@
       "value": ""
     }, {
       "id": "693298c1-d609-43dc-9e33-afb1baac9af0",
-      "comment": "",
+      "comment": "Delete the test directory",
       "command": "click",
       "target": "css=.btn:nth-child(4)",
       "targets": [
@@ -1218,15 +1219,8 @@
       ],
       "value": ""
     }, {
-      "id": "d7106260-1658-4e53-aecf-eccc126e1ae6",
-      "comment": "",
-      "command": "click",
-      "target": "css=.button-strip",
-      "targets": [],
-      "value": ""
-    }, {
       "id": "311cba13-f52d-41d8-96b7-1195493f3895",
-      "comment": "",
+      "comment": "Confirm deletion",
       "command": "click",
       "target": "css=.button-strip > button:nth-child(1)",
       "targets": [
