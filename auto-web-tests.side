@@ -2,7 +2,7 @@
   "id": "600ee3ba-a624-4d88-9397-dbe1332981eb",
   "version": "2.0",
   "name": "auto-web-tests",
-  "url": "https://10.151.15.192",
+  "url": "",
   "tests": [{
     "id": "b752d026-d55c-4ff3-aea0-3bfcd43d999e",
     "name": "1-login-test",
@@ -1029,7 +1029,7 @@
       "value": ""
     }, {
       "id": "ccf08ada-6110-4aa4-8f75-e1935a3b6b8d",
-      "comment": "",
+      "comment": "Click \"Files\" under Quick Access",
       "command": "click",
       "target": "css=li:nth-child(3) .title",
       "targets": [
@@ -1040,7 +1040,7 @@
       "value": ""
     }, {
       "id": "69b4b095-64c6-44be-9b3f-8f700cdfe5ae",
-      "comment": "",
+      "comment": "Click \"Manage Files\"",
       "command": "click",
       "target": "linkText=Manage files",
       "targets": [
@@ -1066,7 +1066,7 @@
       "value": ""
     }, {
       "id": "6ea0a9fa-bbc3-476e-a06f-8364214c456f",
-      "comment": "",
+      "comment": "Create new directory",
       "command": "click",
       "target": "css=.mr-2:nth-child(2) > .btn:nth-child(2)",
       "targets": [
@@ -1078,7 +1078,7 @@
       "value": ""
     }, {
       "id": "a37fc6e1-49a9-4866-8bb0-abab656ed5ea",
-      "comment": "",
+      "comment": "Name it \"test-dir\"",
       "command": "type",
       "target": "css=input",
       "targets": [
@@ -1089,7 +1089,7 @@
       "value": "test-dir"
     }, {
       "id": "b8b94b7d-855a-4f86-bafb-fd0c90c839ae",
-      "comment": "",
+      "comment": "Confirm creation of directory",
       "command": "click",
       "target": "css=.button-strip > button:nth-child(1)",
       "targets": [
@@ -1100,7 +1100,7 @@
       "value": ""
     }, {
       "id": "6b53c849-ad03-4a58-b4e5-1f09a011a3d8",
-      "comment": "",
+      "comment": "Enter directory",
       "command": "doubleClick",
       "target": "linkText=test-dir",
       "targets": [
@@ -1115,7 +1115,7 @@
       "value": ""
     }, {
       "id": "ca6d0227-8120-44ae-bdfa-42735fd173cd",
-      "comment": "",
+      "comment": "Create new directory",
       "command": "click",
       "target": "css=.mr-2:nth-child(2) > .btn:nth-child(2)",
       "targets": [
@@ -1127,7 +1127,7 @@
       "value": ""
     }, {
       "id": "35d8d0f2-cf5c-4cde-b8fa-ba0ac18b80ca",
-      "comment": "",
+      "comment": "Name it \"sub-folder\"",
       "command": "type",
       "target": "css=input",
       "targets": [
@@ -1138,7 +1138,7 @@
       "value": "sub-folder"
     }, {
       "id": "21e3f13d-102a-4bf3-86d9-16f8533a1ec7",
-      "comment": "",
+      "comment": "Confirm creation of directory",
       "command": "click",
       "target": "css=.button-strip > button:nth-child(1)",
       "targets": [
@@ -1149,7 +1149,7 @@
       "value": ""
     }, {
       "id": "008a3150-0678-4078-b427-c4928c41eba2",
-      "comment": "",
+      "comment": "Create new file",
       "command": "click",
       "target": "css=.btn:nth-child(1) .fa-plus",
       "targets": [
@@ -1160,7 +1160,7 @@
       "value": ""
     }, {
       "id": "83dc963d-c438-4e39-8aab-90200e67c86a",
-      "comment": "",
+      "comment": "Name it \"test1\"",
       "command": "type",
       "target": "css=input",
       "targets": [
@@ -1171,7 +1171,7 @@
       "value": "test1"
     }, {
       "id": "5586a05c-cd7d-4341-9329-98022f090527",
-      "comment": "",
+      "comment": "Confirm creation of file",
       "command": "sendKeys",
       "target": "css=input",
       "targets": [
@@ -1182,7 +1182,7 @@
       "value": "${KEY_ENTER}"
     }, {
       "id": "d2c4a477-6d79-4d5e-9f63-387c5d310929",
-      "comment": "",
+      "comment": "Select file \"test1\"",
       "command": "click",
       "target": "linkText=test1",
       "targets": [
@@ -1197,7 +1197,7 @@
       "value": ""
     }, {
       "id": "e7d1d2b7-1b21-47d2-8bf3-0ee7365a28f0",
-      "comment": "",
+      "comment": "go up a level",
       "command": "click",
       "target": "css=.fa-level-up",
       "targets": [
@@ -1207,26 +1207,13 @@
       ],
       "value": ""
     }, {
-      "id": "693298c1-d609-43dc-9e33-afb1baac9af0",
-      "comment": "Delete the test directory",
+      "id": "f6ba0f90-6270-4e07-9235-0f3330084e81",
+      "comment": "Return to homepage",
       "command": "click",
-      "target": "css=.btn:nth-child(4)",
+      "target": "css=.branding-brandbar-logo",
       "targets": [
-        ["css=.btn:nth-child(4)", "css:finder"],
-        ["xpath=(//button[@type='button'])[7]", "xpath:attributes"],
-        ["xpath=//div[@id='main']/div[2]/div/div/div/div/div/div/div/div/div/div/div/div/div[3]/button[4]", "xpath:idRelative"],
-        ["xpath=//button[4]", "xpath:position"]
-      ],
-      "value": ""
-    }, {
-      "id": "311cba13-f52d-41d8-96b7-1195493f3895",
-      "comment": "Confirm deletion",
-      "command": "click",
-      "target": "css=.button-strip > button:nth-child(1)",
-      "targets": [
-        ["css=.button-strip > button:nth-child(1)", "css:finder"],
-        ["xpath=//div[3]/div/button", "xpath:position"],
-        ["xpath=//button[contains(.,'OK')]", "xpath:innerText"]
+        ["css=.branding-brandbar-logo", "css:finder"],
+        ["xpath=//img", "xpath:position"]
       ],
       "value": ""
     }]
@@ -1237,7 +1224,7 @@
     "persistSession": false,
     "parallel": false,
     "timeout": 300,
-    "tests": ["b752d026-d55c-4ff3-aea0-3bfcd43d999e", "0279dfc2-64a1-437b-b4ec-b055bdf66459", "16964676-c281-492b-a293-5db85f8a145e", "0dc1ee33-69a5-4450-9c9b-dfae7ff7032d"]
+    "tests": ["b752d026-d55c-4ff3-aea0-3bfcd43d999e", "0279dfc2-64a1-437b-b4ec-b055bdf66459", "16964676-c281-492b-a293-5db85f8a145e", "0dc1ee33-69a5-4450-9c9b-dfae7ff7032d", "92474274-69c2-4c16-9214-285ca415b02e"]
   }],
   "urls": ["https://10.151.15.240/", "https://10.151.15.192/"],
   "plugins": []
