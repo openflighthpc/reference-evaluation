@@ -293,12 +293,12 @@ else
 fi
 
 echoplusultra -v 3 "Test 2: Create environment"
-echoplusultra -v 3 -c ORNG "this may take some time . . ."
+echoplusultra -v 3 -c ORNG "this may take some time . . . (potentially up to 10 minutes)"
 
-environments=(conda easybuild modules singularity spack)
+environments=(conda modules spack easybuild singularity) # in time order
 env=false
 for e in ${environments[@]};do
-  output=$(timeout 0 /opt/flight/bin/flight env create "$e" 2>&1);
+  output=$(timeout 600 /opt/flight/bin/flight env create "$e" 2>&1); # give the environment 10 minutes to run before cancelling
   if  echo "$output" | grep -q "has been created" ;then # it got created
     echoplusultra -v 4 -c GRN "Successfully created $e environment"
     env=$e
