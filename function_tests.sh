@@ -127,7 +127,7 @@ echoplusultra -v 2 "Checking functionality of SLURM"  # Page 1: SLURM
 
 echoplusultra -v 3 "Test 1: Run interactive job"      # Test 1: interactive job
 
-srun uptime 1>>/dev/null ; result=$?
+timeout 30 srun uptime 1>>/dev/null ; result=$?
 
 if [[ $result != 0 ]]; then
   echoplusc 0 RED "[ERROR] Cannot run interactive job"
@@ -247,7 +247,7 @@ echo "test" >>'"$desktopOut ">"$desktopScript"
   fi
 
   # now if the desktop started, and the script ran properly, there should be an output file
-  timer=10
+  timer=30
   echoplusultra -v 3 -p "Waiting for evidence of success. Time remaining: $timer\r"
   desktop=false
   while [[ $timer > 0 ]]; do
@@ -293,12 +293,12 @@ else
 fi
 
 echoplusultra -v 3 "Test 2: Create environment"
-echoplusultra -v 3 -c ORNG "this may take some time . . ."
+echoplusultra -v 3 -c ORNG "this may take some time . . . (potentially up to 10 minutes)"
 
-environments=(conda easybuild modules singularity spack)
+environments=(conda modules spack easybuild singularity) # in time order
 env=false
 for e in ${environments[@]};do
-  output=$(flight env create "$e" 2>&1);
+  output=$(timeout 600 /opt/flight/bin/flight env create "$e" 2>&1); # give the environment 10 minutes to run before cancelling
   if  echo "$output" | grep -q "has been created" ;then # it got created
     echoplusultra -v 4 -c GRN "Successfully created $e environment"
     env=$e
@@ -335,11 +335,25 @@ else
 fi
 
 
-# Page 3: genders and pdsh?
+# Page 3: genders and pdsh
 
+echoplusultra -v 3 ""
+echoplusultra -v 2 "Check functionality of Genders and PDSH"
+echoplusultra -v 3 "Test 1: Confirm consistency"
+node=($(nodeattr --expand))
+genders=($(nodeattr -l $node))
 
+gendertest=true
+for g in ${genders[@]}; do # do the genders contain the node?
+  if ! nodeattr -s $g | grep $node 1>>/dev/null ;then
+    gendertest=false
+  fi
+done
 
-# page 4: Web Suite
-# $desktop is true or false if desktop tests were completed
+if [[ $gendertest = true ]];then
+  echoplusultra -v 4 -c GRN "Successfully checked genders functionality."
+else
+  echoplusultra -v 0 -c RED "[ERROR] genders/pdsh is inconsistent."
+fi
 
 
