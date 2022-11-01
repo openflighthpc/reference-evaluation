@@ -127,7 +127,7 @@ echoplusultra -v 2 "Checking functionality of SLURM"  # Page 1: SLURM
 
 echoplusultra -v 3 "Test 1: Run interactive job"      # Test 1: interactive job
 
-timeout 30 srun uptime 1>>/dev/null ; result=$?
+timeout 30 srun uptime 1>>/dev/null 2>>$out ; result=$?
 
 if [[ $result != 0 ]]; then
   echoplusc 0 RED "[ERROR] Cannot run interactive job"
@@ -145,7 +145,7 @@ echo '#!/bin/bash -l
 echo "start"
 sleep 1
 echo "finish"'>$batchfile
-jobid=$(sbatch --parsable $batchfile);result=$?
+jobid=$(sbatch --parsable $batchfile 2>>$out);result=$?
 
 if [[ $result != 0 ]];then
   echoplusc 0 RED "[ERROR] Cannot start a batch job."
@@ -340,12 +340,18 @@ fi
 echoplusultra -v 3 ""
 echoplusultra -v 2 "Check functionality of Genders and PDSH"
 echoplusultra -v 3 "Test 1: Confirm consistency"
-node=($(nodeattr --expand))
-genders=($(nodeattr -l $node))
+node=($(nodeattr --expand 2>>$out))
+genders=($(nodeattr -l $node 2>>$out))
 
-gendertest=true
+if command -v nodeattr;then
+  gendertest=true
+else
+  echoplusultra -v 0 -c RED "[ERROR] Genders not configured"
+  gendertest=false
+fi
+
 for g in ${genders[@]}; do # do the genders contain the node?
-  if ! nodeattr -s $g | grep $node 1>>/dev/null ;then
+  if  ! nodeattr -s $g |  grep $node  1>>/dev/null ;then
     gendertest=false
   fi
 done
@@ -355,5 +361,4 @@ if [[ $gendertest = true ]];then
 else
   echoplusultra -v 0 -c RED "[ERROR] genders/pdsh is inconsistent."
 fi
-
 
