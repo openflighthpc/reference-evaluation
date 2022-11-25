@@ -1,0 +1,65 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Description of this template
+
+Metadata:
+  Instances:
+    Description: "1 login node"
+  Databases: 
+    Description: "No databases involved here"
+
+Parameters:
+
+  KeyPair:
+    Type: 'AWS::EC2::KeyPair::KeyName'
+    Default: ivan-keypair
+    Description: Name of an existing key pair to use for the instances
+
+  InstanceAmi:
+    Type: String
+    Default: ami-04b88ad7b25bc74ef
+    Description: An ami uploaded to AWS
+
+  InstanceSize:
+    Type: String
+    Default: t3.small
+    AllowedValues:
+      - t2.micro
+      - t3.small
+      - m1.large
+    Description: Enter t2.micro, t3.small, or m1.large. Default is t3.small.
+
+  SecurityGroup:
+    Type: String
+    Default: sg-099219b43ee588b21
+    Description: The security group that has already been set up.
+
+  InstanceSubnet:
+    Type:  String
+    Description: The subnet to be used.
+    Default: subnet-55d8582f
+
+Resources:
+
+  StandaloneInstance:
+    Type: AWS::EC2::Instance
+    Properties: 
+      ImageId: 
+        Ref: InstanceAmi
+      InstanceType: 
+        Ref: InstanceSize
+      KeyName: 
+        Ref: KeyPair 
+      SecurityGroupIds: 
+        - sg-099219b43ee588b21
+      SubnetId: subnet-55d8582f
+
+Outputs:
+  PrivateIp:
+    Description: The private IP address of the standalone node
+    Value: { Fn::GetAtt: [StandaloneInstance, PrivateIp] }
+
+  PublicIp:
+    Description: Floating IP address of standalone node
+    Value: { Fn::GetAtt: [ StandaloneInstance, PublicIp ] }
