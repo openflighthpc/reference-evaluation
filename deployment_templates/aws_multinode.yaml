@@ -50,24 +50,6 @@ Parameters:
 
 Resources:
 
-  PasswordlessInit:
-    Type: AWS::CloudFormation::Init
-    Properties:
-      cloud_config:
-        write_files:
-          'Fn::Sub':
-            - >
-              SERVER=${Ref: IpData}
-            - {}
-          path: /opt/flight/cloudinit.in
-          permissions: '0644'
-          owner: root:root
-        users:
-          - name: root
-            ssh_authorized_keys:
-              - {get_param: KeyData}
-
-
   Cnode01:
     Type: AWS::EC2::Instance
     Properties: 
@@ -80,8 +62,24 @@ Resources:
       SecurityGroupIds: 
         - sg-099219b43ee588b21
       SubnetId: subnet-55d8582f
-      UserData: { Ref: PasswordlessInit }
-
+      UserData: !Base64 
+          Fn::Join:
+            - ''
+            - - "#cloud-config\n"
+              - "write_files:\n"
+              - "  - content: |\n"
+              - "      SERVER="
+              - Ref: IpData
+              - "\n"
+              - "    path: /opt/flight/cloudinit.in\n"
+              - "    permissions: '0644'\n"
+              - "    owner: root:root\n"
+              - "users:\n"
+              - "  - name: root\n"
+              - "    ssh_authorized_keys:\n"
+              - "      - "
+              - Ref: KeyData
+              - "\n"
 
   Cnode02:
     Type: AWS::EC2::Instance
@@ -95,4 +93,21 @@ Resources:
       SecurityGroupIds: 
         - sg-099219b43ee588b21
       SubnetId: subnet-55d8582f
-      UserData: { Ref: PasswordlessInit }
+      UserData: !Base64 
+          Fn::Join:
+            - ''
+            - - "#cloud-config\n"
+              - "write_files:\n"
+              - "  - content: |\n"
+              - "      SERVER="
+              - Ref: IpData
+              - "\n"
+              - "    path: /opt/flight/cloudinit.in\n"
+              - "    permissions: '0644'\n"
+              - "    owner: root:root\n"
+              - "users:\n"
+              - "  - name: root\n"
+              - "    ssh_authorized_keys:\n"
+              - "      - "
+              - Ref: KeyData
+              - "\n"
