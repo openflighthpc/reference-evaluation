@@ -1,6 +1,6 @@
 #!/bin/bash
 
-stackname="multinode"
+stackname="multinode-101"
 keyfile="ivan-keypair.pem"
 instanceami="ami-04b88ad7b25bc74ef"
 instancesize="t3.small"
