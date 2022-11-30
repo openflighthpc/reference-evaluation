@@ -24,11 +24,7 @@ Parameters:
   InstanceSize:
     Type: String
     Default: t3.small
-    AllowedValues:
-      - t2.micro2
-      - t3.small
-      - m1.large
-    Description: Enter t2.micro, t3.small, or m1.large. Default is t3.small.
+    Description: Enter an instance size
 
   SecurityGroup:
     Type: String
