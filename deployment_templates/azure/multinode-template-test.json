@@ -1,0 +1,244 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "defaultValue": "uksouth"
+        },
+        "networkInterfaceName": {
+            "type": "string",
+            "defaultValue": "compute-test3434"
+        },
+        "networkSecurityGroupId": {
+            "type": "string",
+            "defaultValue": "/subscriptions/a41c5728-46d9-4f9c-aefe-ffd2a83df476/resourceGroups/resourceful-ivan/providers/Microsoft.Network/networkSecurityGroups/ivan-sg2"
+        },
+        "subnetName": {
+            "type": "string",
+            "defaultValue": "default"
+        },
+        "virtualNetworkId": {
+            "type": "string",
+            "defaultValue": "/subscriptions/a41c5728-46d9-4f9c-aefe-ffd2a83df476/resourceGroups/resourceful-ivan/providers/Microsoft.Network/virtualNetworks/resourceful-ivan-vnet"
+        },
+        "publicIpAddressName": {
+            "type": "string",
+            "defaultValue": "compute-test3-ip"
+        },
+        "publicIpAddressType": {
+            "type": "string",
+            "defaultValue": "Static"
+        },
+        "publicIpAddressSku": {
+            "type": "string",
+            "defaultValue": "Standard"
+        },
+        "pipDeleteOption": {
+            "type": "string",
+            "defaultValue": "Detach"
+        },
+        "virtualMachineName": {
+            "type": "string",
+            "defaultValue": "compute-test3"
+        },
+        "virtualMachineComputerName": {
+            "type": "string",
+            "defaultValue": "compute-test3"
+        },
+        "virtualMachineRG": {
+            "type": "string",
+            "defaultValue": "resourceful-ivan"
+        },
+        "osDiskType": {
+            "type": "string",
+            "defaultValue": "StandardSSD_LRS"
+        },
+        "osDiskDeleteOption": {
+            "type": "string",
+            "defaultValue": "Delete"
+        },
+        "virtualMachineSize": {
+            "type": "string",
+            "defaultValue": "Standard_DS1_v2"
+        },
+        "nicDeleteOption": {
+            "type": "string",
+            "defaultValue": "Detach"
+        },
+        "adminUsername": {
+            "type": "string",
+            "defaultValue": "flight"
+        },
+        "adminPublicKey": {
+            "type": "secureString",
+            "defaultValue": "ivan-azure_key"
+        },
+        "customData": {
+            "type": "secureString",
+            "defaultValue": "#cloud-config\nwrite_files:\n  - content: |\n      SERVER=$ipdata\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - name: root\n    ssh_authorized_keys:\n      -$keydata\n"
+        },
+        "autoShutdownStatus": {
+            "type": "string",
+            "defaultValue": "Enabled"
+        },
+        "autoShutdownTime": {
+            "type": "string",
+            "defaultValue": "18:00"
+        },
+        "autoShutdownTimeZone": {
+            "type": "string",
+            "defaultValue": "UTC"
+        },
+        "autoShutdownNotificationStatus": {
+            "type": "string",
+            "defaultValue": "Enabled"
+        },
+        "autoShutdownNotificationLocale": {
+            "type": "string",
+            "defaultValue": "en"
+        },
+        "autoShutdownNotificationEmail": {
+            "type": "string",
+            "defaultValue": "ivan.kruse@openflighthpc.org"
+        }
+    },
+    "variables": {
+        "nsgId": "[parameters('networkSecurityGroupId')]",
+        "vnetId": "[parameters('virtualNetworkId')]",
+        "vnetName": "[last(split(variables('vnetId'), '/'))]",
+        "subnetRef": "[concat(variables('vnetId'), '/subnets/', parameters('subnetName'))]"
+    },
+    "resources": [
+        {
+            "name": "[parameters('networkInterfaceName')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2021-08-01",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/publicIpAddresses/', parameters('publicIpAddressName'))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "subnet": {
+                                "id": "[variables('subnetRef')]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIpAddress": {
+                                "id": "[resourceId(resourceGroup().name, 'Microsoft.Network/publicIpAddresses', parameters('publicIpAddressName'))]",
+                                "properties": {
+                                    "deleteOption": "[parameters('pipDeleteOption')]"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "networkSecurityGroup": {
+                    "id": "[variables('nsgId')]"
+                }
+            }
+        },
+        {
+            "name": "[parameters('publicIpAddressName')]",
+            "type": "Microsoft.Network/publicIpAddresses",
+            "apiVersion": "2020-08-01",
+            "location": "[parameters('location')]",
+            "properties": {
+                "publicIpAllocationMethod": "[parameters('publicIpAddressType')]"
+            },
+            "sku": {
+                "name": "[parameters('publicIpAddressSku')]"
+            }
+        },
+        {
+            "name": "[parameters('virtualMachineName')]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2022-03-01",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/', parameters('networkInterfaceName'))]"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('virtualMachineSize')]"
+                },
+                "storageProfile": {
+                    "osDisk": {
+                        "createOption": "fromImage",
+                        "managedDisk": {
+                            "storageAccountType": "[parameters('osDiskType')]"
+                        },
+                        "deleteOption": "[parameters('osDiskDeleteOption')]"
+                    },
+                    "imageReference": {
+                        "id": "/subscriptions/a41c5728-46d9-4f9c-aefe-ffd2a83df476/resourceGroups/openflight-images/providers/Microsoft.Compute/images/SOLO2-2022.4-1411221728"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaceName'))]",
+                            "properties": {
+                                "deleteOption": "[parameters('nicDeleteOption')]"
+                            }
+                        }
+                    ]
+                },
+                "osProfile": {
+                    "computerName": "[parameters('virtualMachineComputerName')]",
+                    "adminUsername": "[parameters('adminUsername')]",
+                    "linuxConfiguration": {
+                        "disablePasswordAuthentication": true,
+                        "ssh": {
+                            "publicKeys": [
+                                {
+                                    "path": "[concat('/home/', parameters('adminUsername'), '/.ssh/authorized_keys')]",
+                                    "keyData": "[parameters('adminPublicKey')]"
+                                }
+                            ]
+                        }
+                    },
+                    "customData": "[parameters('customData')]"
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true
+                    }
+                }
+            }
+        },
+        {
+            "name": "[concat('shutdown-computevm-', parameters('virtualMachineName'))]",
+            "type": "Microsoft.DevTestLab/schedules",
+            "apiVersion": "2018-09-15",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', parameters('virtualMachineName'))]"
+            ],
+            "properties": {
+                "status": "[parameters('autoShutdownStatus')]",
+                "taskType": "ComputeVmShutdownTask",
+                "dailyRecurrence": {
+                    "time": "[parameters('autoShutdownTime')]"
+                },
+                "timeZoneId": "[parameters('autoShutdownTimeZone')]",
+                "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachineName'))]",
+                "notificationSettings": {
+                    "status": "[parameters('autoShutdownNotificationStatus')]",
+                    "notificationLocale": "[parameters('autoShutdownNotificationLocale')]",
+                    "timeInMinutes": "30",
+                    "emailRecipient": "[parameters('autoShutdownNotificationEmail')]"
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "adminUsername": {
+            "type": "string",
+            "value": "[parameters('adminUsername')]"
+        }
+    }
+}
