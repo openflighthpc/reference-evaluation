@@ -5,14 +5,17 @@ read DEPLOYNAME
 loginname="$DEPLOYNAME""-chead1"
 computename="$DEPLOYNAME""-compute"
 
+echo "standalone? (leave blank for no)"
+read STANDALONE
+
 # actual necessary info
-logintemplate="standalonestu.json"
-computetemplate="computestu.json"  
+logintemplate="standalone_azure.json"
+computetemplate="multinode_azure.json"  
 srcimage="/subscriptions/a41c5728-46d9-4f9c-aefe-ffd2a83df476/resourceGroups/openflight-images/providers/Microsoft.Compute/images/SOLO2-2022.4-1411221728"
 logintype="Standard_DS1_v2"
 computetype="Standard_DS1_v2"
 computes=2
-keyfile="../ivan-azure_key.pem"
+keyfile="ivan-azure_key.pem"
 location="uksouth"
 adminkey="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDXqGRCY+Rx/cu5qokWOAU5UsH8D8xgbv32sxKZ01Tyuu1arV5be8lG+m4f2can3ZRNbTAx7oUFCncFfy5F5QFMMUCi0QNhCHmn7rnniRikq8Qlb9LgueUk0GaopbakT2w0BEdJv0lmlBh7Vyti2G7MUuuthqDUzU/vKgsgWQ7ImU8r91ecMJ56SoMIOCSqpRxbcx1mEzoedv3JqJeS/pypph2+j9NdrbEipBtZYCjRkAqgqyfWrPgqvg3I+L0YnN5JMlROA5IdRPfWEZnCOi+KV0zRyvdAp4mXYwjyluN2zXckSAYl0x3JAkfiofpce63H3/aNgSxMtXLvvimMWADhdY20aLikRMWRGh+fngogibCfZTNyCuseT2IMuxjI0S+EcBKcO6kDRCPaqVNOcaElgg4cX7xueVKAK8fL2rP6ngpwR7NYEUzy7fhy8eCL1Vpl1PnDLLzttG0p7KrGFWqliTEirmodL5MN/4QzRdp/srqJdqVvvQk9opZvSY7Iqt0= generated-by-azure"
 adminname="flight"
@@ -25,10 +28,15 @@ azurekey="ivan-azure_key"
 
 az deployment group create  --name "$loginname"  --resource-group "$resourcegroup"  --template-file "$logintemplate" --parameters sourceimage=$srcimage clustername=$DEPLOYNAME cheadinstancetype=$logintype ; success=$?
 
+if [[ $STANDALONE != "" ]];then
+  echo "standalone node created"
+  exit 0
+fi
 
 if [[ $success != "0" ]];then
   exit 1
 fi
+
 
 completed="false"
 timeout=60
