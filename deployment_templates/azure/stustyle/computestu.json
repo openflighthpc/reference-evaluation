@@ -4,8 +4,9 @@
   "parameters": {
       "sourceimage": {
           "type": "string",
+          "defaultValue": "/subscriptions/a41c5728-46d9-4f9c-aefe-ffd2a83df476/resourceGroups/openflight-images/providers/Microsoft.Compute/images/SOLO2-2022.4-1411221728",
           "metadata": {
-              "description": "Source image to use for nodes"
+              "description": "Source image to use for nodes"   
           }
       },
       "clustername": {
@@ -14,6 +15,17 @@
               "description": "Name of the cluster"
           }
       },
+      "adminUsername": {
+          "type": "string",
+          "defaultValue": "flight",
+          "metadata": {
+              "description": "Name of the user with root access"
+          }
+      },
+      "adminPublicKey": {
+            "type": "secureString",
+            "defaultValue": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDXqGRCY+Rx/cu5qokWOAU5UsH8D8xgbv32sxKZ01Tyuu1arV5be8lG+m4f2can3ZRNbTAx7oUFCncFfy5F5QFMMUCi0QNhCHmn7rnniRikq8Qlb9LgueUk0GaopbakT2w0BEdJv0lmlBh7Vyti2G7MUuuthqDUzU/vKgsgWQ7ImU8r91ecMJ56SoMIOCSqpRxbcx1mEzoedv3JqJeS/pypph2+j9NdrbEipBtZYCjRkAqgqyfWrPgqvg3I+L0YnN5JMlROA5IdRPfWEZnCOi+KV0zRyvdAp4mXYwjyluN2zXckSAYl0x3JAkfiofpce63H3/aNgSxMtXLvvimMWADhdY20aLikRMWRGh+fngogibCfZTNyCuseT2IMuxjI0S+EcBKcO6kDRCPaqVNOcaElgg4cX7xueVKAK8fL2rP6ngpwR7NYEUzy7fhy8eCL1Vpl1PnDLLzttG0p7KrGFWqliTEirmodL5MN/4QzRdp/srqJdqVvvQk9opZvSY7Iqt0= generated-by-azure"
+        },
       "customdatanode": {
           "type": "string",
           "metadata": {
@@ -38,236 +50,20 @@
       }
   },
   "variables": {
-      "subnet1Ref": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'flightnet', 'flightsub1')]",
+      "subnet2Ref": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('netname'), 'flightsub2')]",
       "netname": "[concat('flightnet-', parameters('clustername') )]",
-      "subnet2Ref": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'flightnet', 'flightsub2')]"
+      "cnodename": "[concat(parameters('clustername'), '-cnode0')]",
+      "sgname": "[concat(parameters('clustername'), '-sg')]",
+      "netinterfacename": "[concat('flightnetinterface-', parameters('clustername') )]"
+
+
+
   },
   "resources": [
-    {
-      
-      "type": "Microsoft.Network/virtualNetworks",
-      "name": "flightnet",
-      "apiVersion": "2017-03-01",
-      "location": "[resourceGroup().location]",
-      "tags": {
-          "project": "[parameters('clustername')]",
-          "type": "core"
-      },
-      "properties": {
-        "addressSpace": {
-          "addressPrefixes": [
-            "10.10.0.0/16"
-          ]
-        },
-        "subnets": [
-          {
-            "name": "flightsub1",
-            "properties": {
-              "addressPrefix": "10.10.0.0/24"
-            }
-          },
-          {
-            "name": "flightsub2",
-            "properties": {
-              "addressPrefix": "10.10.1.0/24"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "type": "Microsoft.Network/routeTables",
-      "name": "flightsub2rt",
-      "apiVersion": "2017-03-01",
-      "location": "[resourceGroup().location]",
-      "properties": {
-        "routes": [
-          { 
-            "name": "DefaultGatewayViaChead1",
-            "properties": {
-              "addressPrefix": "0.0.0.0/0",
-              "nextHopType": "VirtualAppliance",
-              "nextHopIpAddress": "10.10.0.11"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "type": "Microsoft.Network/networkSecurityGroups",
-      "name": "flightsg",
-      "apiVersion": "2017-03-01",
-      "location": "[resourceGroup().location]",
-      "tags": {
-          "project": "[parameters('clustername')]",
-          "type": "core"
-      },
-      "properties": {
-        "securityRules": [{
-           "name": "inbound-ssh",
-             "properties": {
-             "protocol": "TCP",
-             "sourcePortRange": "*",
-             "destinationPortRange": "22",
-             "sourceAddressPrefix": "*",
-             "destinationAddressPrefix": "*",
-             "access": "Allow",
-             "priority": 1000,
-             "direction": "Inbound"
-           }
-         },
-         {
-           "name": "inbound-http",
-             "properties": {
-             "protocol": "TCP",
-             "sourcePortRange": "*",
-             "destinationPortRange": "80",
-             "sourceAddressPrefix": "*",
-             "destinationAddressPrefix": "*",
-             "access": "Allow",
-             "priority": 1001,
-             "direction": "Inbound"
-           }
-         },
-         {
-           "name": "inbound-https",
-             "properties": {
-             "protocol": "TCP",
-             "sourcePortRange": "*",
-             "destinationPortRange": "443",
-             "sourceAddressPrefix": "*",
-             "destinationAddressPrefix": "*",
-             "access": "Allow",
-             "priority": 1002,
-             "direction": "Inbound"
-           }
-         },
-         {
-         "name": "inbound-vnc",
-           "properties": {
-             "protocol": "TCP",
-             "sourcePortRange": "*",
-             "destinationPortRange": "5901-5910",
-             "sourceAddressPrefix": "*",
-             "destinationAddressPrefix": "*",
-             "access": "Allow",
-             "priority": 1010,
-             "direction": "Inbound"
-           }
-         }]
-      }
-    },
-    {
-      "type": "Microsoft.Network/publicIPAddresses",
-      "name": "chead1pubIP",
-      "apiVersion": "2017-03-01",
-      "location": "[resourceGroup().location]",
-      "tags": {
-          "project": "[parameters('clustername')]",
-          "type": "core"
-      },
-      "properties": {
-        "publicIPAllocationMethod": "Static",
-        "idleTimeoutInMinutes": 30,
-        "dnsSettings": {
-          "domainNameLabel": "[concat('chead1-', parameters('clustername'))]"
-        }
-      },
-      "dependsOn": [
-          "[resourceId('Microsoft.Network/networkSecurityGroups', 'flightsg')]"
-        ]
-    },
+
     {
       "type": "Microsoft.Network/networkInterfaces",
-      "name": "chead1network1interface",
-      "apiVersion": "2017-03-01",
-      "location": "[resourceGroup().location]",
-      "tags": {
-          "project": "[parameters('clustername')]",
-          "type": "core"
-      },
-      "properties": {
-        "ipConfigurations": [{
-          "name": "chead1network1ip",
-          "properties": {
-            "privateIPAllocationMethod": "Static",
-            "privateIPAddress": "10.10.0.11",
-            "publicIPAddress": {
-              "id": "[resourceId('Microsoft.Network/publicIpAddresses', 'chead1pubIP')]"
-            },
-            "subnet": {
-              "id": "[variables('subnet1Ref')]"
-            }
-          }
-        }],
-        "networkSecurityGroup": {
-          "id": "[resourceId('Microsoft.Network/networkSecurityGroups', 'flightsg')]"
-        }
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/publicIpAddresses', 'chead1pubIP')]"
-      ]
-    },
-    {
-      "type": "Microsoft.Compute/virtualMachines",
-      "name": "chead1",
-      "apiVersion": "2016-04-30-preview",
-      "location": "[resourceGroup().location]",
-      "tags": {
-          "project": "[parameters('clustername')]",
-          "type": "core"
-      },
-      "properties": {
-        "hardwareProfile": {
-              "vmSize": "[parameters('cheadinstancetype')]"
-            },
-        "storageProfile": {
-          "osDisk": {
-            "createOption": "fromImage",
-            "DiskSizeGB": 32,
-            "managedDisk": {
-              "storageAccountType": "Premium_LRS"
-            }
-          },
-          "imageReference": {
-            "id": "[parameters('sourceimage')]"
-          }
-        },
-        "osProfile": {
-          "computerName": "[concat('chead1.pri.', parameters('clustername'), '.cluster.local')]",
-          "adminUsername": "flight",
-          "adminPassword": "OpenFlightPlaceholderPassword",
-          "customdata": "[parameters('customdatagw')]",
-          "linuxConfiguration": {
-            "disablePasswordAuthentication": true,
-            "ssh": {
-                "publicKeys": [
-                    {
-                        "path": "/home/flight/.ssh/authorized_keys",
-                        "keyData": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC/0R5EvmSrySy2I+8Cx6eOX7cVuYFXx5D0O1x0+OmAZ0Qaj9d7E0Nj4ZcWxdCT03uFl1Ka4tInDlQmMyy0V1/AftpHxBEnB17Pk/lJnDW1YstmAqD0GlFa1CrxUdtHd+jB3LJmdoHsV6fRGpMOgFd+u/4Wces7KAqYFmL5uPG1UTCMgokQ2qboQgEVspXotMvni1iil3kEjyH/eW64Laxmn2Vxls9feZ1o95mPQhJPJcN7MMo1h+jkxyat3bawtpqyV7fXYU0+BO2JHpu/VIEDHtxhlk7RhI0U06XbJu6ZCCUrEX8idIhw4hueQpKwVYplTXssa9JqNlcjouqLj5kd"
-                    }
-                ]
-            }
-          }
-        },
-        "networkProfile": {
-          "networkInterfaces": [
-          {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces', 'chead1network1interface')]",
-                "properties": {
-                  "primary": true
-                }
-          }
-          ]
-        }
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/networkInterfaces', 'chead1network1interface')]"
-      ]
-    },
-    {
-      "type": "Microsoft.Network/networkInterfaces",
-      "name": "[concat('cnode0', copyindex(1), 'network1interface')]",
+      "name": "[concat(variables('cnodename'), copyindex(1), 'network1interface')]",
       "apiVersion": "2017-03-01",
       "location": "[resourceGroup().location]",
       "copy": {
@@ -281,7 +77,7 @@
       },
       "properties": {
         "ipConfigurations": [{
-          "name": "[concat('cnode0', copyindex(1), 'network1ip')]",
+          "name": "[concat(variables('cnodename'), copyindex(1), 'network1ipconfig')]",
           "properties": {
             "privateIPAllocationMethod": "Dynamic",
             "subnet": {
@@ -290,17 +86,17 @@
           }
         }],
         "networkSecurityGroup": {
-          "id": "[resourceId('Microsoft.Network/networkSecurityGroups', 'flightsg')]"
+          "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('sgname') )]"
         }
       },
       "dependsOn": [
-          "flightsg",
-          "chead1network1interface"
+          "[variables('sgname')]",
+          "[variables('netinterfacename')]"
         ]
     },
     {
       "type": "Microsoft.Compute/virtualMachines",
-      "name": "[concat('cnode0', copyindex(1))]",
+      "name": "[concat( variables('cnodename'), copyindex(1))]",
       "apiVersion": "2016-04-30-preview",
       "location": "[resourceGroup().location]",
       "copy": {
@@ -338,8 +134,8 @@
             "ssh": {
                 "publicKeys": [
                     {
-                        "path": "/home/flight/.ssh/authorized_keys",
-                        "keyData": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC/0R5EvmSrySy2I+8Cx6eOX7cVuYFXx5D0O1x0+OmAZ0Qaj9d7E0Nj4ZcWxdCT03uFl1Ka4tInDlQmMyy0V1/AftpHxBEnB17Pk/lJnDW1YstmAqD0GlFa1CrxUdtHd+jB3LJmdoHsV6fRGpMOgFd+u/4Wces7KAqYFmL5uPG1UTCMgokQ2qboQgEVspXotMvni1iil3kEjyH/eW64Laxmn2Vxls9feZ1o95mPQhJPJcN7MMo1h+jkxyat3bawtpqyV7fXYU0+BO2JHpu/VIEDHtxhlk7RhI0U06XbJu6ZCCUrEX8idIhw4hueQpKwVYplTXssa9JqNlcjouqLj5kd"
+                        "path": "[concat('/home/', parameters('adminUsername'), '/.ssh/authorized_keys')]",
+                        "keyData": "[parameters('adminPublicKey')]"
                     }
                 ]
             }
@@ -348,7 +144,7 @@
         "networkProfile": {
           "networkInterfaces": [
           {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat('cnode0', copyindex(1), 'network1interface'))]",
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('cnodename'), copyindex(1), 'network1interface'))]",
                 "properties": {
                   "primary": true
                 }
