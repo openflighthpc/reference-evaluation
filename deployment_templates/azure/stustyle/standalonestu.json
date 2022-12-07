@@ -209,6 +209,7 @@
         "[resourceId('Microsoft.Network/publicIpAddresses', variables('pubIPname'))]"
       ]
     },
+    
     {
       "type": "Microsoft.Compute/virtualMachines",
       "name": "[variables('cheadname')]",

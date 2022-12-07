@@ -66,9 +66,9 @@ echo $contents
 
 ipdata="$privIP"
 keydata="$contents"
-cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SERVER=$ipdata\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - name: root\n    ssh_authorized_keys:\n      -$keydata\n"
+cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SERVER=$ipdata\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - name: root\n    ssh_authorized_keys:\n      - $keydata\n"
 
-cloudtranslat=$(echo "$cloudscript" | base64 -w0)
+cloudtranslat=$(echo -e "$cloudscript" | base64 -w0)
 az deployment group create --name "$DEPLOYNAME" --debug --resource-group "$resourcegroup" --template-file "$computetemplate" --parameters sourceimage="$srcimage" clustername="$DEPLOYNAME" customdatanode="$cloudtranslat" computeNodesCount=2
 #  computeinstancetype="$computetype" adminUsername="$adminname" adminPublicKey="$adminkey"
 

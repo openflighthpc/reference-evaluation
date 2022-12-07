@@ -53,6 +53,7 @@
       "subnet2Ref": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('netname'), 'flightsub2')]",
       "netname": "[concat('flightnet-', parameters('clustername') )]",
       "cnodename": "[concat(parameters('clustername'), '-cnode0')]",
+      "cnodepubIPname": "[concat(parameters('clustername'), '-pubIP' , '-cnode0')]",
       "sgname": "[concat(parameters('clustername'), '-sg')]"
 
   },
@@ -77,6 +78,9 @@
           "name": "[concat(variables('cnodename'), copyindex(1), 'network1ipconfig')]",
           "properties": {
             "privateIPAllocationMethod": "Dynamic",
+            "publicIPAddress": {
+              "id": "[resourceId('Microsoft.Network/publicIpAddresses', concat(variables('cnodepubIPname'), copyindex(1)) )]"
+            },
             "subnet": {
               "id": "[variables('subnet2Ref')]"
             }
@@ -85,12 +89,36 @@
         "networkSecurityGroup": {
           "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('sgname') )]"
         }
-      }
+      },
+      "dependsOn": [
+        "pubipLoop"
+      ]
 
     },
 
-    
-    
+    {
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[concat(variables('cnodepubIPname'), copyindex(1) )]",
+      "apiVersion": "2017-03-01",
+      "location": "[resourceGroup().location]",
+      "copy": {
+          "name": "pubipLoop",
+          "count": "[parameters('computeNodesCount')]"
+      },
+      "tags": {
+          "project": "[parameters('clustername')]",
+          "type": "core"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic",
+        "idleTimeoutInMinutes": 30,
+        "dnsSettings": {
+          "domainNameLabel": "[concat(variables('cnodename'), copyindex(1), '-dns')]"
+        }
+      }
+    },
+
+
     {
       "type": "Microsoft.Compute/virtualMachines",
       "name": "[concat( variables('cnodename'), copyindex(1))]",
@@ -150,9 +178,9 @@
       }
     },
     "dependsOn": [
+        "pubipLoop",
         "nicLoop"
       ]
     }
   ]
 }
-
