@@ -5,7 +5,6 @@ read DEPLOYNAME
 loginname="$DEPLOYNAME""-chead1"
 computename="$DEPLOYNAME""-compute"
 
-
 # actual necessary info
 logintemplate="standalonestu.json"
 computetemplate="computestu.json"  
@@ -23,14 +22,6 @@ resourcegroup="resourceful-ivan"
 azurekey="ivan-azure_key"
 
 
-
-# priority level 0 customisation:
-
-ipconfigname="$DEPLOYNAME""-ipconfig"
-pubIPname="$DEPLOYNAME""-publicIP"
-
-
-
 az deployment group create  --name "$loginname"  --resource-group "$resourcegroup"  --template-file "$logintemplate" --parameters sourceimage=$srcimage clustername=$DEPLOYNAME cheadinstancetype=$logintype ; success=$?
 
 
@@ -39,7 +30,7 @@ if [[ $success != "0" ]];then
 fi
 
 completed="false"
-timeout=120
+timeout=60
 
 while [[ $completed != "true" ]];do
   vm_status=$(az vm list -d -o yaml --query "[?name=='$loginname']" | grep "provisioningState")
@@ -79,8 +70,6 @@ keydata="$contents"
 cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SERVER=$ipdata\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - name: root\n    ssh_authorized_keys:\n      -$keydata\n"
 
 cloudtranslat=$(echo "$cloudscript" | base64 -w0)
-#az deployment group create --name "$DEPLOYNAME" --resource-group "$resourcegroup" --template-file "$computetemplate" --parameters ipConfigurationName=$ipconfigname publicIpAddressName=$pubIPname virtualMachineRG=$resourcegroup networkInterfaceName=$netinterface networkSecurityGroupId=$netsgid subnetName=$subnet virtualNetworkId=$vnetid virtualMachineName=$computename virtualMachineComputerName=$computename virtualMachineSize=$vmsize loginKeyData="$keydata" ipData=$ipdata 
-
+#az deployment group create --name "$DEPLOYNAME" --resource-group "$resourcegroup" --template-file "$computetemplate" --parameters sourceimage=$srcimage clustername=$DEPLOYNAME cheadinstancetype=$logintype ; success=$?
 
 echo "done"
-
