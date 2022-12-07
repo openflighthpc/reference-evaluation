@@ -53,10 +53,7 @@
       "subnet2Ref": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('netname'), 'flightsub2')]",
       "netname": "[concat('flightnet-', parameters('clustername') )]",
       "cnodename": "[concat(parameters('clustername'), '-cnode0')]",
-      "sgname": "[concat(parameters('clustername'), '-sg')]",
-      "netinterfacename": "[concat('flightnetinterface-', parameters('clustername') )]"
-
-
+      "sgname": "[concat(parameters('clustername'), '-sg')]"
 
   },
   "resources": [
@@ -88,12 +85,12 @@
         "networkSecurityGroup": {
           "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('sgname') )]"
         }
-      },
-      "dependsOn": [
-          "[variables('sgname')]",
-          "[variables('netinterfacename')]"
-        ]
+      }
+
     },
+
+    
+    
     {
       "type": "Microsoft.Compute/virtualMachines",
       "name": "[concat( variables('cnodename'), copyindex(1))]",

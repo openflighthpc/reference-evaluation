@@ -11,16 +11,17 @@ computetemplate="computestu.json"
 srcimage="/subscriptions/a41c5728-46d9-4f9c-aefe-ffd2a83df476/resourceGroups/openflight-images/providers/Microsoft.Compute/images/SOLO2-2022.4-1411221728"
 logintype="Standard_DS1_v2"
 computetype="Standard_DS1_v2"
-computes="2"
+computes=2
 keyfile="../ivan-azure_key.pem"
 location="uksouth"
+adminkey="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDXqGRCY+Rx/cu5qokWOAU5UsH8D8xgbv32sxKZ01Tyuu1arV5be8lG+m4f2can3ZRNbTAx7oUFCncFfy5F5QFMMUCi0QNhCHmn7rnniRikq8Qlb9LgueUk0GaopbakT2w0BEdJv0lmlBh7Vyti2G7MUuuthqDUzU/vKgsgWQ7ImU8r91ecMJ56SoMIOCSqpRxbcx1mEzoedv3JqJeS/pypph2+j9NdrbEipBtZYCjRkAqgqyfWrPgqvg3I+L0YnN5JMlROA5IdRPfWEZnCOi+KV0zRyvdAp4mXYwjyluN2zXckSAYl0x3JAkfiofpce63H3/aNgSxMtXLvvimMWADhdY20aLikRMWRGh+fngogibCfZTNyCuseT2IMuxjI0S+EcBKcO6kDRCPaqVNOcaElgg4cX7xueVKAK8fL2rP6ngpwR7NYEUzy7fhy8eCL1Vpl1PnDLLzttG0p7KrGFWqliTEirmodL5MN/4QzRdp/srqJdqVvvQk9opZvSY7Iqt0= generated-by-azure"
+adminname="flight"
 
 # necessary info
 resourcegroup="resourceful-ivan"
 
 # Useful info if the setup needs to be slightly changed/ someone else is using these templates
 azurekey="ivan-azure_key"
-
 
 az deployment group create  --name "$loginname"  --resource-group "$resourcegroup"  --template-file "$logintemplate" --parameters sourceimage=$srcimage clustername=$DEPLOYNAME cheadinstancetype=$logintype ; success=$?
 
@@ -44,7 +45,6 @@ while [[ $completed != "true" ]];do
   let "timeout-=1"
 done
 
-
 # get private and public ips
 privIP=$(az vm list -d -o yaml --query "[?name=='$loginname']" | grep "privateIps" | grep -Pom 1 '[0-9.]{7,15}')
 pubIP=$(az vm list -d -o yaml --query "[?name=='$loginname']" | grep "publicIps" | grep -Pom 1 '[0-9.]{7,15}')
@@ -62,7 +62,6 @@ contents=$(ssh -i "$keyfile" -o 'StrictHostKeyChecking=no' "flight@$pubIP" "sudo
 
 echo $contents
 
-
 # so that creates a standalone node, now time to create a multinode thing
 
 ipdata="$privIP"
@@ -70,6 +69,10 @@ keydata="$contents"
 cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SERVER=$ipdata\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - name: root\n    ssh_authorized_keys:\n      -$keydata\n"
 
 cloudtranslat=$(echo "$cloudscript" | base64 -w0)
-#az deployment group create --name "$DEPLOYNAME" --resource-group "$resourcegroup" --template-file "$computetemplate" --parameters sourceimage=$srcimage clustername=$DEPLOYNAME cheadinstancetype=$logintype ; success=$?
+az deployment group create --name "$DEPLOYNAME" --debug --resource-group "$resourcegroup" --template-file "$computetemplate" --parameters sourceimage="$srcimage" clustername="$DEPLOYNAME" customdatanode="$cloudtranslat" computeNodesCount=2
+#  computeinstancetype="$computetype" adminUsername="$adminname" adminPublicKey="$adminkey"
 
-echo "done"
+echo "finished"
+
+
+ 
