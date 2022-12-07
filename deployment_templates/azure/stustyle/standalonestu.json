@@ -35,7 +35,7 @@
       }
   },
   "variables": {
-      "cheadname": "[concat(parameters('clustername'), '-login')]",
+      "cheadname": "[concat(parameters('clustername'), '-chead1')]",
       "sgname": "[concat(parameters('clustername'), '-sg')]",
       "pubIPname": "[concat(variables('cheadname'), '-pubIP')]",
       "ipconfigname": "[concat(variables('cheadname'), '-IPconfig')]",
@@ -157,7 +157,7 @@
          }]
       }
     },
-    
+
     {
       "type": "Microsoft.Network/publicIPAddresses",
       "name": "[variables('pubIPname')]",
@@ -211,7 +211,7 @@
     },
     {
       "type": "Microsoft.Compute/virtualMachines",
-      "name": "variables('cheadname')",
+      "name": "[variables('cheadname')]",
       "apiVersion": "2016-04-30-preview",
       "location": "[resourceGroup().location]",
       "tags": {
