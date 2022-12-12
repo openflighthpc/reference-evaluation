@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo "make sure to source openstack project file!"
+
+
 echo "what to name stack?"
 read STACKNAME
 
@@ -8,6 +11,7 @@ read KEYFILE
 
 echo "Create standalone cluster"
 openstack stack create --template standalone-template.yaml --parameter "key_name=keytest1" --parameter "flavor=m1.small" --parameter "image=Flight Solo 2022.4" "$STACKNAME"
+echo "broken?"
 
 completed=false
 timeout=120
@@ -57,4 +61,9 @@ contents=$(ssh -i "$KEYFILE" -o 'StrictHostKeyChecking=no' "flight@$pubIP" "sudo
 
 echo $contents
 
-openstack stack create --template passwordless-nodes-template.yaml --parameter "key_name=keytest1" --parameter "flavor=m1.small" --parameter "image=Flight Solo 2022.4" --parameter "login_node_ip=$privIP" --parameter "login_node_key=$contents" "compute$STACKNAME"
+cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SERVER=$privIP\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - name: root\n    ssh_authorized_keys:\n      - $contents\n"
+
+cloudtranslat=$(echo -e "$cloudscript" | base64 -w0)
+cloudinit=$(echo -e "$cloudscript")
+
+openstack stack create --template passwordless-nodes-template.yaml --parameter "key_name=keytest1" --parameter "flavor=m1.small" --parameter "image=Flight Solo 2022.4" --parameter "login_node_ip=$privIP" --parameter "login_node_key=$contents" "compute$STACKNAME" --parameter "custom_data=$cloudinit"
