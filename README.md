@@ -6,4 +6,4 @@ See [here](https://docs.openflighthpc.org/reference_clusters/ref_cluster_centos8
 
 See [here](https://docs.openflighthpc.org/functionality_testing/automatic_tests/#automatic-tests) for information about the functionality tests.
 
-See [here](https://docs.openflighthpc.org/functionality_testing/automatic_tests//#automatic-web-suite-testing) for information about functionality tests for web suite.
+See [here](https://docs.openflighthpc.org/functionality_testing/automatic_tests/#automatic-web-suite-testing) for information about functionality tests for web suite.
