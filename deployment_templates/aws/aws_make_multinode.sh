@@ -6,6 +6,7 @@ instanceami="ami-04b88ad7b25bc74ef"
 instancesize="t3.small"
 sgroup="sg-099219b43ee588b21"
 subnet="subnet-55d8582f"
+cnodetemplate="aws_multinode.yaml"
 
 
 echo "Name of stack?"
@@ -26,11 +27,18 @@ if [[ $temp != "" ]] ;then
   instanceami="$temp"
 fi
 
-echo "Instance Size? "
+echo "Instance Size?"
 read temp
 if [[ $temp != "" ]] ;then
   instancesize="$temp"
 fi
+
+echo "multisize template? "
+read temp
+if [[ $temp != "" ]] ;then
+  cnodetemplate="aws_multinode_multisize.yaml"
+fi
+
 
 echo "Security Group ID?"
 read temp
@@ -43,10 +51,6 @@ read temp
 if [[ $temp != "" ]] ;then
   subnet="$temp"
 fi
-
-
-echo "what to name stack?"
-read STACKNAME
 
 
 echo "Create standalone cluster"
@@ -77,4 +81,4 @@ contents=$(ssh -i "$keyfile" -o 'StrictHostKeyChecking=no' "flight@$pubIP" "sudo
 
 echo $contents
 
-aws cloudformation create-stack --template-body "$(cat aws_multinode.yaml)" --stack-name "compute$stackname" --parameters "ParameterKey=KeyPair,ParameterValue=ivan-keypair,UsePreviousValue=false" "ParameterKey=InstanceAmi,ParameterValue=$instanceami,UsePreviousValue=false" "ParameterKey=InstanceSize,ParameterValue=$instancesize,UsePreviousValue=false" "ParameterKey=SecurityGroup,ParameterValue=$sgroup,UsePreviousValue=false" "ParameterKey=InstanceSubnet,ParameterValue=$subnet,UsePreviousValue=false" "ParameterKey=IpData,ParameterValue=$privIP,UsePreviousValue=false" "ParameterKey=KeyData,ParameterValue=$contents,UsePreviousValue=false"
+aws cloudformation create-stack --template-body "$(cat "$cnodetemplate")" --stack-name "compute$stackname" --parameters "ParameterKey=KeyPair,ParameterValue=ivan-keypair,UsePreviousValue=false" "ParameterKey=InstanceAmi,ParameterValue=$instanceami,UsePreviousValue=false" "ParameterKey=InstanceSize,ParameterValue=$instancesize,UsePreviousValue=false" "ParameterKey=SecurityGroup,ParameterValue=$sgroup,UsePreviousValue=false" "ParameterKey=InstanceSubnet,ParameterValue=$subnet,UsePreviousValue=false" "ParameterKey=IpData,ParameterValue=$privIP,UsePreviousValue=false" "ParameterKey=KeyData,ParameterValue=$contents,UsePreviousValue=false"
