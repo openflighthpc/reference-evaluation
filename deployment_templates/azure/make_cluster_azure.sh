@@ -8,12 +8,19 @@ computename="$DEPLOYNAME""-compute"
 echo "standalone? (leave blank for no)"
 read STANDALONE
 
+clustype="Standard_DS1_v2"
+echo "instance size? (default is Standard_DS1_v2)"
+read temp
+
+if [[ $temp != "" ]]; then
+  clustype="$temp"
+fi
 # actual necessary info
 logintemplate="standalone_azure.json"
 computetemplate="multinode_azure.json"  
 srcimage="/subscriptions/a41c5728-46d9-4f9c-aefe-ffd2a83df476/resourceGroups/openflight-images/providers/Microsoft.Compute/images/SOLO2-2022.4-1411221728"
-logintype="Standard_DS1_v2"
-computetype="Standard_DS1_v2"
+logintype="$clustype"
+computetype="$clustype"
 computes=2
 keyfile="ivan-azure_key.pem"
 location="uksouth"
