@@ -61,8 +61,7 @@ contents=$(ssh -i "$KEYFILE" -o 'StrictHostKeyChecking=no' "flight@$pubIP" "sudo
 
 echo $contents
 
-cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SERVER=$privIP\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - name: root\n    ssh_authorized_keys:\n      - $contents\n"
-
+cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SERVER=$privIP\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - default\n  - name: root\n    ssh_authorized_keys:\n    - $contents\n"
 cloudtranslat=$(echo -e "$cloudscript" | base64 -w0)
 cloudinit=$(echo -e "$cloudscript")
 
