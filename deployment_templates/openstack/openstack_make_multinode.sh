@@ -3,15 +3,16 @@
 echo "make sure to source openstack project file!"
 
 
-echo "what to name stack?"
+echo "What should the stack be named?"
 read STACKNAME
 
-echo "key used to access cluster?"
+echo "What is the key used to access cluster?"
 read KEYFILE
 
-echo "Create standalone cluster"
+
+
+echo "Creating standalone cluster. . ."
 openstack stack create --template standalone-template.yaml --parameter "key_name=keytest1" --parameter "flavor=m1.small" --parameter "image=Flight Solo 2022.4" "$STACKNAME"
-echo "broken?"
 
 completed=false
 timeout=120
