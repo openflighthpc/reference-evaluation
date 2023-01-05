@@ -1,13 +1,17 @@
 #!/bin/bash
 
-echo "make sure to source openstack project file!"
+echo "WARNING: make sure to source openstack project file!"
 
 
 echo "What should the stack be named?"
 read STACKNAME
 
+keyfile="key1.pem"
 echo "What is the key used to access cluster?"
-read KEYFILE
+read temp
+if [[ $temp != "" ]]; then
+  keyfile="$temp"
+fi
 
 
 loginimage="Flight Solo 2022.4"
@@ -52,14 +56,14 @@ echo $privIP
 
 # now get value of 
 # have to wait for login node to come online
-until ssh -i "$KEYFILE" -o 'StrictHostKeyChecking=no' "flight@$pubIP" 'exit'; do
+until ssh -i "$keyfile" -o 'StrictHostKeyChecking=no' "flight@$pubIP" 'exit'; do
   echo "failed?"
   sleep 5
 done
 
 echo "succeeded?"
 
-contents=$(ssh -i "$KEYFILE" -o 'StrictHostKeyChecking=no' "flight@$pubIP" "sudo /bin/bash -l -c 'echo -n'; sudo cat /root/.ssh/id_alcescluster.pub")
+contents=$(ssh -i "$keyfile" -o 'StrictHostKeyChecking=no' "flight@$pubIP" "sudo /bin/bash -l -c 'echo -n'; sudo cat /root/.ssh/id_alcescluster.pub")
 
 
 echo $contents
