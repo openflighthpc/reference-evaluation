@@ -170,7 +170,7 @@ echoplus 0 "($headname) SELinux state: $selinuxState" >> $out
 # Test 3: Check that head node ip address is the same as in /etc/hosts
 echoplus 2 "Test 3: Check that $headname ip address is the same as in /etc/hosts"
 
-headIP=$(hostname -I)
+headIP=$(ip -o route get to 8.8.8.8 | sed -n 's/.*src \([0-9.]\+\).*/\1/p')
 
 if [[ $(awk "/$headname/{ print NR; exit }" /etc/hosts) != $(awk "/$headIP/{ print NR; exit }" /etc/hosts) ]]; then
   echoplus 0 "($headname) not set to correct IP in hosts file, see documenatation page \"Node Setup\"."
