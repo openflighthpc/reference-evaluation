@@ -42,13 +42,13 @@ while [[ $completed != true ]]; do # just a little loop to not wait an excessive
 done
 
 
-
+echo "public ip:"
 pubIP=$(openstack stack output show "$STACKNAME" standalone_public_ip -f shell | grep "output_value")
 pubIP=${pubIP#*\"} #removes stuff upto // from begining
 pubIP=${pubIP%\"*} #removes stuff from / all the way to end
 echo $pubIP
 
-
+echo "private ip:"
 privIP=$(openstack stack output show "$STACKNAME" standalone_ip -f shell | grep "output_value")
 privIP=${privIP#*\"} #removes stuff upto // from begining
 privIP=${privIP%\"*} #removes stuff from / all the way to end
