@@ -7,18 +7,40 @@ echo "What should the stack be named?"
 read STACKNAME
 
 keyfile="key1.pem"
-echo "What is the key used to access cluster?"
+echo "What is the key file used to access cluster?"
 read temp
 if [[ $temp != "" ]]; then
   keyfile="$temp"
 fi
 
+keyname="keytest1"
+echo "What is the key name used to create the cluster?"
+read temp
+if [[ $temp != "" ]]; then
+  keyname="$temp"
+fi
 
-loginimage="Flight Solo 2022.4"
-computeimage="Flight Solo 2022.4"
+loginsize="m1.small"
+echo "What is the size of the login node?"
+read temp
+if [[ $temp != "" ]]; then
+  loginsize="$temp"
+fi
+
+computesize="m1.small"
+echo "What is the size of the compute nodes?"
+read temp
+if [[ $temp != "" ]]; then
+  computesize="$temp"
+fi
+
+
+
+loginimage="Flight Solo 2023.1-1701231900"
+computeimage="Flight Solo 2023.1-1701231900"
 
 echo "Creating standalone cluster. . ."
-openstack stack create --template standalone-template.yaml --parameter "key_name=keytest1" --parameter "flavor=m1.small" --parameter "image=$loginimage" "$STACKNAME"
+openstack stack create --template standalone-template.yaml --parameter "key_name=$keyname" --parameter "flavor=$loginsize" --parameter "image=$loginimage" "$STACKNAME"
 
 completed=false
 timeout=120
@@ -72,4 +94,4 @@ cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SERVER=$privIP\n
 cloudtranslat=$(echo -e "$cloudscript" | base64 -w0)
 cloudinit=$(echo -e "$cloudscript")
 
-openstack stack create --template passwordless-nodes-template.yaml --parameter "key_name=keytest1" --parameter "flavor=m1.small" --parameter "image=$computeimage" --parameter "login_node_ip=$privIP" --parameter "login_node_key=$contents" "compute$STACKNAME" --parameter "custom_data=$cloudinit"
+openstack stack create --template passwordless-nodes-template.yaml --parameter "key_name=$keyname" --parameter "flavor=$computesize" --parameter "image=$computeimage" --parameter "login_node_ip=$privIP" --parameter "login_node_key=$contents" "compute$STACKNAME" --parameter "custom_data=$cloudinit"
