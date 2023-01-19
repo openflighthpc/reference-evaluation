@@ -43,6 +43,11 @@ parameters:
     description: >
       ID of public network for which floating IP addresses will be allocated
 
+  disk_size:
+    default: 20
+    type: number
+    description: The disk/volume size of the vm.
+
 
 resources:
 
@@ -54,7 +59,18 @@ resources:
       networks:
       - port:
           get_resource: standalone_port
+      block_device_mapping:
+        - device_name: vda
+          volume_id: { get_resource: standalone_volume }
+          delete_on_termination: true
     type: OS::Nova::Server
+
+
+  standalone_volume:
+    type: OS::Cinder::Volume
+    properties:
+      size: { get_param: disk_size }
+      image: { get_param: image }
 
   standalone_port:
     properties:

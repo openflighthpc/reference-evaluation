@@ -21,26 +21,38 @@ if [[ $temp != "" ]]; then
 fi
 
 loginsize="m1.small"
-echo "What is the size of the login node?"
+echo "What is the instance size of the login node?"
 read temp
 if [[ $temp != "" ]]; then
   loginsize="$temp"
 fi
 
 computesize="m1.small"
-echo "What is the size of the compute nodes?"
+echo "What is the instance size of the compute nodes?"
 read temp
 if [[ $temp != "" ]]; then
   computesize="$temp"
 fi
 
+logindisksize="20"
+echo "What is the volume size of the login node?"
+read temp
+if [[ $temp != "" ]]; then
+  logindisksize="$temp"
+fi
 
+computedisksize="20"
+echo "What is the volume size of the compute nodes?"
+read temp
+if [[ $temp != "" ]]; then
+  computedisksize="$temp"
+fi
 
 loginimage="Flight Solo 2023.1-1701231900"
 computeimage="Flight Solo 2023.1-1701231900"
 
 echo "Creating standalone cluster. . ."
-openstack stack create --template standalone-template.yaml --parameter "key_name=$keyname" --parameter "flavor=$loginsize" --parameter "image=$loginimage" "$STACKNAME"
+openstack stack create --template standalone-template.yaml --parameter "key_name=$keyname" --parameter "flavor=$loginsize" --parameter "image=$loginimage" --parameter "disk_size=$logindisksize" "$STACKNAME"
 
 completed=false
 timeout=120
@@ -94,4 +106,4 @@ cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SERVER=$privIP\n
 cloudtranslat=$(echo -e "$cloudscript" | base64 -w0)
 cloudinit=$(echo -e "$cloudscript")
 
-openstack stack create --template passwordless-nodes-template.yaml --parameter "key_name=$keyname" --parameter "flavor=$computesize" --parameter "image=$computeimage" --parameter "login_node_ip=$privIP" --parameter "login_node_key=$contents" "compute$STACKNAME" --parameter "custom_data=$cloudinit"
+openstack stack create --template passwordless-nodes-template.yaml --parameter "key_name=$keyname" --parameter "flavor=$computesize" --parameter "image=$computeimage" --parameter "login_node_ip=$privIP" --parameter "login_node_key=$contents" "compute$STACKNAME" --parameter "custom_data=$cloudinit" --pramater "disk_size=computedisksize"
