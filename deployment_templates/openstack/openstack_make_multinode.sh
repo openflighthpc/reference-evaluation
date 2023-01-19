@@ -27,13 +27,6 @@ if [[ $temp != "" ]]; then
   loginsize="$temp"
 fi
 
-computesize="m1.small"
-echo "What is the instance size of the compute nodes?"
-read temp
-if [[ $temp != "" ]]; then
-  computesize="$temp"
-fi
-
 logindisksize="20"
 echo "What is the volume size of the login node?"
 read temp
@@ -41,12 +34,29 @@ if [[ $temp != "" ]]; then
   logindisksize="$temp"
 fi
 
-computedisksize="20"
-echo "What is the volume size of the compute nodes?"
+standaloneonly=false
+echo "Create only standalone?"
 read temp
 if [[ $temp != "" ]]; then
-  computedisksize="$temp"
+  standaloneonly=true
 fi
+
+if ! [[  $standaloneonly ]]; then
+  computesize="m1.small"
+  echo "What is the instance size of the compute nodes?"
+  read temp
+  if [[ $temp != "" ]]; then
+    computesize="$temp"
+  fi
+
+  computedisksize="20"
+  echo "What is the volume size of the compute nodes?"
+  read temp
+  if [[ $temp != "" ]]; then
+    computedisksize="$temp"
+  fi
+fi
+
 
 loginimage="Flight Solo 2023.1-1701231900"
 computeimage="Flight Solo 2023.1-1701231900"
@@ -83,6 +93,10 @@ pubIP=$(openstack stack output show "$STACKNAME" standalone_public_ip -f shell |
 pubIP=${pubIP#*\"} #removes stuff upto // from begining
 pubIP=${pubIP%\"*} #removes stuff from / all the way to end
 echo $pubIP
+
+if [[ $standaloneonly ]];then
+  exit
+fi
 
 echo "private ip:"
 privIP=$(openstack stack output show "$STACKNAME" standalone_ip -f shell | grep "output_value")
