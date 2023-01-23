@@ -48,10 +48,6 @@ parameters:
     type: number
     description: The disk/volume size of the vm.
 
-  custom_data:
-    type: string
-    description: cloud init data
-
 resources:
 
   my_standalone:
@@ -67,7 +63,13 @@ resources:
           volume_id: { get_resource: standalone_volume }
           delete_on_termination: true
       user_data_format: RAW
-      user_data: { get_param: custom_data }
+      user_data: |
+                  #cloud-config
+                  users:
+                   - default
+                   - name: flight
+                   ssh_authorized_keys:
+                   - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDWD9MAHnS5o6LrNaCb5gshU4BIpYfqoE2DCW9T2u3v4xOh04JkaMsIzwGc+BNnCh+NlkSE9sPVyPODCVnLnHdyyNfUkLBIUGCM/h9Ox7CTnsbmhnv3tMp4OD2dnGl+wOXWo/0YrWA0cpcl5UchCpZYMGscR4ohg8+/panBJ0//wmQZmCUZkQ20TLumYlL9HdmFl2SO2vraY+nBQCoHtPC80t4BmbPg5atEnQVMngpsRqSykIoUEQKh49t649cF3rBboZT+AmW+O1GWVYu7qlUxqIsdTRJbqbhZ/W2n3rraQh5CR/hOyYikkdn3xqm7Rom5iURvWd6QBh0LhP1UPRIT
     type: OS::Nova::Server
 
 

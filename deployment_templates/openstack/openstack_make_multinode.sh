@@ -64,7 +64,8 @@ openflightkey='ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDWD9MAHnS5o6LrNaCb5gshU4BIp
 
 standaloneCloudinit="#cloud-config\nusers:\n  - default\n  - name: flight\n    ssh_authorized_keys:\n    - $openflightkey\n    "
 echo "Creating standalone cluster. . ."
-openstack stack create --template standalone-template.yaml --parameter "key_name=$keyname" --parameter "flavor=$loginsize" --parameter "image=$loginimage" --parameter "custom_data=$standaloneCloudinit" --parameter "disk_size=$logindisksize" "$STACKNAME"
+#echo $standaloneCloudinit
+openstack stack create --template standalone-template.yaml --parameter "key_name=$keyname" --parameter "flavor=$loginsize" --parameter "image=$loginimage"  --parameter "disk_size=$logindisksize" "$STACKNAME"
 
 completed=false
 timeout=120
@@ -94,11 +95,6 @@ pubIP=${pubIP#*\"} #removes stuff upto // from begining
 pubIP=${pubIP%\"*} #removes stuff from / all the way to end
 echo $pubIP
 
-if [[ $standaloneonly = true ]];then
-  exit
-fi
-
-echo "private ip:"
 privIP=$(openstack stack output show "$STACKNAME" standalone_ip -f shell | grep "output_value")
 privIP=${privIP#*\"} #removes stuff upto // from begining
 privIP=${privIP%\"*} #removes stuff from / all the way to end
@@ -113,7 +109,13 @@ done
 
 echo "succeeded?"
 
+ssh -i "$keyfile" -o 'StrictHostKeyChecking=no' "flight@$pubIP" "sudo echo \"$openflightkey\" >> .ssh/authorized_keys"
+
 contents=$(ssh -i "$keyfile" -o 'StrictHostKeyChecking=no' "flight@$pubIP" "sudo /bin/bash -l -c 'echo -n'; sudo cat /root/.ssh/id_alcescluster.pub")
+
+if [[ $standaloneonly = true ]];then
+  exit
+fi
 
 
 echo $contents
