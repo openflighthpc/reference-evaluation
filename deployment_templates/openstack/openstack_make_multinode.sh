@@ -41,7 +41,7 @@ if [[ $temp != "" ]]; then
   standaloneonly=true
 fi
 
-if ! [[  $standaloneonly ]]; then
+if [[ $standaloneonly = false ]]; then
   computesize="m1.small"
   echo "What is the instance size of the compute nodes?"
   read temp
@@ -94,7 +94,7 @@ pubIP=${pubIP#*\"} #removes stuff upto // from begining
 pubIP=${pubIP%\"*} #removes stuff from / all the way to end
 echo $pubIP
 
-if [[ $standaloneonly ]];then
+if [[ $standaloneonly = true ]];then
   exit
 fi
 
