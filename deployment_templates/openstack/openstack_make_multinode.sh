@@ -126,4 +126,4 @@ cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SERVER=$privIP\n
 cloudtranslat=$(echo -e "$cloudscript" | base64 -w0)
 cloudinit=$(echo -e "$cloudscript")
 
-openstack stack create --template passwordless-nodes-template.yaml --parameter "key_name=$keyname" --parameter "flavor=$computesize" --parameter "image=$computeimage" --parameter "login_node_ip=$privIP" --parameter "login_node_key=$contents" "compute$STACKNAME" --parameter "custom_data=$cloudinit" --parameter "disk_size=$computedisksize"
+openstack stack create --template passwordless-nodes-template.yaml --parameter "key_name=$keyname" --parameter "flavor=$computesize" --parameter "image=$computeimage" --parameter "login_node_ip=$privIP" --parameter "login_node_key=$contents" "$STACKNAME" --parameter "custom_data=$cloudinit" --parameter "disk_size=$computedisksize"
