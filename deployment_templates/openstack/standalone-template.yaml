@@ -1,6 +1,6 @@
 heat_template_version: '2015-04-30'
 
-description: Template to deploy 1 standalone node and 2 compute nodes with floating IPs (hopefully)
+description: Template to deploy 1 node that can be a standalone or login node
 
 parameters:
 
@@ -50,7 +50,7 @@ parameters:
 
 resources:
 
-  my_standalone:
+  head:
     properties:
       flavor: { get_param: flavor }
       image: { get_param: image }
@@ -68,8 +68,8 @@ resources:
                   users:
                    - default
                    - name: flight
-                   ssh_authorized_keys:
-                   - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDWD9MAHnS5o6LrNaCb5gshU4BIpYfqoE2DCW9T2u3v4xOh04JkaMsIzwGc+BNnCh+NlkSE9sPVyPODCVnLnHdyyNfUkLBIUGCM/h9Ox7CTnsbmhnv3tMp4OD2dnGl+wOXWo/0YrWA0cpcl5UchCpZYMGscR4ohg8+/panBJ0//wmQZmCUZkQ20TLumYlL9HdmFl2SO2vraY+nBQCoHtPC80t4BmbPg5atEnQVMngpsRqSykIoUEQKh49t649cF3rBboZT+AmW+O1GWVYu7qlUxqIsdTRJbqbhZ/W2n3rraQh5CR/hOyYikkdn3xqm7Rom5iURvWd6QBh0LhP1UPRIT
+                     ssh_authorized_keys:
+                     - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDWD9MAHnS5o6LrNaCb5gshU4BIpYfqoE2DCW9T2u3v4xOh04JkaMsIzwGc+BNnCh+NlkSE9sPVyPODCVnLnHdyyNfUkLBIUGCM/h9Ox7CTnsbmhnv3tMp4OD2dnGl+wOXWo/0YrWA0cpcl5UchCpZYMGscR4ohg8+/panBJ0//wmQZmCUZkQ20TLumYlL9HdmFl2SO2vraY+nBQCoHtPC80t4BmbPg5atEnQVMngpsRqSykIoUEQKh49t649cF3rBboZT+AmW+O1GWVYu7qlUxqIsdTRJbqbhZ/W2n3rraQh5CR/hOyYikkdn3xqm7Rom5iURvWd6QBh0LhP1UPRIT
     type: OS::Nova::Server
 
 
@@ -93,7 +93,7 @@ resources:
 outputs:
   standalone_ip:
     description: The private IP address of the standalone node
-    value: { get_attr: [my_standalone, first_address] }
+    value: { get_attr: [head, first_address] }
   standalone_public_ip:
     description: Floating IP address of standalone node
     value: { get_attr: [ standalone_floating_ip, floating_ip_address ] }
