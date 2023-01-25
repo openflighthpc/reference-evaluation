@@ -57,7 +57,8 @@ if [[ $standaloneonly = false ]]; then
   fi
 fi
 
-
+logintemplate="login-node-template.yaml"
+computetemplate="compute-nodes-template.yaml"
 loginimage="Flight Solo 2023.1-1701231900"
 computeimage="Flight Solo 2023.1-1701231900"
 openflightkey='ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDWD9MAHnS5o6LrNaCb5gshU4BIpYfqoE2DCW9T2u3v4xOh04JkaMsIzwGc+BNnCh+NlkSE9sPVyPODCVnLnHdyyNfUkLBIUGCM/h9Ox7CTnsbmhnv3tMp4OD2dnGl+wOXWo/0YrWA0cpcl5UchCpZYMGscR4ohg8+/panBJ0//wmQZmCUZkQ20TLumYlL9HdmFl2SO2vraY+nBQCoHtPC80t4BmbPg5atEnQVMngpsRqSykIoUEQKh49t649cF3rBboZT+AmW+O1GWVYu7qlUxqIsdTRJbqbhZ/W2n3rraQh5CR/hOyYikkdn3xqm7Rom5iURvWd6QBh0LhP1UPRIT'
@@ -66,7 +67,7 @@ standaloneCloudinit="
 #cloud-config\nusers:\n  - default\n  - name: flight\n    ssh_authorized_keys:\n    - $openflightkey\n    "
 echo "Creating standalone cluster. . ."
 #echo $standaloneCloudinit
-openstack stack create --template standalone-template.yaml --parameter "key_name=$keyname" --parameter "flavor=$loginsize" --parameter "image=$loginimage"  --parameter "disk_size=$logindisksize" "$STACKNAME"
+openstack stack create --template "$logintemplate" --parameter "key_name=$keyname" --parameter "flavor=$loginsize" --parameter "image=$loginimage"  --parameter "disk_size=$logindisksize" "$STACKNAME"
 
 completed=false
 timeout=120
@@ -126,4 +127,4 @@ cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SERVER=$privIP\n
 cloudtranslat=$(echo -e "$cloudscript" | base64 -w0)
 cloudinit=$(echo -e "$cloudscript")
 
-openstack stack create --template passwordless-nodes-template.yaml --parameter "key_name=$keyname" --parameter "flavor=$computesize" --parameter "image=$computeimage" --parameter "login_node_ip=$privIP" --parameter "login_node_key=$contents" "$STACKNAME" --parameter "custom_data=$cloudinit" --parameter "disk_size=$computedisksize"
+openstack stack create --template "$computetemplate" --parameter "key_name=$keyname" --parameter "flavor=$computesize" --parameter "image=$computeimage" --parameter "login_node_ip=$privIP" --parameter "login_node_key=$contents" "compute-$STACKNAME" --parameter "custom_data=$cloudinit" --parameter "disk_size=$computedisksize"
