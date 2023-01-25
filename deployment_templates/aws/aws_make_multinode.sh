@@ -4,7 +4,7 @@ stackname="multinode-101"
 keyfile="ivan-keypair.pem"
 instanceami="ami-04b88ad7b25bc74ef"
 instancesize="t3.small"
-sgroup="sg-099219b43ee588b21"
+sgroup="sg-0f771e548fa4183ab"
 subnet="subnet-55d8582f"
 cnodetemplate="aws_multinode.yaml"
 
