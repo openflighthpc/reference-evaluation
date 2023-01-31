@@ -59,8 +59,8 @@ fi
 
 logintemplate="login-node-template.yaml"
 computetemplate="compute-nodes-template.yaml"
-loginimage="Flight Solo 2023.1-1701231900"
-computeimage="Flight Solo 2023.1-1701231900"
+loginimage="Flight Solo 2023.1 - 30.01.23"    #"Flight Solo 2023.1-1701231900"
+computeimage="Flight Solo 2023.1 - 30.01.23"    #"Flight Solo 2023.1-1701231900"
 openflightkey='ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDWD9MAHnS5o6LrNaCb5gshU4BIpYfqoE2DCW9T2u3v4xOh04JkaMsIzwGc+BNnCh+NlkSE9sPVyPODCVnLnHdyyNfUkLBIUGCM/h9Ox7CTnsbmhnv3tMp4OD2dnGl+wOXWo/0YrWA0cpcl5UchCpZYMGscR4ohg8+/panBJ0//wmQZmCUZkQ20TLumYlL9HdmFl2SO2vraY+nBQCoHtPC80t4BmbPg5atEnQVMngpsRqSykIoUEQKh49t649cF3rBboZT+AmW+O1GWVYu7qlUxqIsdTRJbqbhZ/W2n3rraQh5CR/hOyYikkdn3xqm7Rom5iURvWd6QBh0LhP1UPRIT'
 
 standaloneCloudinit="
