@@ -36,6 +36,11 @@ Parameters:
     Description: The subnet to be used.
     Default: subnet-55d8582f
 
+  InstanceDiskSize:
+    Type:  Number
+    Description: The disk size of this instance.
+    Default: 20
+
 Resources:
 
   StandaloneInstance:
@@ -50,6 +55,14 @@ Resources:
       SecurityGroupIds: 
         - sg-099219b43ee588b21
       SubnetId: subnet-55d8582f
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeType: gp2
+            VolumeSize: 
+              Ref: InstanceDiskSize
+            DeleteOnTermination: 'true'
+            Encrypted: 'true'
       UserData: !Base64 
           Fn::Join:
             - ''
