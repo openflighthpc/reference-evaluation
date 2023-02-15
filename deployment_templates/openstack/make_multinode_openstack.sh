@@ -1,6 +1,6 @@
 #!/bin/bash
 
-nodecount=2
+nodecount=4
 outputlvl=2
 varfile="config.in"
 config="0"
@@ -252,10 +252,58 @@ cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SERVER=$privIP\n
 cloudtranslat=$(echo -e "$cloudscript" | base64 -w0)
 cloudinit=$(echo -e "$cloudscript")
 
+
+computetemplate="changestack.yaml"
+cat base > "changestack.yaml"
+
+for x in `seq 1 $nodecount`; do
+echo "
+  node_port${x}:
+    properties:
+      network: { get_param: network }
+    type: OS::Neutron::Port
+
+  node${x}_floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network_id: { get_param: public_net }
+      port_id: { get_resource: node_port${x} }
+
+  node${x}_volume:
+    type: OS::Cinder::Volume
+    properties:
+      size: { get_param: disk_size }
+      image: { get_param: image }
+  node${x}:
+    properties:
+      flavor: { get_param: flavor }
+      image: { get_param: image }
+      key_name: { get_param: key_name }
+      networks:
+      - port:
+          get_resource: node_port${x}
+      user_data_format: RAW
+      user_data: { get_param: custom_data }
+      block_device_mapping:
+        - device_name: vda
+          volume_id: { get_resource: node${x}_volume }
+          delete_on_termination: true
+    type: OS::Nova::Server" >> changestack.yaml
+done
+
+echo "
+outputs:" >> changestack.yaml
+for x in `seq 1 $nodecount`; do
+  echo "
+  node${x}_ip:
+    description: The private IP address of node1
+    value: { get_attr: [node${x}, first_address] }
+  node${x}_public_ip:
+    description: Floating IP address of node1
+    value: { get_attr: [ node${x}_floating_ip, floating_ip_address ] }" >> changestack.yaml
+done
+
 openstack stack create --template "$computetemplate" --parameter "key_name=$keyname" --parameter "flavor=$computesize" --parameter "image=$srcimage" --parameter "login_node_ip=$privIP" --parameter "login_node_key=$contents" "compute-$STACKNAME" --parameter "custom_data=$cloudinit" --parameter "disk_size=$computedisksize" >> /dev/null
-
-
-
 
 completed=false
 timeout=120
@@ -283,57 +331,31 @@ while [[ $completed != true ]]; do # just a little loop to not wait an excessive
   fi
 done
 
-echoplus -v 3 "node01 public ip:"
-node01pubIP=$(openstack stack output show "compute-$STACKNAME" node01_public_ip -f shell | grep "output_value")
-node01pubIP=${node01pubIP#*\"} #removes stuff upto // from begining
-node01pubIP=${node01pubIP%\"*} #removes stuff from / all the way to end
-echoplus -v 3 $node01pubIP
-
-echoplus -v 3 "node01 private ip:"
-node01privIP=$(openstack stack output show "compute-$STACKNAME" node01_ip -f shell | grep "output_value")
-node01privIP=${node01privIP#*\"} #removes stuff upto // from begining
-node01privIP=${node01privIP%\"*} #removes stuff from / all the way to end
-echoplus -v 3 $node01privIP
-
-echoplus -v 3 "node02 public ip:"
-node02pubIP=$(openstack stack output show "compute-$STACKNAME" node02_public_ip -f shell | grep "output_value")
-node02pubIP=${node02pubIP#*\"} #removes stuff upto // from begining
-node02pubIP=${node02pubIP%\"*} #removes stuff from / all the way to end
-echoplus -v 3 $node02pubIP
-
-echoplus -v 3 "node02 private ip:"
-node02privIP=$(openstack stack output show "compute-$STACKNAME" node02_ip -f shell | grep "output_value")
-node02privIP=${node02privIP#*\"} #removes stuff upto // from begining
-node02privIP=${node02privIP%\"*} #removes stuff from / all the way to end
-echoplus -v 3 $node02privIP
-
-
-# can you login to node01?
 echoplus -v 2 "Attempting to connect with SSH to compute nodes."
-until ssh -q -i "$keyfile" -o 'StrictHostKeyChecking=no' "flight@$node01pubIP" 'exit'; do
-  echoplus -c ORNG -v 2 -p "[node01] connecting. . . \r"
+for x in `seq 1 $nodecount`; do
+  nodepubIP=$(openstack stack output show "compute-$STACKNAME" "node${x}_public_ip" -f shell | grep "output_value")
+  nodepubIP=${nodepubIP#*\"} #removes stuff upto // from begining
+  nodepubIP=${nodepubIP%\"*} #removes stuff from / all the way to end
+  until ssh -q -i "$keyfile" -o 'StrictHostKeyChecking=no' "flight@$nodepubIP" 'exit'; do
+    echoplus -c ORNG -v 2 -p "[node${x}] connecting. . . \r"
+  done
+  echoplus -c GRN -v 2 "[node${x}] connected.     \r"
+  echoplus -v 2 -p "\\n"
 done
-echoplus -c GRN -v 2 "[node01] connected.     \r"
-echoplus -v 2 -p "\\n"
-
-# can you login to node02?
-until ssh -q -i "$keyfile" -o 'StrictHostKeyChecking=no' "flight@$node02pubIP" 'exit'; do
-  echoplus -c ORNG -v 2 -p "[node02] connecting. . . \r"
-done
-echoplus -c GRN -v 2 "[node01] connected.     \r"
-echoplus -p -v 1 "\\n"
-
-
-echoplus -v 1 "public IPs:"
-echoplus -v 1 "$pubIP"
-echoplus -v 1 "$node01pubIP"
-echoplus -v 1 "$node02pubIP"
-echoplus -v 1 ""
-echoplus -v 1 "Private IPs:"
-echoplus -v 1 "$privIP"
-echoplus -v 1 "$node01privIP"
-echoplus -v 1 "$node02privIP"
 
 
 echoplus -v 0 "login_public_ip=$pubIP"
 echoplus -v 0 "login_private_ip=$pubIP"
+
+for x in `seq 1 $nodecount`; do
+  nodepubIP=$(openstack stack output show "compute-$STACKNAME" "node${x}_public_ip" -f shell | grep "output_value")
+  nodepubIP=${nodepubIP#*\"} #removes stuff upto // from begining
+  nodepubIP=${nodepubIP%\"*} #removes stuff from / all the way to end
+
+  nodeprivIP=$(openstack stack output show "compute-$STACKNAME" "node${x}_ip" -f shell | grep "output_value")
+  nodeprivIP=${nodeprivIP#*\"} #removes stuff upto // from begining
+  nodeprivIP=${nodeprivIP%\"*} #removes stuff from / all the way to end
+
+  echoplus -v 0 "node${x}_public_ip=$nodepubIP"
+  echoplus -v 0 "node${x}_private_ip=$nodeprivIP"
+done
