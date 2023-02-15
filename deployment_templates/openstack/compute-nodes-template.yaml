@@ -132,3 +132,17 @@ resources:
           delete_on_termination: true
     type: OS::Nova::Server
 
+outputs:
+  node01_ip:
+    description: The private IP address of node1
+    value: { get_attr: [node01, first_address] }
+  node01_public_ip:
+    description: Floating IP address of node1
+    value: { get_attr: [ cnode01_floating_ip, floating_ip_address ] }
+
+  node02_ip:
+    description: The private IP address of node2
+    value: { get_attr: [node02, first_address] }
+  node02_public_ip:
+    description: Floating IP address of node2
+    value: { get_attr: [ cnode02_floating_ip, floating_ip_address ] }
