@@ -50,6 +50,7 @@
       }
   },
   "variables": {
+      "subnet1Ref": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('netname'), 'flightsub1')]",
       "subnet2Ref": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('netname'), 'flightsub2')]",
       "netname": "[concat('flightnet-', parameters('clustername') )]",
       "cnodename": "[concat(parameters('clustername'), '-cnode0')]",
@@ -82,7 +83,7 @@
               "id": "[resourceId('Microsoft.Network/publicIpAddresses', concat(variables('cnodepubIPname'), copyindex(1)) )]"
             },
             "subnet": {
-              "id": "[variables('subnet2Ref')]"
+              "id": "[variables('subnet1Ref')]"
             }
           }
         }],
