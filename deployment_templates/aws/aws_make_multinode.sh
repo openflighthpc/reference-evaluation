@@ -2,11 +2,12 @@
 
 stackname="multinode-101"
 keyfile="ivan-keypair.pem"
-instanceami="ami-04b88ad7b25bc74ef"
+instanceami="ami-03e246735a463e2ef"
 instancesize="t3.small"
 sgroup="sg-0f771e548fa4183ab"
 subnet="subnet-55d8582f"
 cnodetemplate="aws_multinode.yaml"
+logindisk=20
 
 
 echo "Name of stack?"
@@ -15,10 +16,16 @@ if [[ $temp != "" ]] ;then
   stackname="$temp"
 fi
 
-echo "Key to access cluster?"
+#echo "Key to access cluster?"
+#read temp
+#if [[ $temp != "" ]] ;then
+#  keyfile="$temp"
+#fi
+
+echo "Login disk size?"
 read temp
 if [[ $temp != "" ]] ;then
-  keyfile="$temp"
+  logindisk="$temp"
 fi
 
 echo "Instance AMI ID?"
@@ -55,7 +62,7 @@ fi
 
 echo "Create standalone cluster"
 
-aws cloudformation create-stack --template-body "$(cat aws_standalone.yaml)" --stack-name "$stackname" --parameters "ParameterKey=KeyPair,ParameterValue=ivan-keypair,UsePreviousValue=false" "ParameterKey=InstanceAmi,ParameterValue=$instanceami,UsePreviousValue=false" "ParameterKey=InstanceSize,ParameterValue=$instancesize,UsePreviousValue=false" "ParameterKey=SecurityGroup,ParameterValue=$sgroup,UsePreviousValue=false" "ParameterKey=InstanceSubnet,ParameterValue=$subnet,UsePreviousValue=false"
+aws cloudformation create-stack --template-body "$(cat aws_standalone.yaml)" --stack-name "$stackname" --parameters "ParameterKey=KeyPair,ParameterValue=ivan-keypair,UsePreviousValue=false" "ParameterKey=InstanceAmi,ParameterValue=$instanceami,UsePreviousValue=false" "ParameterKey=InstanceSize,ParameterValue=$instancesize,UsePreviousValue=false" "ParameterKey=SecurityGroup,ParameterValue=$sgroup,UsePreviousValue=false" "ParameterKey=InstanceSubnet,ParameterValue=$subnet,UsePreviousValue=false" "ParameterKey=InstanceDiskSize,ParameterValue=$logindisk,UsePreviousValue=false"
 echo "WORKED?"
 
 aws cloudformation wait stack-create-complete --stack-name $stackname
