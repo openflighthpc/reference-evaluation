@@ -1,6 +1,5 @@
 #!/bin/bash
 
-nodecount=4
 outputlvl=2
 varfile="config.in"
 config="0"
@@ -10,7 +9,7 @@ RED='\033[0;31m'
 GRN='\033[0;32m'
 ORNG='\033[0;33m'
 NC='\033[0m' # No Color
-
+nodecount=2
 # take input
 
 while [[ $# -gt 0 ]]; do # while there are not 0 args
@@ -127,6 +126,7 @@ computesize="m1.small"
 computedisksize="20"
 
 
+
 if [[ "$noinput" == "0" && $config == "0" ]]; then
 
   echoplus -v 0 "What should the stack be named?"
@@ -150,10 +150,10 @@ if [[ "$noinput" == "0" && $config == "0" ]]; then
     standaloneonly=true
   fi
 
-  echoplus -v 0 "What template to use for compute nodes? (file path)"
+  echoplus -v 0 "How many compute nodes to use?"
   read temp
   if [[ $temp != "" ]]; then
-    computetemplate="$temp"
+    nodecount="$temp"
   fi
 
   if [[ $standaloneonly = false ]]; then
@@ -254,7 +254,7 @@ cloudinit=$(echo -e "$cloudscript")
 
 
 computetemplate="changestack.yaml"
-cat "base.yaml" > "$computetemplate"
+cat base.yaml > "$computetemplate"
 
 for x in `seq 1 $nodecount`; do
 echo "
