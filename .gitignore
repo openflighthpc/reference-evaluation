@@ -2,7 +2,7 @@
 
 #ignore the openstack project rc file
 *openrc.sh
-~                                                                                                                                                 
+*changestack.yaml~                                                                                                                                                 
 ~                                                                                                                                                 
 ~                                                                                                                                                 
 ~                                                                                                                                                 
