@@ -254,7 +254,7 @@ cloudinit=$(echo -e "$cloudscript")
 
 
 computetemplate="changestack.yaml"
-cat base > "changestack.yaml"
+cat "base.yaml" > "$computetemplate"
 
 for x in `seq 1 $nodecount`; do
 echo "
@@ -288,11 +288,11 @@ echo "
         - device_name: vda
           volume_id: { get_resource: node${x}_volume }
           delete_on_termination: true
-    type: OS::Nova::Server" >> changestack.yaml
+    type: OS::Nova::Server" >> "$computetemplate"
 done
 
 echo "
-outputs:" >> changestack.yaml
+outputs:" >> "$computetemplate"
 for x in `seq 1 $nodecount`; do
   echo "
   node${x}_ip:
@@ -300,7 +300,7 @@ for x in `seq 1 $nodecount`; do
     value: { get_attr: [node${x}, first_address] }
   node${x}_public_ip:
     description: Floating IP address of node1
-    value: { get_attr: [ node${x}_floating_ip, floating_ip_address ] }" >> changestack.yaml
+    value: { get_attr: [ node${x}_floating_ip, floating_ip_address ] }" >> "$computetemplate"
 done
 
 openstack stack create --template "$computetemplate" --parameter "key_name=$keyname" --parameter "flavor=$computesize" --parameter "image=$srcimage" --parameter "login_node_ip=$privIP" --parameter "login_node_key=$contents" "compute-$STACKNAME" --parameter "custom_data=$cloudinit" --parameter "disk_size=$computedisksize" >> /dev/null
