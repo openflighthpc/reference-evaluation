@@ -2,6 +2,8 @@
 
 #ignore the openstack project rc file
 *openrc.sh
+# ignore dynamic yaml files
 deployment_templates/openstack/changestack.yaml
-~                                                                                                                                                 
-~                                        
+deployment_templates/aws/changestack.yaml
+# ignore the openstack environment
+deployment_templates/openstack/openstack/
