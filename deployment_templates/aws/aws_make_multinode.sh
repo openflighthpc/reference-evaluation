@@ -6,7 +6,7 @@ instanceami="ami-03e246735a463e2ef"
 instancesize="t3.small"
 sgroup="sg-0f771e548fa4183ab"
 subnet="subnet-55d8582f"
-cnodetemplate="stackchange.yaml" 
+cnodetemplate="changestack.yaml" 
 logindisk=20
 nodecount=2
 
