@@ -1,10 +1,10 @@
 Check that necessary ports are accessible (must be done on the host)
 
   $ nmap 10.151.15.116
-  Starting Nmap 7.93 ( https://nmap.org ) at 2023-02-28 12:15 GMT
-  Nmap scan report for 10.151.15.116
-  Host is up (0.67s latency).
-  Not shown: 899 filtered tcp ports (no-response), 68 filtered tcp ports (host-unreach)
+  Starting Nmap * ( https://nmap.org ) at * GMT (glob)
+  Nmap scan report for * (glob)
+  Host is up (*s latency). (glob)
+  Not shown: * filtered tcp ports (no-response), 68 filtered tcp ports (host-unreach) (glob)
   PORT     STATE  SERVICE
   21/tcp   open   ftp
   22/tcp   open   ssh
@@ -40,4 +40,4 @@ Check that necessary ports are accessible (must be done on the host)
   8888/tcp open   sun-answerbook
   9090/tcp closed zeus-admin
   
-  Nmap done: 1 IP address (1 host up) scanned in 66.76 seconds
+  Nmap done: 1 IP address (1 host up) scanned in * seconds (glob)
