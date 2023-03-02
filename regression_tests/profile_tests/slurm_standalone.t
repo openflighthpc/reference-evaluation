@@ -1,11 +1,7 @@
 Configure profile for slurm standalone, then apply relevant identities
 
-  $ echo "---
-cluster_name: mycluster1
-default_username: flight
-default_password: 0penfl1ght
-access_host: 10.151.15.116" > /opt/flight/opt/profile/var/answers/openflight-slurm-standalone.yaml
-
-  $ flight profile apply node00 login
-
-
+  $ sudo mkdir /opt/flight/opt/profile/var/answers
+  $ echo -e "---\ncluster_name: mycluster1\ndefault_username: flight\ndefault_password: 0penfl1ght\naccess_host: $loginip" | sudo tee /opt/flight/opt/profile/var/answers/openflight-slurm-standalone.yaml >> /dev/null
+  $ flight profile apply node00 all-in-one
+  Applying 'all-in-one' to host 'node00'
+  The application process has begun. Refer to `flight profile list` or `flight profile view` for more details
