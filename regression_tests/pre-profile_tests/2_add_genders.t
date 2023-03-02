@@ -5,5 +5,5 @@ Flight hunter can add give genders
   * (glob)
   * ID       * Label  * Hostname                           * Groups     * (esc) (glob)
   * (glob)
-  * 320a2200 * node00 * crammo-head-pxxuellat4ga.novalocal * login, all * (esc) (glob)
+  * * * node00 * * * login, all * (esc) (glob)
   * (glob)
