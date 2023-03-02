@@ -1,3 +1,6 @@
 Check that hunter buffer holds info on all the nodes we want to find
 
-  $ flight hunter list --buffer
+  > for ip in "${nodeips[@]}" 
+  > do echo "$ip"
+  > flight hunter list | grep "$ip"
+  > done
