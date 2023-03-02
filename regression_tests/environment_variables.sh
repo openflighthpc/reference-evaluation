@@ -2,7 +2,6 @@
 
 export allnodescount="1"
 export computenodescount="3"
-export loginip="10.151.15.244"
-export node01ip="10.151.15.244"
-
-export nodeips=( "10.151.15.244" )
+export loginip="10.50.0.14"
+export allnodePrivIPs=( "10.50.0.14" )
+export varlocation="/home/flight/git/reference-evaluation/regression_tests/environment_variables.sh"
