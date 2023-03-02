@@ -17,7 +17,7 @@ Check that the firewall is set correctly
     * (glob)
 
   $ sudo firewall-cmd --list-all --zone trusted
-  trusted (active)
+  trusted
     * (glob)
     * (glob)
     interfaces: 
