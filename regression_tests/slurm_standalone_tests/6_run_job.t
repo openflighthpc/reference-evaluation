@@ -1,9 +1,12 @@
 Run a job
 
-  $ echo '#!/bin/bash -l
-echo "Starting running on host $HOSTNAME"
-sleep 2
-echo "Finished running - goodbye from $HOSTNAME"' > testjob.sh
+  $ echo -e '#!/bin/bash -l\necho "Starting running on host $HOSTNAME"\nsleep 1\necho "Finished running - goodbye from $HOSTNAME"' > testjob.sh
   $ sbatch testjob.sh
-
+  Submitted batch job * (glob)
+  $ squeue
+               JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
+                   *       all testjob.   flight PD       0:00      1 (None) (glob)
+  $ sleep 3
+  $ squeue
+               JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
   $ rm testjob.sh
