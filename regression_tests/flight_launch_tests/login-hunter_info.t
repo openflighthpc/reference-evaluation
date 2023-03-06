@@ -6,4 +6,3 @@ Check that hunter buffer holds info on all the nodes we want to find
   $ for ip in "${allnodePrivIPs[@]}" ; do
   > flight hunter list --plain --buffer | grep "$ip"
   > done
-  *\t*\t*\t|\t\t{} (esc) (glob)
