@@ -13,5 +13,5 @@ Check that slurm node is running on all compute nodes
   * * *:*:* * systemd[1]: Started Slurm node daemon. (glob)
   * * *:*:* * slurmd[*]: slurmd: slurmd version 22.05.2 started (glob)
   * * *:*:* * slurmd[*]: slurmd: error:  mpi/pmix_v2: init: (null) [0]: mpi_pmix.c:195: pmi/pmix: can not load PMIx library (glob)
-  * * *:*:* * slurmd[*]: slurmd: CPUs=2 Boards=1 Sockets=2 Cores=1 Threads=1 Memory=2820 TmpDisk=20467 Uptime=1211 CPUSpecList=(null) FeaturesAvail=(null) FeaturesActive=(null) (glob)
+  * * *:*:* * slurmd[*]: slurmd: CPUs=* Boards=* Sockets=* Cores=* Threads=* Memory=* TmpDisk=* Uptime=* CPUSpecList=(null) FeaturesAvail=(null) FeaturesActive=(null) (glob)
 
