@@ -6,7 +6,7 @@ Run a job
   $ squeue
                JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
                    *       all testjob.   flight PD       0:00      1 (None) (glob)
-  $ sleep 3
+  $ sleep 5
   $ squeue
                JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
   $ rm testjob.sh
