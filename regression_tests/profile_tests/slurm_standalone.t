@@ -6,3 +6,5 @@ Configure profile for slurm standalone, then apply relevant identities
   $ flight profile apply node00 all-in-one
   Applying 'all-in-one' to host 'node00'
   The application process has begun. Refer to `flight profile list` or `flight profile view` for more details
+
+  $ flight profile list | grep "node00" | grep "complete"

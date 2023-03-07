@@ -5,7 +5,9 @@ Configure profile for kubernetes multinode, then apply relevant identities
   $ flight profile apply node00 master
   Applying 'master' to host 'node00'
   The application process has begun. Refer to `flight profile list` or `flight profile view` for more details
-
+  $ flight profile list | grep "node00" | grep "complete"
   $ flight profile apply "$(flight hunter list --plain | grep -v 'node00' | grep -o 'node0.' | sed -z 's/\n/,/g;s/,$/\n/')" worker
   Applying 'worker' to hosts * (glob)
   The application process has begun. Refer to `flight profile list` or `flight profile view` for more details
+
+  $ flight profile list | grep "node01" | grep "complete"

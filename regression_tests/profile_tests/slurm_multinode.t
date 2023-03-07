@@ -9,7 +9,10 @@ Configure profile for slurm multinode, then apply relevant identities
   Applying 'login' to host 'node00'
   The application process has begun. Refer to `flight profile list` or `flight profile view` for more details
 
+  $ flight profile list | grep "node00" | grep "complete"
+
   $ flight profile apply "$(flight hunter list --plain | grep -v 'node00' | grep -o 'node0.' | sed -z 's/\n/,/g;s/,$/\n/')" compute
   Applying 'compute' to hosts * (glob)
   The application process has begun. Refer to `flight profile list` or `flight profile view` for more details
 
+  $ flight profile list | grep "node01" | grep "complete"
