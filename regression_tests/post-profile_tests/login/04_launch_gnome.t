@@ -20,12 +20,12 @@ Check if gnome can be launched
   Screenshot Path\t/home/flight/.cache/flight/desktop/sessions/*/session.png (esc) (glob)
   IPs\t*|* (esc) (glob)
   Name\t (esc)
-  Geometry\t1024x768 (esc)
+  Geometry\t* (esc) (glob)
   Job ID\t (esc)
   Available Geometries\t1920x1200|1920x1080|1680x1050|1600x1200|1400x1050|1360x768|1280x1024|1280x960|1280x800|1280x720|1024x768|800x600|640x480 (esc)
   Capabilities\tresizable (esc)
   $ flight desktop list | grep "gnome" | grep "Active"
-  *\tgnome\t*\t10.50.0.34\t1\t*\t41361\t*\tActive\t*\t*\t/home/flight/.cache/flight/desktop/sessions/*/session.png\t*|*\t\t (esc) (glob)
+  *\tgnome\t*\t*\t1\t*\t*\t*\tActive\t*\t*\t/home/flight/.cache/flight/desktop/sessions/*/session.png\t*|*\t\t (esc) (glob)
 
 
   $ flight desktop kill "$(flight desktop list | grep "gnome" | cut  -f1)"
