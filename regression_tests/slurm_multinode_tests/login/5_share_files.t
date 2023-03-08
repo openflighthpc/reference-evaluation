@@ -1,7 +1,5 @@
 Check that files are being shared
+  $ cd ~; touch shareable-file
 
-  $ touch sharable-file
-
-  $ ssh node01
-
-  $ test -f "sharable-file"
+  $ ssh node01 'test -f "shareable-file"'
+  $ cd ~ 

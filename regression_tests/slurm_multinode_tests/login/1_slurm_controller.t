@@ -9,4 +9,4 @@ Check that the slurm controller is running
      Memory: * (glob)
      CGroup: /system.slice/flight-slurmctld.service
              |-* /opt/flight/opt/slurm/sbin/slurmctld -D -s (glob)
-
+  * * *:*:* * systemd[1]: flight-slurmctld.service: Succeeded. (glob)

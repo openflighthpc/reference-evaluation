@@ -1,3 +1,6 @@
 Check that slurm has identified all nodes
 
-  $ sinfo
+  $ sinfo --Node | grep -v "NODELIST" | wc -l | grep "$computenodescount"
+  * (glob)
+
+
