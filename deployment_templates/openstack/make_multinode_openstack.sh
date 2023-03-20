@@ -150,13 +150,13 @@ if [[ "$noinput" == "0" && $config == "0" ]]; then
     standaloneonly=true
   fi
 
-  echoplus -v 0 "How many compute nodes to use?"
-  read temp
-  if [[ $temp != "" ]]; then
-    nodecount="$temp"
-  fi
-
   if [[ $standaloneonly = false ]]; then
+   echoplus -v 0 "How many compute nodes to use?"
+   read temp
+   if [[ $temp != "" ]]; then
+      nodecount="$temp"
+    fi
+
     echoplus -v 0 "What is the instance size of the compute nodes?"
     read temp
     if [[ $temp != "" ]]; then
@@ -175,7 +175,7 @@ fi
 keyfile="key1.pem"
 keyname="keytest1"
 logintemplate="login-node-template.yaml"
-srcimage="SOLO2-2023.2-1503231348-STUHOTFIX"
+srcimage="Flight Solo 2023.2-rc1-20.03.23"
 openflightkey='ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDWD9MAHnS5o6LrNaCb5gshU4BIpYfqoE2DCW9T2u3v4xOh04JkaMsIzwGc+BNnCh+NlkSE9sPVyPODCVnLnHdyyNfUkLBIUGCM/h9Ox7CTnsbmhnv3tMp4OD2dnGl+wOXWo/0YrWA0cpcl5UchCpZYMGscR4ohg8+/panBJ0//wmQZmCUZkQ20TLumYlL9HdmFl2SO2vraY+nBQCoHtPC80t4BmbPg5atEnQVMngpsRqSykIoUEQKh49t649cF3rBboZT+AmW+O1GWVYu7qlUxqIsdTRJbqbhZ/W2n3rraQh5CR/hOyYikkdn3xqm7Rom5iURvWd6QBh0LhP1UPRIT'
 echoplus -v 3 -c ORNG "$srcimage"
 standaloneCloudinit="
@@ -242,6 +242,15 @@ contents=$(ssh -i "$keyfile" -o 'StrictHostKeyChecking=no' "flight@$pubIP" "sudo
 if [[ $standaloneonly = true ]];then
   echoplus -v 0 "login_public_ip=$pubIP"
   echoplus -v 0 "login_private_ip=$privIP"
+  # setup cram testing
+  # login node
+  scp -r "../../regression_tests" "flight@${pubIP}:/home/flight/" >> /dev/null
+  ssh -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" 'sudo pip3 install cram' >> /dev/null
+  default_kube_range="192.168.0.0/16"
+  default_node_range="10.50.0.0/16"
+  test_env_file="/home/flight/regression_tests/environment_variables.sh"
+  env_contents="#!/bin/bash\nexport all_nodes_count='1'\nexport computenodescount='0'\nexport ip_range='${default_node_range}'\nexport kube_pod_range='${default_kube_range}'\nexport login_priv_ip='${privIP}'\nexport login_pub_ip='${pubIP}'\nexport all_nodes_priv_ips=( '${privIP}' )\nexport varlocation='${test_env_file}'" 
+  ssh -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" "echo -e \"${env_contents}\" > ${test_env_file}" >>/dev/null
   exit
 fi
 
@@ -345,8 +354,9 @@ done
 
 
 echoplus -v 0 "login_public_ip=$pubIP"
-echoplus -v 0 "login_private_ip=$pubIP"
+echoplus -v 0 "login_private_ip=$privIP"
 
+all_nodes_privIP=( "$privIP" )
 for x in `seq 1 $nodecount`; do
   nodepubIP=$(openstack stack output show "compute-$STACKNAME" "node${x}_public_ip" -f shell | grep "output_value")
   nodepubIP=${nodepubIP#*\"} #removes stuff upto // from begining
@@ -358,4 +368,31 @@ for x in `seq 1 $nodecount`; do
 
   echoplus -v 0 "node${x}_public_ip=$nodepubIP"
   echoplus -v 0 "node${x}_private_ip=$nodeprivIP"
+  all_nodes_privIP+=("$nodeprivIP")
 done
+
+
+# setup cram testing
+# login node
+scp -r "../../regression_tests" "flight@${pubIP}:/home/flight/"
+ssh -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" 'sudo pip3 install cram'
+default_kube_range="192.168.0.0/16"
+default_node_range="10.50.0.0/16"
+test_env_file="/home/flight/regression_tests/environment_variables.sh"
+cram_ips="export all_nodes_priv_ips=("
+for i in "${all_nodes_privIP[@]}"; do
+  cram_ips="$cram_ips \"$i\""
+done
+cram_ips="$cram_ips )"
+env_contents="#!/bin/bash\nexport all_nodes_count='$((nodecount+1))'\nexport computenodescount='${nodecount}'\nexport ip_range='${default_node_range}'\nexport kube_pod_range='${default_kube_range}'\nexport login_priv_ip='${privIP}'\nexport login_pub_ip='${pubIP}'\n${cram_ips}\nexport varlocation='${test_env_file}'"
+ssh -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" "echo -e \"${env_contents}\" > ${test_env_file}" >> /dev/null
+
+for x in `seq 1 $nodecount`; do
+  nodepubIP=$(openstack stack output show "compute-$STACKNAME" "node${x}_public_ip" -f shell | grep "output_value")
+  nodepubIP=${nodepubIP#*\"} #removes stuff upto // from begining
+  nodepubIP=${nodepubIP%\"*} #removes stuff from / all the way to end
+
+  scp -r "../../regression_tests" "flight@${nodepubIP}:/home/flight/" >> /dev/null
+  ssh -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$nodepubIP" 'sudo pip3 install cram' >>/dev/null
+done
+
