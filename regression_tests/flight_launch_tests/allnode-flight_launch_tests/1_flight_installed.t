@@ -28,11 +28,12 @@ Check that the flight tools are all installed
   flight-plugin-manual-cron.noarch                   1.0.0-2                                                    @openflight      
   flight-plugin-system-starter.noarch                2022.4.1-1                                                 @openflight      
   flight-plugin-system-systemd-service.noarch        1.0.0-1                                                    @openflight      
-  flight-profile.x86_64                              0.1.2-1.el8                                                @@commandline    
-  flight-profile-types.noarch                        0.1.6-1                                                    @@commandline    
+  flight-profile.x86_64                              *                                                @@commandline    (glob)
+  flight-profile-types.noarch                        *                                                    @@commandline    (glob)
   flight-python.x86_64                               3.8.10-3.el8                                               @openflight      
   flight-runway.x86_64                               1.1.5-1.el8                                                @openflight      
   flight-service.x86_64                              1.5.0-1.el8                                                @openflight      
+  flight-silo.x86_64                                 *                                                @@commandline (glob)
   flight-slurm.x86_64                                22.05.2-1.flight1.el8                                      @openflight      
   flight-slurm-devel.x86_64                          22.05.2-1.flight1.el8                                      @openflight      
   flight-slurm-example-configs.x86_64                22.05.2-1.flight1.el8                                      @openflight      
