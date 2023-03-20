@@ -1,13 +1,13 @@
 Check that the flight tools are up and ready to run
 
   $ flight hunter --version
-  profile v0.1.3 
+  flight hunter v0.3.1
 
   $ flight web-suite --version
   flight web-suite v1.1.1
 
   $ flight profile --version
-  profile v0.1.2
+  profile v0.1.3
 
   $ flight env --version
   flight env v1.5.1
