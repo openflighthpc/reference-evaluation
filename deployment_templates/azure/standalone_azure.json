@@ -149,6 +149,19 @@
            }
          },
          {
+             "name": "inbound-to-hunter",
+             "properties": {
+                 "protocol": "TCP",
+                 "sourcePortRange": "*",
+                 "destinationPortRange": "8888",
+                 "sourceAddressPrefix": "*",
+                 "destinationAddressPrefix": "*",
+                 "access": "Allow",
+                 "priority": 1003,
+                 "direction": "Inbound",
+             }
+         },         
+         {
          "name": "inbound-vnc",
            "properties": {
              "protocol": "TCP",
