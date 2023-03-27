@@ -2,7 +2,7 @@
 
 stackname="multinode-101"
 keyfile="ivan-keypair.pem"
-instanceami="ami-03e246735a463e2ef"
+instanceami="ami-00c0385bab48a6406"
 instancesize="t3.small"
 sgroup="sg-0f771e548fa4183ab"
 subnet="subnet-55d8582f"
@@ -13,7 +13,7 @@ nodecount=2
 
 input=0
 
-if [[ input == 0 ]]; then
+if [[ $input = 0 ]]; then
   echo "Name of stack?"
   read temp
   if [[ $temp != "" ]] ;then
@@ -32,11 +32,11 @@ if [[ input == 0 ]]; then
     instancesize="$temp"
   fi
 
-  echo "multisize template? "
-  read temp
-  if [[ $temp != "" ]] ;then
-    cnodetemplate="aws_multinode_multisize.yaml"
-  fi
+#  echo "multisize template? "
+#  read temp
+#  if [[ $temp != "" ]] ;then
+#    cnodetemplate="aws_multinode_multisize.yaml"
+#  fi
 
   echo "Number of compute nodes"
   read temp
@@ -45,6 +45,9 @@ if [[ input == 0 ]]; then
   fi
 fi
 
+#echo "validate template"
+#aws cloudformation validate-template --template-body "$(cat aws_standalone.yaml)"
+#echo "finished validating"
 
 echo "Create login node"
 
