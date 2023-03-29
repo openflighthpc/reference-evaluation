@@ -9,17 +9,29 @@ RED='\033[0;31m'
 GRN='\033[0;32m'
 ORNG='\033[0;33m'
 NC='\033[0m' # No Color
+
+
+# Parameters: stackname, loginsize, logindisksize, standaloneonly, computetemplate, computesize, computedisksize, keyfile, keyname, logintemplate, srcimage
+
+# defaults
+srcimage="Flight Solo 2023.2"
+loginsize="m1.medium"
+logindisksize="20"
+standaloneonly=false
+computetemplate="compute-nodes-template.yaml"
+computesize="m1.medium"
+computedisksize="20"
+cluster_type="slurm"
 nodecount=2
-cram_testing=1
-# take input
+cram_testing=0 # do cram testing
+generic_size="small"
+small="m1.medium"
+medium="m1.large"
+large="m1.xlarge"
+delete_ending=false
 
 while [[ $# -gt 0 ]]; do # while there are not 0 args
   case $1 in
-    -n|--nodecount)
-      nodecount="$2"
-      shift # past argument
-      shift # past value
-      ;;
     -v|--verbose)
       outputlvl=3
       shift # past argument
@@ -32,11 +44,19 @@ while [[ $# -gt 0 ]]; do # while there are not 0 args
       config=1 
       shift # past argument
       ;;
+    -d|--delete-on-end)
+      delete_ending=true
+      shift # past argument
+      ;;
+    -g|--generic-size)
+      generic_size=0
+      shift # past argument
+      ;;
     --noinput)
       noinput=1 
       shift # past argument
       ;;
-    -p|--parameter)
+    -p|--parameter) # -p var_name=value
       in="$2"
       var=${in%=*}
       val=${in#*=}
@@ -112,31 +132,28 @@ echoplus(){
 #normal no source openstack message, no extra ip output, ssh/stack create progress, errors, ip output
 #quiet no warnings, only errors and ip output
 
-
+echo "test"
 echoplus -c ORNG -v 3 "WARNING: make sure to source openstack project file!"
 
-# Parameters: STACKNAME, loginsize, logindisksize, standaloneonly, computetemplate, computesize, computedisksize, keyfile, keyname, logintemplate, srcimage
 
-srcimage="Flight Solo 2023.2-rc2-22.03.23"
-# defaults
-#STACKNAME
-loginsize="m1.medium"
-logindisksize="20"
-standaloneonly=false
-computetemplate="compute-nodes-template.yaml"
-computesize="m1.medium"
-computedisksize="20"
-cluster_type="slurm"
 
 if [[ "$noinput" == "0" && $config == "0" ]]; then
 
   echoplus -v 0 "What should the stack be named?"
-  read STACKNAME
+  read stackname
 
-  echoplus -v 0 "What cluster type? (slurm/jupyter/kube)"
+  echoplus -v 0 "Perform cram testing?"
   read temp
   if [[ temp != "" ]]; then
-    cluster_type="$temp"
+    cram_testing="1"
+  fi
+
+  if [[ "$cram_testing" = "0" ]]; then
+    echoplus -v 0 "What cluster type? (slurm/jupyter/kube)"
+    read temp
+    if [[ temp != "" ]]; then
+      cluster_type="$temp"
+    fi
   fi
 
   echoplus -v 0 "What is the instance size of the login node?"
@@ -178,6 +195,10 @@ if [[ "$noinput" == "0" && $config == "0" ]]; then
   fi
 fi
 
+if [[ "$generic_size" = "0" ]]; then
+  eval loginsize='$'$loginsize
+  eval computesize='$'$computesize
+fi
 
 keyfile="key1.pem"
 keyname="keytest1"
@@ -188,13 +209,13 @@ standaloneCloudinit="
 #cloud-config\nusers:\n  - default\n  - name: flight\n    ssh_authorized_keys:\n    - $openflightkey\n    "
 echoplus -v 2 "Creating standalone cluster. . ."
 
-openstack stack create --template "$logintemplate" --parameter "key_name=$keyname" --parameter "flavor=$loginsize" --parameter "image=$srcimage"  --parameter "disk_size=$logindisksize" "$STACKNAME" >> /dev/null
+openstack stack create --template "$logintemplate" --parameter "key_name=$keyname" --parameter "flavor=$loginsize" --parameter "image=$srcimage"  --parameter "disk_size=$logindisksize" "$stackname" >> /dev/null
 
 
 completed=false
 timeout=120
 while [[ $completed != true ]]; do # just a little loop to not wait an excessive amount of time
-  stack_status=$(openstack stack show "$STACKNAME" -f shell | grep "stack_status=")
+  stack_status=$(openstack stack show "$stackname" -f shell | grep "stack_status=")
   stack_status=${stack_status#*\"} #removes string from start to first "
   stack_status=${stack_status%\"*} #removes string from end to first "
 
@@ -207,7 +228,7 @@ while [[ $completed != true ]]; do # just a little loop to not wait an excessive
     echoplus -c RED -v 0 "stack creation timed out"
     exit 1
   elif [[ "$stack_status" = 'CREATE_FAILED' ]];then
-    echoplus -c RED -v 0 -p "$stack_status""$(openstack stack show "$STACKNAME" -f shell | grep "stack_status_reason=")"
+    echoplus -c RED -v 0 -p "$stack_status""$(openstack stack show "$stackname" -f shell | grep "stack_status_reason=")"
     echoplus -p "\\n"
     exit 1
   else
@@ -219,13 +240,13 @@ done
 
 
 echoplus -v 3 "public ip:"
-pubIP=$(openstack stack output show "$STACKNAME" standalone_public_ip -f shell | grep "output_value")
+pubIP=$(openstack stack output show "$stackname" standalone_public_ip -f shell | grep "output_value")
 pubIP=${pubIP#*\"} #removes stuff upto // from begining
 pubIP=${pubIP%\"*} #removes stuff from / all the way to end
 echoplus -v 3 "$pubIP"
 
 echoplus -v 3 "private ip:"
-privIP=$(openstack stack output show "$STACKNAME" standalone_ip -f shell | grep "output_value")
+privIP=$(openstack stack output show "$stackname" standalone_ip -f shell | grep "output_value")
 privIP=${privIP#*\"} #removes stuff upto // from begining
 privIP=${privIP%\"*} #removes stuff from / all the way to end
 echoplus -v 3 "$privIP"
@@ -270,6 +291,29 @@ if [[ $standaloneonly = true ]];then
       ;;
   esac
   ssh -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; $cram_command > cram_test.out"
+
+  scp -i "$keyfile" "flight@${pubIP}:/home/flight/regression_tests/cram_test.out" "../test_output/${stackname}_cram_test.out"
+
+  # maybe exit if you don't want to delete the stack
+
+
+  openstack stack delete -y "$stackname"
+
+  timeout=60
+  deleted=false
+  while [[ $deleted = false ]]; do # just a little loop to not wait an excessive amount of time
+    if ! [[ $(openstack stack show "$stackname" -f shell | grep "Stack not found:") ]]; then
+      exit 0
+    elif [[ $timeout -le 0 ]];then
+      echoplus -p "\\n"
+      echoplus -c RED -v 0 "stack deletion timed out"
+      exit 1
+    else
+      echoplus -c ORNG -v 2 -p "$stack_status\r"
+      let "timeout=timeout-1"
+      sleep 1
+    fi
+  done
   exit
 fi
 
@@ -331,12 +375,12 @@ for x in `seq 1 $nodecount`; do
     value: { get_attr: [ node${x}_floating_ip, floating_ip_address ] }" >> "$computetemplate"
 done
 
-openstack stack create --template "$computetemplate" --parameter "key_name=$keyname" --parameter "flavor=$computesize" --parameter "image=$srcimage" --parameter "login_node_ip=$privIP" --parameter "login_node_key=$contents" "compute-$STACKNAME" --parameter "custom_data=$cloudinit" --parameter "disk_size=$computedisksize" >> /dev/null
+openstack stack create --template "$computetemplate" --parameter "key_name=$keyname" --parameter "flavor=$computesize" --parameter "image=$srcimage" --parameter "login_node_ip=$privIP" --parameter "login_node_key=$contents" "compute-$stackname" --parameter "custom_data=$cloudinit" --parameter "disk_size=$computedisksize" >> /dev/null
 
 completed=false
 timeout=120
 while [[ $completed != true ]]; do # just a little loop to not wait an excessive amount of time
-  stack_status=$(openstack stack show "compute-$STACKNAME" -f shell | grep "stack_status=")
+  stack_status=$(openstack stack show "compute-$stackname" -f shell | grep "stack_status=")
   stack_status=${stack_status#*\"} 
   stack_status=${stack_status%\"*} 
 
@@ -349,7 +393,7 @@ while [[ $completed != true ]]; do # just a little loop to not wait an excessive
     echoplus -c RED -v 0 "stack creation timed out"
     exit 1
   elif [[ "$stack_status" = 'CREATE_FAILED' ]];then
-    echoplus -c RED -v 0 -p "$stack_status""$(openstack stack show "$STACKNAME" -f shell | grep "stack_status_reason=")"
+    echoplus -c RED -v 0 -p "$stack_status""$(openstack stack show "$stackname" -f shell | grep "stack_status_reason=")"
     echoplus -p "\\n"
     exit 1
   else
@@ -361,7 +405,7 @@ done
 
 echoplus -v 2 "Attempting to connect with SSH to compute nodes."
 for x in `seq 1 $nodecount`; do
-  nodepubIP=$(openstack stack output show "compute-$STACKNAME" "node${x}_public_ip" -f shell | grep "output_value")
+  nodepubIP=$(openstack stack output show "compute-$stackname" "node${x}_public_ip" -f shell | grep "output_value")
   nodepubIP=${nodepubIP#*\"} #removes stuff upto // from begining
   nodepubIP=${nodepubIP%\"*} #removes stuff from / all the way to end
   until ssh -q -i "$keyfile" -o 'StrictHostKeyChecking=no' "flight@$nodepubIP" 'exit'; do
@@ -377,11 +421,11 @@ echoplus -v 0 "login_private_ip=$privIP"
 
 all_nodes_privIP=( "$privIP" )
 for x in `seq 1 $nodecount`; do
-  nodepubIP=$(openstack stack output show "compute-$STACKNAME" "node${x}_public_ip" -f shell | grep "output_value")
+  nodepubIP=$(openstack stack output show "compute-$stackname" "node${x}_public_ip" -f shell | grep "output_value")
   nodepubIP=${nodepubIP#*\"} #removes stuff upto // from begining
   nodepubIP=${nodepubIP%\"*} #removes stuff from / all the way to end
 
-  nodeprivIP=$(openstack stack output show "compute-$STACKNAME" "node${x}_ip" -f shell | grep "output_value")
+  nodeprivIP=$(openstack stack output show "compute-$stackname" "node${x}_ip" -f shell | grep "output_value")
   nodeprivIP=${nodeprivIP#*\"} #removes stuff upto // from begining
   nodeprivIP=${nodeprivIP%\"*} #removes stuff from / all the way to end
 
@@ -396,8 +440,8 @@ fi
 
 # setup cram testing
 # login node
-scp -r "../../regression_tests" "flight@${pubIP}:/home/flight/"
-ssh -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" 'sudo pip3 install cram'
+scp -i "$keyfile" -r "../../regression_tests" "flight@${pubIP}:/home/flight/"
+ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" 'sudo pip3 install cram'
 default_kube_range="192.168.0.0/16"
 default_node_range="10.50.0.0/16"
 test_env_file="/home/flight/regression_tests/environment_variables.sh"
@@ -407,7 +451,7 @@ for i in "${all_nodes_privIP[@]}"; do
 done
 cram_ips="$cram_ips )"
 env_contents="#!/bin/bash\nexport all_nodes_count='$((nodecount+1))'\nexport computenodescount='${nodecount}'\nexport ip_range='${default_node_range}'\nexport kube_pod_range='${default_kube_range}'\nexport login_priv_ip='${privIP}'\nexport login_pub_ip='${pubIP}'\n${cram_ips}\nexport varlocation='${test_env_file}'"
-ssh -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" "echo -e \"${env_contents}\" > ${test_env_file}" &>/dev/null
+ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" "echo -e \"${env_contents}\" > ${test_env_file}" &>/dev/null
 
 login_cram_command="cram -v generic_launch_tests/allnode-generic_launch_tests generic_launch_tests/login-check_root_login.t flight_launch_tests/allnode-flight_launch_tests flight_launch_tests/login-hunter_info.t pre-profile_tests"
 
@@ -419,16 +463,42 @@ case $cluster_type in
     cram_command="$cram_command profile_tests/slurm_multinode cluster_tests/slurm_multinode"
     ;;
 esac
-ssh -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; $login_cram_command > cram_test.out"
+ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; $login_cram_command > cram_test.out" &>/dev/null
+scp -i "$keyfile" "flight@${pubIP}:/home/flight/regression_tests/cram_test.out" "../test_output/${stackname}_cram_test.out"
 
-
+compute_cram_command="cram -v generic_launch_tests/allnode-generic_launch_tests flight_launch_tests/allnode-flight_launch_tests"
 for x in `seq 1 $nodecount`; do
-  nodepubIP=$(openstack stack output show "compute-$STACKNAME" "node${x}_public_ip" -f shell | grep "output_value")
+  nodepubIP=$(openstack stack output show "compute-$stackname" "node${x}_public_ip" -f shell | grep "output_value")
   nodepubIP=${nodepubIP#*\"} #removes stuff upto // from begining
   nodepubIP=${nodepubIP%\"*} #removes stuff from / all the way to end
 
-  scp -r "../../regression_tests" "flight@${nodepubIP}:/home/flight/" &>/dev/null
-  ssh -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$nodepubIP" 'sudo pip3 install cram' &>/dev/null
+  scp -i "$keyfile" -r "../../regression_tests" "flight@${nodepubIP}:/home/flight/" &>/dev/null
+  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$nodepubIP" 'sudo pip3 install cram' &>/dev/null
+  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$nodepubIP" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; $compute_cram_command > cram_test.out" &>/dev/null
+
+  scp -i "$keyfile" "flight@${nodepubIP}:/home/flight/regression_tests/cram_test.out" "../test_output/cnode0${x}${stackname}_cram_test.out"
 
 done
 
+# now that we're done testing delete the stack to make way for more tests
+
+openstack stack delete -y "$stackname"
+openstack stack delete -y "compute-$stackname"
+
+timeout=60
+deleted=false
+while [[ $deleted = false ]]; do # just a little loop to not wait an excessive amount of time
+  if ! [[ $(openstack stack show "$stackname" -f shell | grep "Stack not found:") ]]; then
+    if ! [[ $(openstack stack show "compute-$stackname" -f shell | grep "Stack not found:") ]]; then
+      exit 0
+    fi
+  elif [[ $timeout -le 0 ]];then
+    echoplus -p "\\n"
+    echoplus -c RED -v 0 "stack deletion timed out"
+    exit 1
+  else
+    echoplus -c ORNG -v 2 -p "$stack_status\r"
+    let "timeout=timeout-1"
+    sleep 1
+  fi
+done
