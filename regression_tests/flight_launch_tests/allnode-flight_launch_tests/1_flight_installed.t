@@ -47,4 +47,4 @@ Check that the flight tools are all installed
   flight-web-suite.noarch                            2022.4-1.el8                                               @openflight      
   flight-web-suite-utils.x86_64                      1.1.1-1.el8                                                @openflight      
   flight-websockify.x86_64                           1.0.0-2.el8                                                @openflight      
-  flight-www.x86_64                                  1.7.0-1.el8                                                @openflight
+  flight-www.x86_64                                  1.7.0-1.el8                                                @openflight      
