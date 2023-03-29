@@ -9,3 +9,9 @@ See [here](https://docs.openflighthpc.org/cluster_build_methods/manual/centos8_s
 See [here](https://docs.openflighthpc.org/functionality_testing/automatic_tests/#automatic-tests) for information about the functionality tests.
 
 See [here](https://docs.openflighthpc.org/functionality_testing/automatic_tests/#automatic-web-suite-testing) for information about functionality tests for web suite.
+
+If using the ruby cluster launcher, you will need to do these setup steps.
+```
+cd deployment_templates/config/
+gem install tty-prompt
+```
