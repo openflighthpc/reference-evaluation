@@ -23,12 +23,13 @@ computesize="m1.medium"
 computedisksize="20"
 cluster_type="slurm"
 nodecount=2
-cram_testing=0 # do cram testing
+cram_testing=false # do cram testing
 generic_size="small"
 small="m1.medium"
 medium="m1.large"
 large="m1.xlarge"
 delete_ending=false
+only_basic_tests=false
 
 while [[ $# -gt 0 ]]; do # while there are not 0 args
   case $1 in
@@ -46,6 +47,10 @@ while [[ $# -gt 0 ]]; do # while there are not 0 args
       ;;
     -d|--delete-on-end)
       delete_ending=true
+      shift # past argument
+      ;;
+    --only-basic-tests)
+      only_basic_tests=true
       shift # past argument
       ;;
     -g|--generic-size)
@@ -145,10 +150,10 @@ if [[ "$noinput" == "0" && $config == "0" ]]; then
   echoplus -v 0 "Perform cram testing?"
   read temp
   if [[ temp != "" ]]; then
-    cram_testing="1"
+    cram_testing=true
   fi
 
-  if [[ "$cram_testing" = "0" ]]; then
+  if [[ $cram_testing = true ]]; then
     echoplus -v 0 "What cluster type? (slurm/jupyter/kube)"
     read temp
     if [[ temp != "" ]]; then
@@ -238,7 +243,6 @@ while [[ $completed != true ]]; do # just a little loop to not wait an excessive
   fi
 done
 
-
 echoplus -v 3 "public ip:"
 pubIP=$(openstack stack output show "$stackname" standalone_public_ip -f shell | grep "output_value")
 pubIP=${pubIP#*\"} #removes stuff upto // from begining
@@ -269,13 +273,24 @@ contents=$(ssh -i "$keyfile" -o 'StrictHostKeyChecking=no' "flight@$pubIP" "sudo
 if [[ $standaloneonly = true ]];then
   echoplus -v 0 "login_public_ip=$pubIP"
   echoplus -v 0 "login_private_ip=$privIP"
-  if [[ $cram_testing = 1 ]]; then
+  if [[ $only_basic_tests = true ]]; then
+    # setup cram testing
+    scp -r "../../regression_tests" "flight@${pubIP}:/home/flight/" &>/dev/null
+    ssh -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" 'sudo pip3 install cram; sudo yum install -y nmap' &>/dev/null
+    default_kube_range="192.168.0.0/16"
+    default_node_range="10.50.0.0/16"
+    test_env_file="/home/flight/regression_tests/environment_variables.sh"
+    env_contents="#!/bin/bash\nexport all_nodes_count='1'\nexport computenodescount='0'\nexport ip_range='${default_node_range}'\nexport kube_pod_range='${default_kube_range}'\nexport login_priv_ip='${privIP}'\nexport login_pub_ip='${pubIP}'\nexport all_nodes_priv_ips=( '${privIP}' )\nexport varlocation='${test_env_file}'" 
+    ssh -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" "echo -e \"${env_contents}\" > ${test_env_file}" &>/dev/null
+    cram_command="cram -v generic_launch_tests/allnode-generic_launch_tests generic_launch_tests/login-check_root_login.t flight_launch_tests/allnode-flight_launch_tests flight_launch_tests/login-hunter_info.t"
+    ssh -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; $cram_command > /home/flight/cram_test_\$?.out"
+    exit
+  elif [[ $cram_testing = false ]]; then
     exit
   fi
   # setup cram testing
-  # login node
   scp -r "../../regression_tests" "flight@${pubIP}:/home/flight/" &>/dev/null
-  ssh -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" 'sudo pip3 install cram' &>/dev/null
+  ssh -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" 'sudo pip3 install cram; sudo yum install -y nmap' &>/dev/null
   default_kube_range="192.168.0.0/16"
   default_node_range="10.50.0.0/16"
   test_env_file="/home/flight/regression_tests/environment_variables.sh"
@@ -294,26 +309,26 @@ if [[ $standaloneonly = true ]];then
 
   scp -i "$keyfile" "flight@${pubIP}:/home/flight/regression_tests/cram_test.out" "../test_output/${stackname}_cram_test.out"
 
-  # maybe exit if you don't want to delete the stack
+  # if you want to delete then go for it
+  if [[ $delete_ending = true ]]; then 
+    openstack stack delete -y "$stackname"
+    timeout=60
+    deleted=false
+    while [[ $deleted = false ]]; do # just a little loop to not wait an excessive amount of time
+      if ! [[ $(openstack stack show "$stackname" -f shell | grep "Stack not found:") ]]; then
+        exit 0
+      elif [[ $timeout -le 0 ]];then
+        echoplus -p "\\n"
+        echoplus -c RED -v 0 "stack deletion timed out"
+        exit 1
+      else
+        echoplus -c ORNG -v 2 -p "$stack_status\r"
+        let "timeout=timeout-1"
+        sleep 1
+      fi
+    done
+  fi
 
-
-  openstack stack delete -y "$stackname"
-
-  timeout=60
-  deleted=false
-  while [[ $deleted = false ]]; do # just a little loop to not wait an excessive amount of time
-    if ! [[ $(openstack stack show "$stackname" -f shell | grep "Stack not found:") ]]; then
-      exit 0
-    elif [[ $timeout -le 0 ]];then
-      echoplus -p "\\n"
-      echoplus -c RED -v 0 "stack deletion timed out"
-      exit 1
-    else
-      echoplus -c ORNG -v 2 -p "$stack_status\r"
-      let "timeout=timeout-1"
-      sleep 1
-    fi
-  done
   exit
 fi
 
@@ -434,14 +449,38 @@ for x in `seq 1 $nodecount`; do
   all_nodes_privIP+=("$nodeprivIP")
 done
 
-if [[ $cram_testing = 1 ]]; then
+if [[ $only_basic_tests = true ]]; then
+  # setup cram testing
+  scp -r "../../regression_tests" "flight@${pubIP}:/home/flight/" &>/dev/null
+  ssh -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" 'sudo pip3 install cram; sudo yum install -y nmap' &>/dev/null
+  default_kube_range="192.168.0.0/16"
+  default_node_range="10.50.0.0/16"
+  test_env_file="/home/flight/regression_tests/environment_variables.sh"
+  env_contents="#!/bin/bash\nexport all_nodes_count='1'\nexport computenodescount='0'\nexport ip_range='${default_node_range}'\nexport kube_pod_range='${default_kube_range}'\nexport login_priv_ip='${privIP}'\nexport login_pub_ip='${pubIP}'\nexport all_nodes_priv_ips=( '${privIP}' )\nexport varlocation='${test_env_file}'" 
+  ssh -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" "echo -e \"${env_contents}\" > ${test_env_file}" &>/dev/null
+  cram_command="cram -v generic_launch_tests/allnode-generic_launch_tests generic_launch_tests/login-check_root_login.t flight_launch_tests/allnode-flight_launch_tests flight_launch_tests/login-hunter_info.t"
+  ssh -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; $cram_command > /home/flight/cram_test_\$?.out"
+
+  # compute tests
+  compute_cram_command="cram -v generic_launch_tests/allnode-generic_launch_tests flight_launch_tests/allnode-flight_launch_tests"
+  for x in `seq 1 $nodecount`; do
+    nodepubIP=$(openstack stack output show "compute-$stackname" "node${x}_public_ip" -f shell | grep "output_value")
+    nodepubIP=${nodepubIP#*\"} #removes stuff upto // from begining
+    nodepubIP=${nodepubIP%\"*} #removes stuff from / all the way to end
+
+    scp -i "$keyfile" -r "../../regression_tests" "flight@${nodepubIP}:/home/flight/" &>/dev/null
+    ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$nodepubIP" 'sudo pip3 install cram; sudo yum install -y nmap' &>/dev/null
+    ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$nodepubIP" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; $compute_cram_command > /home/flight/cram_test_\$?.out" &>/dev/null
+  done
+  exit
+elif [[ $cram_testing = false ]]; then
   exit
 fi
 
 # setup cram testing
 # login node
 scp -i "$keyfile" -r "../../regression_tests" "flight@${pubIP}:/home/flight/"
-ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" 'sudo pip3 install cram'
+ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" 'sudo pip3 install cram; sudo yum install -y nmap'
 default_kube_range="192.168.0.0/16"
 default_node_range="10.50.0.0/16"
 test_env_file="/home/flight/regression_tests/environment_variables.sh"
@@ -466,6 +505,7 @@ esac
 ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; $login_cram_command > cram_test.out" &>/dev/null
 scp -i "$keyfile" "flight@${pubIP}:/home/flight/regression_tests/cram_test.out" "../test_output/${stackname}_cram_test.out"
 
+
 compute_cram_command="cram -v generic_launch_tests/allnode-generic_launch_tests flight_launch_tests/allnode-flight_launch_tests"
 for x in `seq 1 $nodecount`; do
   nodepubIP=$(openstack stack output show "compute-$stackname" "node${x}_public_ip" -f shell | grep "output_value")
@@ -473,7 +513,7 @@ for x in `seq 1 $nodecount`; do
   nodepubIP=${nodepubIP%\"*} #removes stuff from / all the way to end
 
   scp -i "$keyfile" -r "../../regression_tests" "flight@${nodepubIP}:/home/flight/" &>/dev/null
-  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$nodepubIP" 'sudo pip3 install cram' &>/dev/null
+  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$nodepubIP" 'sudo pip3 install cram; sudo yum install -y nmap' &>/dev/null
   ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$nodepubIP" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; $compute_cram_command > cram_test.out" &>/dev/null
 
   scp -i "$keyfile" "flight@${nodepubIP}:/home/flight/regression_tests/cram_test.out" "../test_output/cnode0${x}${stackname}_cram_test.out"
@@ -482,23 +522,25 @@ done
 
 # now that we're done testing delete the stack to make way for more tests
 
-openstack stack delete -y "$stackname"
-openstack stack delete -y "compute-$stackname"
+if [[ $delete_ending = true ]]; then 
+  openstack stack delete -y "$stackname"
+  openstack stack delete -y "compute-$stackname"
 
-timeout=60
-deleted=false
-while [[ $deleted = false ]]; do # just a little loop to not wait an excessive amount of time
-  if ! [[ $(openstack stack show "$stackname" -f shell | grep "Stack not found:") ]]; then
-    if ! [[ $(openstack stack show "compute-$stackname" -f shell | grep "Stack not found:") ]]; then
-      exit 0
+  timeout=60
+  deleted=false
+  while [[ $deleted = false ]]; do # just a little loop to not wait an excessive amount of time
+    if ! [[ $(openstack stack show "$stackname" -f shell | grep "Stack not found:") ]]; then
+      if ! [[ $(openstack stack show "compute-$stackname" -f shell | grep "Stack not found:") ]]; then
+        exit 0
+      fi
+    elif [[ $timeout -le 0 ]];then
+      echoplus -p "\\n"
+      echoplus -c RED -v 0 "stack deletion timed out"
+      exit 1
+    else
+      echoplus -c ORNG -v 2 -p "$stack_status\r"
+      let "timeout=timeout-1"
+      sleep 1
     fi
-  elif [[ $timeout -le 0 ]];then
-    echoplus -p "\\n"
-    echoplus -c RED -v 0 "stack deletion timed out"
-    exit 1
-  else
-    echoplus -c ORNG -v 2 -p "$stack_status\r"
-    let "timeout=timeout-1"
-    sleep 1
-  fi
-done
+  done
+fi

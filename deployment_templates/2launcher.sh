@@ -82,7 +82,7 @@ case $platform in
     cd ./openstack
     . Ivan_testing-openrc.sh
     source openstack/bin/activate
-    bash make_multinode_openstack.sh -g --noinput -p "stackname=${stack_name}" -p "loginsize=${login_instance_size}" -p "logindisksize=${login_volume_size}" -p "standaloneonly=${standalone}" -p "computesize=${compute_instance_size}" -p "computedisksize=${compute_volume_size}" 
+    bash make_multinode_openstack.sh -g --only-basic-tests --noinput -p "stackname=${stack_name}" -p "loginsize=${login_instance_size}" -p "logindisksize=${login_volume_size}" -p "standaloneonly=${standalone}" -p "computesize=${compute_instance_size}" -p "computedisksize=${compute_volume_size}" -p "cram_testing=${cram_testing}"
   ;;
   aws)
     cd ./aws
