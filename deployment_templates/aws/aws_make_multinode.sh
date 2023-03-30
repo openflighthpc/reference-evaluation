@@ -1,80 +1,284 @@
 #!/bin/bash
 
-stackname="multinode-101"
-keyfile="ivan-keypair.pem"
+
+# may change, but will always be hard coded in
 instanceami="ami-00c0385bab48a6406"
-instancesize="t3.small"
+
+# will probably only change if someone else starts using this template
+keyfile="ivan-keypair.pem"
 sgroup="sg-0f771e548fa4183ab"
 subnet="subnet-55d8582f"
 cnodetemplate="changestack.yaml" 
-logindisk=20
+
+# is easily changeable and will change often
+stackname="multinode-101" # ideally needs to be unique every time
+loginsize="t3.small"
+computesize="t3.small"
+logindisksize=20
+computedisksize=20
 nodecount=2
+standalone=false
+cram_testing=false
+cluster_type="slurm"
 
+# vars for options
+delete_ending=false
+only_basic_tests=false
+generic_size=false
+input=true
 
-input=0
+#COLOUR CONSTANTS
+RED='\033[0;31m'
+GRN='\033[0;32m'
+ORNG='\033[0;33m'
+NC='\033[0m' # No Color
 
-if [[ $input = 0 ]]; then
+# size vars
+small="c5.large"
+medium="c5.4xlarge"
+large="c5d.metal"
+gpu="0"
+
+echoplus(){
+  text=()
+  verbosity="$outputlvl"
+  colour="NC"
+  print=false
+  while [[ $# -gt 0 ]]; do # while there are not 0 args
+    case $1 in
+      -v|--verbosity)
+        verbosity="$2"
+        shift # past argument
+        shift # past value
+        ;;
+      -c|--colour)
+        colour="$2"
+        shift # past argument
+        shift # past value
+        ;;
+      -p|--print)
+        print=true
+        shift # past argument
+        ;;
+      -*|--*)
+        echo -e "${RED}Unknown option $1 ${NC}"
+        exit 1
+        ;;
+      *)
+        text+=("$1") # save positional arg
+        shift # past argument
+        ;;
+    esac
+  done
+  if [[ "$verbosity" -le "$outputlvl" ]];then
+    if [[ "$colour" = "NC" ]];then
+      if [[ $print = true ]];then printf "${text[*]}"; else echo "${text[*]}"; fi
+    else
+      if [[ $print = true ]];then printf "${!colour}""${text[*]}""${NC}"; else echo -e "${!colour}""${text[*]}""${NC}"; fi
+    fi
+  fi
+}
+
+# take in non-interactive input
+while [[ $# -gt 0 ]]; do # while there are not 0 args
+  case $1 in
+    -v|--verbose)
+      outputlvl=3
+      shift # past argument
+      ;;
+    -q|--quiet)
+      outputlvl=1
+      shift # past argument
+      ;;
+    -d|--delete-on-end)
+      delete_ending=true
+      shift # past argument
+      ;;
+    -b|--only-basic-tests)
+      only_basic_tests=true
+      shift # past argument
+      ;;
+    -g|--generic-size)
+      generic_size=true
+      shift # past argument
+      ;;
+    --noinput)
+      input=false
+      shift # past argument
+      ;;
+    -p|--parameter) # -p var_name=value
+      in="$2"
+      var=${in%=*}
+      val=${in#*=}
+      declare "${var}"="$val"
+      shift # past argument
+      shift # past value
+      ;;
+    -h|--help)
+      echo "-n, --nodecount NUM                         number of compute nodes"
+      echo "-v, --verbose                               more output"
+      echo "-q, --quiet                                 less output"
+      echo "-c, --config                                use config file instead of manual input"
+      echo '-p, --parameter "PARAMETERNAME=PARAMETER"   pass a parameter to the program'
+      echo "--noinput                                   program won't ask for input"
+      exit 0
+      shift # past argument
+      ;;
+    -*|--*)
+      echo -e "${RED}Unknown option $1 ${NC}"
+      echo "Try '--help' for more information."
+      exit 1
+      ;;
+    *)
+      POSITIONAL_ARGS+=("$1") # save positional arg
+      shift # past argument
+      ;;
+  esac
+done
+
+# interactively take input
+if [[ $input = true ]]; then
   echo "Name of stack?"
   read temp
   if [[ $temp != "" ]] ;then
     stackname="$temp"
   fi
 
+  echo "Standalone cluster?"
+  read temp
+  if [[ $temp != "" ]] ;then
+    standalone=true
+  fi
+
+  echo "Do cram testing?"
+  read temp
+  if [[ $temp != "" ]] ;then
+    cram_testing=true
+    echo "Type of cluster? (slurm/kubernetes/jupyter)"
+    read temp
+    if [[ $temp != "" ]]; then
+      cluster_type="$temp"
+    fi
+  fi
+
+  echo "Login instance Size?"
+  read temp
+  if [[ $temp != "" ]] ;then
+    loginsize="$temp"
+  fi
+
   echo "Login disk size?"
   read temp
   if [[ $temp != "" ]] ;then
-    logindisk="$temp"
+    logindisksize="$temp"
   fi
 
-  echo "Instance Size?"
-  read temp
-  if [[ $temp != "" ]] ;then
-    instancesize="$temp"
-  fi
+  if [[ $standalone = false ]]; then
+    echo "Number of compute nodes"
+    read temp
+    if [[ $temp != "" ]] ;then
+      nodecount="$temp"
+    fi
 
-#  echo "multisize template? "
-#  read temp
-#  if [[ $temp != "" ]] ;then
-#    cnodetemplate="aws_multinode_multisize.yaml"
-#  fi
+    echo "Compute instance size?"
+    read temp
+    if [[ $temp != "" ]] ;then
+      computesize="$temp"
+    fi
 
-  echo "Number of compute nodes"
-  read temp
-  if [[ $temp != "" ]] ;then
-    nodecount="$temp"
+    echo "Compute disk size?"
+    read temp
+    if [[ $temp != "" ]] ;then
+      computedisksize="$temp"
+    fi
   fi
 fi
 
-#echo "validate template"
-#aws cloudformation validate-template --template-body "$(cat aws_standalone.yaml)"
-#echo "finished validating"
+if [[ $generic_size = true ]]; then
+  eval loginsize='$'$loginsize
+  eval computesize='$'$computesize
+fi
 
-echo "Create login node"
+if [[ $standalone = true ]];then
+  echoplus -v 2 "Creating standalone cluster. . ."
+else
+  echoplus -v 2 "Creating login node. . ."
+fi
 
-aws cloudformation create-stack --template-body "$(cat aws_standalone.yaml)" --stack-name "$stackname" --parameters "ParameterKey=KeyPair,ParameterValue=ivan-keypair,UsePreviousValue=false" "ParameterKey=InstanceAmi,ParameterValue=$instanceami,UsePreviousValue=false" "ParameterKey=InstanceSize,ParameterValue=$instancesize,UsePreviousValue=false" "ParameterKey=SecurityGroup,ParameterValue=$sgroup,UsePreviousValue=false" "ParameterKey=InstanceSubnet,ParameterValue=$subnet,UsePreviousValue=false" "ParameterKey=InstanceDiskSize,ParameterValue=$logindisk,UsePreviousValue=false"
-echo "WORKED?"
+# make the standalone/login node
+aws cloudformation create-stack --template-body "$(cat aws_standalone.yaml)" --stack-name "$stackname" --parameters "ParameterKey=KeyPair,ParameterValue=ivan-keypair,UsePreviousValue=false" "ParameterKey=InstanceAmi,ParameterValue=$instanceami,UsePreviousValue=false" "ParameterKey=InstanceSize,ParameterValue=$loginsize,UsePreviousValue=false" "ParameterKey=SecurityGroup,ParameterValue=$sgroup,UsePreviousValue=false" "ParameterKey=InstanceSubnet,ParameterValue=$subnet,UsePreviousValue=false" "ParameterKey=InstanceDiskSize,ParameterValue=$logindisksize,UsePreviousValue=false"
+echoplus -v 2 "Checking that stack was created. . ."
 
 aws cloudformation wait stack-create-complete --stack-name $stackname
 
 
 pubIP=$(aws cloudformation describe-stacks --stack-name $stackname --output text | grep "PublicIp" | grep -Pom 1 '[0-9.]{7,15}')
-echo "IP of login node: $pubIP"
 privIP=$(aws cloudformation describe-stacks --stack-name $stackname --output text | grep "PrivateIp" | grep -Pom 1 '[0-9.]{7,15}')
 
-
-# now get value of 
-# have to wait for login node to come online
-until ssh -i "$keyfile" -o 'StrictHostKeyChecking=no' "flight@$pubIP" 'exit'; do
-  echo "failed?"
-  sleep 5
+# Wait for login/standalone node to come online
+echoplus -v 2 "Trying SSH until connection is available. . ."
+timeout=360
+until ssh -q -i "$keyfile" -o 'StrictHostKeyChecking=no' "flight@$pubIP" 'exit'; do
+  echoplus -v 2 -c ORNG -p "failed? \r"
+  sleep 1
+  let "timeout=timeout-1"
+  if [[ $timeout -le 0 ]]; then
+    echoplus -p -v 2 "\\n"
+    echoplus -v 0 -c RED "SSH connection test timed out."
+    exit 1
+  fi
 done
+echoplus -p -v 2 "\\n"
+echoplus -v 2 -c GRN "SSH connection succeeded."
 
-echo "succeeded?"
+
+if [[ $standaloneonly = true ]];then
+  echoplus -v 0 "login_public_ip=$pubIP"
+  echoplus -v 0 "login_private_ip=$privIP"
+  if [[ $only_basic_tests = true ]]; then
+    # setup cram testing
+    scp -i "$keyfile" -r "../../regression_tests" "flight@${pubIP}:/home/flight/" &>/dev/null
+    ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" 'sudo pip3 install cram; sudo yum install -y nmap' &>/dev/null
+    default_kube_range="192.168.0.0/16";default_node_range="10.50.0.0/16" 
+    test_env_file="/home/flight/regression_tests/environment_variables.sh"
+    env_contents="#!/bin/bash\nexport all_nodes_count='1'\nexport computenodescount='0'\nexport ip_range='${default_node_range}'\nexport kube_pod_range='${default_kube_range}'\nexport login_priv_ip='${privIP}'\nexport login_pub_ip='${pubIP}'\nexport all_nodes_priv_ips=( '${privIP}' )\nexport varlocation='${test_env_file}'" 
+    ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" "echo -e \"${env_contents}\" > ${test_env_file}" &>/dev/null
+    cram_command="cram -v generic_launch_tests/allnode-generic_launch_tests generic_launch_tests/login-check_root_login.t flight_launch_tests/allnode-flight_launch_tests flight_launch_tests/login-hunter_info.t"
+    ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; $cram_command > /home/flight/cram_test_\$?.out"
+    exit 0
+  elif [[ $cram_testing = false ]]; then
+    exit 0
+  fi
+  # setup cram testing
+  scp -i "$keyfile" -r "../../regression_tests" "flight@${pubIP}:/home/flight/" &>/dev/null
+  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" 'sudo pip3 install cram; sudo yum install -y nmap' &>/dev/null
+  default_kube_range="192.168.0.0/16";default_node_range="10.50.0.0/16" # these are unimportant, but here so vars aren't empty
+  test_env_file="/home/flight/regression_tests/environment_variables.sh"
+  env_contents="#!/bin/bash\nexport all_nodes_count='1'\nexport computenodescount='0'\nexport ip_range='${default_node_range}'\nexport kube_pod_range='${default_kube_range}'\nexport login_priv_ip='${privIP}'\nexport login_pub_ip='${pubIP}'\nexport all_nodes_priv_ips=( '${privIP}' )\nexport varlocation='${test_env_file}'" 
+  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" "echo -e \"${env_contents}\" > ${test_env_file}" &>/dev/null
+  cram_command="cram -v generic_launch_tests/allnode-generic_launch_tests generic_launch_tests/login-check_root_login.t flight_launch_tests/allnode-flight_launch_tests flight_launch_tests/login-hunter_info.t pre-profile_tests"
+  case $cluster_type in 
+    jupyter)
+      cram_command="$cram_command profile_tests/jupyter_standalone cluster_tests/jupyter_standalone"
+      ;;
+    slurm)
+      cram_command="$cram_command profile_tests/slurm_standalone cluster_tests/slurm_standalone"
+      ;;
+  esac
+  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; $cram_command > cram_test.out"
+
+  scp -i "$keyfile" "flight@${pubIP}:/home/flight/regression_tests/cram_test.out" "../test_output/${stackname}_cram_test.out"
+
+  # if you want to delete then go for it
+  if [[ $delete_ending = true ]]; then 
+    # delete the stack and associated instances
+  fi
+
+  exit
+fi
+
 
 contents=$(ssh -i "$keyfile" -o 'StrictHostKeyChecking=no' "flight@$pubIP" "sudo /bin/bash -l -c 'echo -n'; sudo cat /root/.ssh/id_alcescluster.pub")
-
-
-#echo $contents
 
 cat aws_base.yaml > $cnodetemplate
 for x in `seq 1 $nodecount`; do
@@ -126,4 +330,4 @@ for x in `seq 1 $nodecount`; do
 done
 
 
-aws cloudformation create-stack --template-body "$(cat "$cnodetemplate")" --stack-name "compute$stackname" --parameters "ParameterKey=KeyPair,ParameterValue=ivan-keypair,UsePreviousValue=false" "ParameterKey=InstanceAmi,ParameterValue=$instanceami,UsePreviousValue=false" "ParameterKey=InstanceSize,ParameterValue=$instancesize,UsePreviousValue=false" "ParameterKey=SecurityGroup,ParameterValue=$sgroup,UsePreviousValue=false" "ParameterKey=InstanceSubnet,ParameterValue=$subnet,UsePreviousValue=false" "ParameterKey=IpData,ParameterValue=$privIP,UsePreviousValue=false" "ParameterKey=KeyData,ParameterValue=$contents,UsePreviousValue=false"
+aws cloudformation create-stack --template-body "$(cat "$cnodetemplate")" --stack-name "compute$stackname" --parameters "ParameterKey=KeyPair,ParameterValue=ivan-keypair,UsePreviousValue=false" "ParameterKey=InstanceAmi,ParameterValue=$instanceami,UsePreviousValue=false" "ParameterKey=InstanceSize,ParameterValue=$loginsize,UsePreviousValue=false" "ParameterKey=SecurityGroup,ParameterValue=$sgroup,UsePreviousValue=false" "ParameterKey=InstanceSubnet,ParameterValue=$subnet,UsePreviousValue=false" "ParameterKey=IpData,ParameterValue=$privIP,UsePreviousValue=false" "ParameterKey=KeyData,ParameterValue=$contents,UsePreviousValue=false"
