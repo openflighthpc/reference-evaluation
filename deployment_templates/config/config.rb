@@ -7,10 +7,10 @@ prompt = TTY::Prompt.new
 module Config
   class Error < StandardError; end
   prompt = TTY::Prompt.new
-  cluster_type = "-"
+  cluster_type = "0"
   num_of_compute_nodes = 0
-  compute_instance_size = "-"
-  compute_volume_size = "-"
+  compute_instance_size = "0"
+  compute_volume_size = "0"
 
   platform_choices = %w(openstack aws azure)
   platform = prompt.select("Launch on what platform?", platform_choices)
@@ -18,6 +18,7 @@ module Config
   stack_name = prompt.ask("Name of cluster?", required: true)
   cram_testing = prompt.no?("Cram testing?") { |q| q.convert } 
   cram_testing = !cram_testing
+
   if cram_testing 
     cluster_type_choices = %w(slurm jupyter kubernetes)
     cluster_type = prompt.select("What cluster type?", cluster_type_choices)
