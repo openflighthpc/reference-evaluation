@@ -383,11 +383,9 @@ done
 
 default_kube_range="192.168.0.0/16"
 default_node_range="172.31.0.0/16"
-echo "basic tests: $only_basic_tests cram tests: $cram_testing"
+
+
 if [[ $only_basic_tests = true && $cram_testing = false ]]; then
-  echo "here1"
-  ls
-  pwd
   # setup cram testing
   scp -i "$keyfile" -r "../../regression_tests" "flight@${pubIP}:/home/flight/" &>/dev/null
   ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" 'sudo pip3 install cram; sudo yum install -y nmap' &>/dev/null
@@ -402,9 +400,9 @@ if [[ $only_basic_tests = true && $cram_testing = false ]]; then
   compute_cram_command="cram -v generic_launch_tests/allnode-generic_launch_tests flight_launch_tests/allnode-flight_launch_tests"
 
   for n in "${cnodepubips[@]}"; do
-    scp -i "$keyfile" -r "../../regression_tests" "flight@${nodepubIP}:/home/flight/" &>/dev/null
-    ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$n" 'sudo pip3 install cram; sudo yum install -y nmap' &>/dev/null
-    ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$n" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; $compute_cram_command > /home/flight/cram_test_\$?.out" &>/dev/null
+    scp -i "$keyfile" -r "../../regression_tests" "flight@${n}:/home/flight/" >/dev/null
+    ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$n" 'sudo pip3 install cram; sudo yum install -y nmap' >/dev/null
+    ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$n" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; $compute_cram_command > /home/flight/cram_test_\$?.out" >/dev/null
   done
 
   # print out ips
@@ -440,9 +438,9 @@ env_contents="#!/bin/bash\nexport all_nodes_count='$((nodecount+1))'\nexport com
 ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" "echo -e \"${env_contents}\" > ${test_env_file}" &>/dev/null
 
 login_cram_command="cram -v generic_launch_tests/allnode-generic_launch_tests generic_launch_tests/login-check_root_login.t flight_launch_tests/allnode-flight_launch_tests flight_launch_tests/login-hunter_info.t pre-profile_tests"
-
+echo "$cluster_type"
 case $cluster_type in
-  kube)
+  kubernetes)
     cram_command="$cram_command profile_tests/kubernetes_multinode cluster_tests/kubernetes_multinode"
     ;;
   slurm)
@@ -456,8 +454,8 @@ scp -i "$keyfile" "flight@${pubIP}:/home/flight/regression_tests/cram_test.out" 
 compute_cram_command="cram -v generic_launch_tests/allnode-generic_launch_tests flight_launch_tests/allnode-flight_launch_tests"
 for x in `seq 1 $nodecount`; do
   scp -i "$keyfile" -r "../../regression_tests" "flight@${cnodepubips[$x-1]}:/home/flight/" &>/dev/null
-  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$${cnodepubips[$x-1]}" 'sudo pip3 install cram; sudo yum install -y nmap' &>/dev/null
-  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$${cnodepubips[$x-1]}" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; $compute_cram_command > cram_test.out" &>/dev/null
+  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${cnodepubips[$x-1]}" 'sudo pip3 install cram; sudo yum install -y nmap' &>/dev/null
+  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${cnodepubips[$x-1]}" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; $compute_cram_command > cram_test.out" &>/dev/null
 
   scp -i "$keyfile" "flight@${cnodepubips[$x-1]}:/home/flight/regression_tests/cram_test.out" "../test_output/${stackname}_cnode0${x}_cram_test.out"
 
