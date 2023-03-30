@@ -11,13 +11,13 @@ ORNG='\033[0;33m'
 NC='\033[0m' # No Color
 
 
-# Parameters: stackname, loginsize, logindisksize, standaloneonly, computetemplate, computesize, computedisksize, keyfile, keyname, logintemplate, srcimage
+# Parameters: stackname, loginsize, logindisksize, standalone, computetemplate, computesize, computedisksize, keyfile, keyname, logintemplate, srcimage
 
 # defaults
 srcimage="Flight Solo 2023.2"
 loginsize="m1.medium"
 logindisksize="20"
-standaloneonly=false
+standalone=false
 computetemplate="compute-nodes-template.yaml"
 computesize="m1.medium"
 computedisksize="20"
@@ -28,6 +28,7 @@ generic_size="small"
 small="m1.medium"
 medium="m1.large"
 large="m1.xlarge"
+gpu="0"
 delete_ending=false
 only_basic_tests=false
 
@@ -39,10 +40,6 @@ while [[ $# -gt 0 ]]; do # while there are not 0 args
       ;;
     -q|--quiet)
       outputlvl=1
-      shift # past argument
-      ;;
-    -c|--config)
-      config=1 
       shift # past argument
       ;;
     -d|--delete-on-end)
@@ -147,6 +144,12 @@ if [[ "$noinput" == "0" && $config == "0" ]]; then
   echoplus -v 0 "What should the stack be named?"
   read stackname
 
+  echoplus -v 0 "Create only standalone?"
+  read temp
+  if [[ $temp != "" ]]; then
+    standalone=true
+  fi
+
   echoplus -v 0 "Perform cram testing?"
   read temp
   if [[ temp != "" ]]; then
@@ -173,13 +176,9 @@ if [[ "$noinput" == "0" && $config == "0" ]]; then
     logindisksize="$temp"
   fi
 
-  echoplus -v 0 "Create only standalone?"
-  read temp
-  if [[ $temp != "" ]]; then
-    standaloneonly=true
-  fi
+  
 
-  if [[ $standaloneonly = false ]]; then
+  if [[ $standalone = false ]]; then
    echoplus -v 0 "How many compute nodes to use?"
    read temp
    if [[ $temp != "" ]]; then
@@ -270,7 +269,7 @@ ssh -i "$keyfile" -o 'StrictHostKeyChecking=no' "flight@$pubIP" "sudo echo \"$op
 
 contents=$(ssh -i "$keyfile" -o 'StrictHostKeyChecking=no' "flight@$pubIP" "sudo /bin/bash -l -c 'echo -n'; sudo cat /root/.ssh/id_alcescluster.pub")
 
-if [[ $standaloneonly = true ]];then
+if [[ $standalone = true ]];then
   echoplus -v 0 "login_public_ip=$pubIP"
   echoplus -v 0 "login_private_ip=$privIP"
   if [[ $only_basic_tests = true ]]; then
