@@ -13,11 +13,11 @@ platform="o"
 testnum=1
 cluster_type="sm"
 size="S"
-bash make_multinode_openstack.sh -g --noinput -p "stackname=${platform}${testnum}${cluster_type}${size}" -p "loginsize=small" -p "logindisksize=20" -p "standaloneonly=0" -p "computesize=small" -p "computedisksize=20" 
+bash make_multinode_openstack.sh -d -g --noinput -p "stackname=${platform}${testnum}${cluster_type}${size}" -p "loginsize=small" -p "logindisksize=20" -p "standaloneonly=0" -p "computesize=small" -p "computedisksize=20" 
 
 # Standalone: slurm, jupyter
 
-bash make_multinode_openstack.sh -g --noinput -p "stackname=${platform}2ss${size}" -p "loginsize=small" -p "logindisksize=20" -p "standaloneonly=true" 
+bash make_multinode_openstack.sh -d -g --noinput -p "stackname=${platform}2ss${size}" -p "loginsize=small" -p "logindisksize=20" -p "standaloneonly=true" 
 
 # return to base directory
 cd ..
