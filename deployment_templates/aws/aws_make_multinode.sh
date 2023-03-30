@@ -32,9 +32,10 @@ RED='\033[0;31m'
 GRN='\033[0;32m'
 ORNG='\033[0;33m'
 NC='\033[0m' # No Color
+outputlvl=2
 
 # size vars
-small="c5.large"
+small="t3.small" #"c5.large" should normally be this size but temp change for cheaper testing
 medium="c5.4xlarge"
 large="c5d.metal"
 gpu="0"
@@ -211,7 +212,6 @@ echoplus -v 2 "Checking that stack was created. . ."
 
 aws cloudformation wait stack-create-complete --stack-name $stackname
 
-
 pubIP=$(aws cloudformation describe-stacks --stack-name $stackname --output text | grep "PublicIp" | grep -Pom 1 '[0-9.]{7,15}')
 privIP=$(aws cloudformation describe-stacks --stack-name $stackname --output text | grep "PrivateIp" | grep -Pom 1 '[0-9.]{7,15}')
 
@@ -232,7 +232,7 @@ echoplus -p -v 2 "\\n"
 echoplus -v 2 -c GRN "SSH connection succeeded."
 
 
-if [[ $standaloneonly = true ]];then
+if [[ $standalone = true ]];then
   echoplus -v 0 "login_public_ip=$pubIP"
   echoplus -v 0 "login_private_ip=$privIP"
   if [[ $only_basic_tests = true ]]; then
@@ -272,14 +272,15 @@ if [[ $standaloneonly = true ]];then
   # if you want to delete then go for it
   if [[ $delete_ending = true ]]; then 
     # delete the stack and associated instances
+    echo "delete"
   fi
-
-  exit
+  exit 0
 fi
 
 
 contents=$(ssh -i "$keyfile" -o 'StrictHostKeyChecking=no' "flight@$pubIP" "sudo /bin/bash -l -c 'echo -n'; sudo cat /root/.ssh/id_alcescluster.pub")
 
+# create template
 cat aws_base.yaml > $cnodetemplate
 for x in `seq 1 $nodecount`; do
   echo "
@@ -326,8 +327,152 @@ for x in `seq 1 $nodecount`; do
               - \"    ssh_authorized_keys:\n\"
               - \"      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDWD9MAHnS5o6LrNaCb5gshU4BIpYfqoE2DCW9T2u3v4xOh04JkaMsIzwGc+BNnCh+NlkSE9sPVyPODCVnLnHdyyNfUkLBIUGCM/h9Ox7CTnsbmhnv3tMp4OD2dnGl+wOXWo/0YrWA0cpcl5UchCpZYMGscR4ohg8+/panBJ0//wmQZmCUZkQ20TLumYlL9HdmFl2SO2vraY+nBQCoHtPC80t4BmbPg5atEnQVMngpsRqSykIoUEQKh49t649cF3rBboZT+AmW+O1GWVYu7qlUxqIsdTRJbqbhZ/W2n3rraQh5CR/hOyYikkdn3xqm7Rom5iURvWd6QBh0LhP1UPRIT\"
               - \"\n\"
-              " >> $cnodetemplate
+              " >> $cnodetemplate # add an instance to template for every node
+done
+echo "Outputs:" >> $cnodetemplate
+for x in `seq 1 $nodecount`; do
+  echo "
+  PrivateIpNode${x}:
+    Description: The private IP address of the standalone node
+    Value: { Fn::GetAtt: [ Node${x}, PrivateIp] }
+
+  PublicIpNode${x}:
+    Description: Floating IP address of standalone node
+    Value: { Fn::GetAtt: [ Node${x}, PublicIp ] }
+    " >> $cnodetemplate # add an output to template for every node
+done
+
+# create stack
+aws cloudformation create-stack --template-body "$(cat "$cnodetemplate")" --stack-name "compute$stackname" --parameters "ParameterKey=KeyPair,ParameterValue=ivan-keypair,UsePreviousValue=false" "ParameterKey=InstanceAmi,ParameterValue=$instanceami,UsePreviousValue=false" "ParameterKey=InstanceSize,ParameterValue=$loginsize,UsePreviousValue=false" "ParameterKey=SecurityGroup,ParameterValue=$sgroup,UsePreviousValue=false" "ParameterKey=InstanceSubnet,ParameterValue=$subnet,UsePreviousValue=false" "ParameterKey=IpData,ParameterValue=$privIP,UsePreviousValue=false" "ParameterKey=KeyData,ParameterValue=$contents,UsePreviousValue=false"
+
+aws cloudformation wait stack-create-complete --stack-name "compute$stackname"
+
+# get public and private ips
+cnodepubips=()
+cnodeprivateips=()
+all_nodes_privIP=("$privIP")
+for x in `seq 1 $nodecount`; do
+  cnodepubips+=("$(aws cloudformation describe-stacks --stack-name "compute$stackname" --output text | grep "PublicIpNode${x}" | grep -Pom 1 '[0-9.]{7,15}')")
+  cnodeprivIP="$(aws cloudformation describe-stacks --stack-name "compute$stackname" --output text | grep "PrivateIpNode${x}" | grep -Pom 1 '[0-9.]{7,15}')"
+  cnodeprivateips+=("$cnodeprivIP")
+  all_nodes_privIP+=("$cnodeprivIP")
+done
+# i know, i know, you could do the above and below steps in the same loop, but since you have to wait for the nodes to come online anyway there is no point imo - im incorrect if aws brings them online faster than i think it does
+
+# Wait for compute nodes to come online
+for n in "${cnodepubips[@]}"; do
+  echoplus -v 2 "[$n] Trying SSH until connection is available. . ."
+  timeout=360
+  until ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' "flight@$n" 'exit'; do
+    echoplus -v 2 -c ORNG -p "[$n] failed? \r"
+    sleep 1
+    let "timeout=timeout-1"
+    if [[ $timeout -le 0 ]]; then
+      echoplus -p -v 2 "\\n"
+      echoplus -v 0 -c RED "[$n] SSH connection test timed out."
+      exit 1
+    fi
+  done
+  echoplus -p -v 2 "\\n"
+  echoplus -v 2 -c GRN "[$n] SSH connection succeeded."
 done
 
 
-aws cloudformation create-stack --template-body "$(cat "$cnodetemplate")" --stack-name "compute$stackname" --parameters "ParameterKey=KeyPair,ParameterValue=ivan-keypair,UsePreviousValue=false" "ParameterKey=InstanceAmi,ParameterValue=$instanceami,UsePreviousValue=false" "ParameterKey=InstanceSize,ParameterValue=$loginsize,UsePreviousValue=false" "ParameterKey=SecurityGroup,ParameterValue=$sgroup,UsePreviousValue=false" "ParameterKey=InstanceSubnet,ParameterValue=$subnet,UsePreviousValue=false" "ParameterKey=IpData,ParameterValue=$privIP,UsePreviousValue=false" "ParameterKey=KeyData,ParameterValue=$contents,UsePreviousValue=false"
+
+# cram and basic tests section
+
+default_kube_range="192.168.0.0/16"
+default_node_range="172.31.0.0/16"
+echo "basic tests: $only_basic_tests cram tests: $cram_testing"
+if [[ $only_basic_tests = true && $cram_testing = false ]]; then
+  echo "here1"
+  ls
+  pwd
+  # setup cram testing
+  scp -i "$keyfile" -r "../../regression_tests" "flight@${pubIP}:/home/flight/" &>/dev/null
+  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" 'sudo pip3 install cram; sudo yum install -y nmap' &>/dev/null
+
+  test_env_file="/home/flight/regression_tests/environment_variables.sh"
+  env_contents="#!/bin/bash\nexport all_nodes_count='1'\nexport computenodescount='0'\nexport ip_range='${default_node_range}'\nexport kube_pod_range='${default_kube_range}'\nexport login_priv_ip='${privIP}'\nexport login_pub_ip='${pubIP}'\nexport all_nodes_priv_ips=( '${privIP}' )\nexport varlocation='${test_env_file}'" 
+  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" "echo -e \"${env_contents}\" > ${test_env_file}" &>/dev/null
+  cram_command="cram -v generic_launch_tests/allnode-generic_launch_tests generic_launch_tests/login-check_root_login.t flight_launch_tests/allnode-flight_launch_tests flight_launch_tests/login-hunter_info.t"
+  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; $cram_command > /home/flight/cram_test_\$?.out"
+
+  # compute tests
+  compute_cram_command="cram -v generic_launch_tests/allnode-generic_launch_tests flight_launch_tests/allnode-flight_launch_tests"
+
+  for n in "${cnodepubips[@]}"; do
+    scp -i "$keyfile" -r "../../regression_tests" "flight@${nodepubIP}:/home/flight/" &>/dev/null
+    ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$n" 'sudo pip3 install cram; sudo yum install -y nmap' &>/dev/null
+    ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$n" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; $compute_cram_command > /home/flight/cram_test_\$?.out" &>/dev/null
+  done
+
+  # print out ips
+  echoplus -v 0 "login_public_ip=$pubIP"
+  echoplus -v 0 "login_private_ip=$privIP"
+  for x in `seq 1 $nodecount`; do
+    echo "node0${x}_public_ip: ${cnodepubips[$x-1]}"
+    echo "node0${x}_private_ip: ${cnodeprivateips[$x-1]}"
+  done
+  exit
+elif [[ $cram_testing = false ]]; then
+    # print out ips
+    echoplus -v 0 "login_public_ip=$pubIP"
+    echoplus -v 0 "login_private_ip=$privIP"
+    for x in `seq 1 $nodecount`; do
+      echo "node0${x}_public_ip: ${cnodepubips[$x-1]}"
+      echo "node0${x}_private_ip: ${cnodeprivateips[$x-1]}"
+    done
+  exit
+fi
+
+# setup cram testing
+# login node
+scp -i "$keyfile" -r "../../regression_tests" "flight@${pubIP}:/home/flight/"
+ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" 'sudo pip3 install cram; sudo yum install -y nmap'
+test_env_file="/home/flight/regression_tests/environment_variables.sh"
+cram_ips="export all_nodes_priv_ips=("
+for i in "${all_nodes_privIP[@]}"; do
+  cram_ips="$cram_ips \"$i\""
+done
+cram_ips="$cram_ips )"
+env_contents="#!/bin/bash\nexport all_nodes_count='$((nodecount+1))'\nexport computenodescount='${nodecount}'\nexport ip_range='${default_node_range}'\nexport kube_pod_range='${default_kube_range}'\nexport login_priv_ip='${privIP}'\nexport login_pub_ip='${pubIP}'\n${cram_ips}\nexport varlocation='${test_env_file}'"
+ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" "echo -e \"${env_contents}\" > ${test_env_file}" &>/dev/null
+
+login_cram_command="cram -v generic_launch_tests/allnode-generic_launch_tests generic_launch_tests/login-check_root_login.t flight_launch_tests/allnode-flight_launch_tests flight_launch_tests/login-hunter_info.t pre-profile_tests"
+
+case $cluster_type in
+  kube)
+    cram_command="$cram_command profile_tests/kubernetes_multinode cluster_tests/kubernetes_multinode"
+    ;;
+  slurm)
+    cram_command="$cram_command profile_tests/slurm_multinode cluster_tests/slurm_multinode"
+    ;;
+esac
+ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; $login_cram_command > cram_test.out" &>/dev/null
+scp -i "$keyfile" "flight@${pubIP}:/home/flight/regression_tests/cram_test.out" "../test_output/${stackname}_cram_test.out"
+
+
+compute_cram_command="cram -v generic_launch_tests/allnode-generic_launch_tests flight_launch_tests/allnode-flight_launch_tests"
+for x in `seq 1 $nodecount`; do
+  scp -i "$keyfile" -r "../../regression_tests" "flight@${cnodepubips[$x-1]}:/home/flight/" &>/dev/null
+  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$${cnodepubips[$x-1]}" 'sudo pip3 install cram; sudo yum install -y nmap' &>/dev/null
+  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$${cnodepubips[$x-1]}" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; $compute_cram_command > cram_test.out" &>/dev/null
+
+  scp -i "$keyfile" "flight@${cnodepubips[$x-1]}:/home/flight/regression_tests/cram_test.out" "../test_output/${stackname}_cnode0${x}_cram_test.out"
+
+done
+
+# now that we're done testing delete the stack to make way for more tests
+
+if [[ $delete_ending = true ]]; then 
+  echo "delete stack?"
+fi
+
+# print out ips
+echoplus -v 0 "login_public_ip=$pubIP"
+echoplus -v 0 "login_private_ip=$privIP"
+for x in `seq 1 $nodecount`; do
+  echo "node0${x}_public_ip: ${cnodepubips[$x-1]}"
+  echo "node0${x}_private_ip: ${cnodeprivateips[$x-1]}"
+done
