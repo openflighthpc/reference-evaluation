@@ -9,3 +9,5 @@ deployment_templates/aws/changestack.yaml
 deployment_templates/openstack/openstack/
 # ignore cram error files
 *.t.err
+# ignore test output files
+deployment_templates/test_output/*.out
