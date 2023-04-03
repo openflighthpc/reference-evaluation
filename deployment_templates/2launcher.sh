@@ -82,11 +82,11 @@ case $platform in
     cd ./openstack
     . Ivan_testing-openrc.sh
     source openstack/bin/activate
-    bash make_multinode_openstack.sh -g --only-basic-tests --noinput -p "stackname=${stack_name}" -p "loginsize=${login_instance_size}" -p "logindisksize=${login_volume_size}" -p "standalone=${standalone}" -p "computesize=${compute_instance_size}" -p "computedisksize=${compute_volume_size}" -p "cram_testing=${cram_testing}" -p "nodecount=${num_of_compute_nodes}"
+    bash make_multinode_openstack.sh -g --only-basic-tests --noinput -p "stackname=${stack_name}" -p "loginsize=${login_instance_size}" -p "logindisksize=${login_volume_size}" -p "standalone=${standalone}" -p "computesize=${compute_instance_size}" -p "computedisksize=${compute_volume_size}" -p "cram_testing=${cram_testing}" -p "nodecount=${num_of_compute_nodes}" -p "cluster_type=${cluster_type}"
   ;;
   aws)
     cd ./aws
-    bash aws_make_multinode.sh -g --only-basic-tests --noinput -p "stackname=${stack_name}" -p "loginsize=${login_instance_size}" -p "logindisksize=${login_volume_size}" -p "standalone=${standalone}" -p "computesize=${compute_instance_size}" -p "computedisksize=${compute_volume_size}" -p "cram_testing=${cram_testing}" -p "nodecount=${num_of_compute_nodes}"
+    bash aws_make_multinode.sh -g --only-basic-tests --noinput -p "stackname=${stack_name}" -p "loginsize=${login_instance_size}" -p "logindisksize=${login_volume_size}" -p "standalone=${standalone}" -p "computesize=${compute_instance_size}" -p "computedisksize=${compute_volume_size}" -p "cram_testing=${cram_testing}" -p "nodecount=${num_of_compute_nodes}" -p "cluster_type=${cluster_type}"
   ;;
   azure)
     cd ./azure
