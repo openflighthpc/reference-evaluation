@@ -494,10 +494,12 @@ login_cram_command="cram -v generic_launch_tests/allnode-generic_launch_tests ge
 
 case $cluster_type in
   kube)
-    cram_command="$cram_command profile_tests/kubernetes_multinode cluster_tests/kubernetes_multinode"
+    echo "made it fine kube"
+    login_cram_command+=" profile_tests/kubernetes_multinode cluster_tests/kubernetes_multinode"
     ;;
   slurm)
-    cram_command="$cram_command profile_tests/slurm_multinode cluster_tests/slurm_multinode"
+    echo "made it fine slurm"
+    login_cram_command+=" profile_tests/slurm_multinode cluster_tests/slurm_multinode"
     ;;
 esac
 ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; $login_cram_command > cram_test.out" &>/dev/null

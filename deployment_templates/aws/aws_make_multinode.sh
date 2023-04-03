@@ -238,11 +238,14 @@ if [[ $standalone = true ]];then
   if [[ $only_basic_tests = true ]]; then
     # setup cram testing
     scp -i "$keyfile" -r "../../regression_tests" "flight@${pubIP}:/home/flight/" &>/dev/null
+    # i copied them
     ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" 'sudo pip3 install cram; sudo yum install -y nmap' &>/dev/null
+    ## i installed
     default_kube_range="192.168.0.0/16";default_node_range="10.50.0.0/16" 
     test_env_file="/home/flight/regression_tests/environment_variables.sh"
     env_contents="#!/bin/bash\nexport all_nodes_count='1'\nexport computenodescount='0'\nexport ip_range='${default_node_range}'\nexport kube_pod_range='${default_kube_range}'\nexport login_priv_ip='${privIP}'\nexport login_pub_ip='${pubIP}'\nexport all_nodes_priv_ips=( '${privIP}' )\nexport varlocation='${test_env_file}'" 
     ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" "echo -e \"${env_contents}\" > ${test_env_file}" &>/dev/null
+    # setup env
     cram_command="cram -v generic_launch_tests/allnode-generic_launch_tests generic_launch_tests/login-check_root_login.t flight_launch_tests/allnode-flight_launch_tests flight_launch_tests/login-hunter_info.t"
     ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; $cram_command > /home/flight/cram_test_\$?.out"
     exit 0
@@ -441,10 +444,12 @@ login_cram_command="cram -v generic_launch_tests/allnode-generic_launch_tests ge
 echo "$cluster_type"
 case $cluster_type in
   kubernetes)
-    cram_command="$cram_command profile_tests/kubernetes_multinode cluster_tests/kubernetes_multinode"
+    echo "made it fine kube"
+    login_cram_command+=" profile_tests/kubernetes_multinode cluster_tests/kubernetes_multinode"
     ;;
   slurm)
-    cram_command="$cram_command profile_tests/slurm_multinode cluster_tests/slurm_multinode"
+    echo "made it fine slurm"
+    login_cram_command+=" profile_tests/slurm_multinode cluster_tests/slurm_multinode"
     ;;
 esac
 ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; $login_cram_command > cram_test.out" &>/dev/null
