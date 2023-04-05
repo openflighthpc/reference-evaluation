@@ -49,26 +49,12 @@ else # do cram testing
 fi
 
 
+result=0
 if [[ $delete_on_success = true && $test_result = 0 ]]; then 
   echo "delete stack"
   case $platform in
     openstack)
-      openstack stack delete -y "$stackname"
-      timeout=60
-      deleted=false
-      while [[ $deleted = false ]]; do # just a little loop to not wait an excessive amount of time
-        if [[ $(openstack stack show "$stackname" -f shell | grep "Stack not found:") ]]; then
-          exit 0
-        elif [[ $timeout -le 0 ]];then
-          echoplus -p "\\n"
-          echoplus -c RED -v 0 "stack deletion timed out"
-          exit 1
-        else
-          echoplus -c ORNG -v 2 -p "$stack_status\r"
-          let "timeout=timeout-1"
-          sleep 1
-        fi
-      done
+      openstack stack delete --wait -y "$stackname"; result=$?
       ;;
     aws)
       echo "aws"
@@ -79,6 +65,9 @@ if [[ $delete_on_success = true && $test_result = 0 ]]; then
       echo "$stackname"
       ;;
   esac
-  
+  if [[ $result != 0 ]]; then
+    echoplus -v 0 -c RED "Failed to delete. Exiting."
+  fi
+  exit $result
 fi
 
