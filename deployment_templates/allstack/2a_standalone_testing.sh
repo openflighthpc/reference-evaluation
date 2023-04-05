@@ -63,7 +63,7 @@ if [[ $delete_on_success = true && $test_result = 0 ]]; then
       echo "$stackname"
       ;;
     azure)
-      echo "azure"
+      echo "azure delete stack (WIP)"
       echo "$stackname"
       ;;
   esac
