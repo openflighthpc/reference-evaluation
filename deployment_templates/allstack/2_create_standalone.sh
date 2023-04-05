@@ -19,6 +19,12 @@ case $platform in
       exit $result
     fi
 
+    # put openflight public key onto standalone node
+    ssh -i "$keyfile" -o 'StrictHostKeyChecking=no' "flight@$pubIP" "sudo echo \"$openflightkey\" >> .ssh/authorized_keys"
+    # get contents if making a cluster
+    #contents=$(ssh -i "$keyfile" -o 'StrictHostKeyChecking=no' "flight@$pubIP" "sudo /bin/bash -l -c 'echo -n'; sudo cat /root/.ssh/id_alcescluster.pub")
+
+
     # Get public IP
     login_public_ip=$(openstack stack output show "$stackname" standalone_public_ip -f shell | grep "output_value")
     login_public_ip=${login_public_ip#*\"} #removes stuff upto // from begining
