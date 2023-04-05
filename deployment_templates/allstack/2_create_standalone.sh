@@ -12,34 +12,12 @@ case $platform in
 
   openstack)
     # create standalone/login node on Openstack
-    openstack stack create --template "$openstack_login_template" --parameter "key_name=$openstack_key" --parameter "flavor=$openstack_login_size" --parameter "image=$openstack_image"  --parameter "disk_size=$login_disk_size" "$stackname" 
+    openstack stack create --wait --template "$openstack_login_template" --parameter "key_name=$openstack_key" --parameter "flavor=$openstack_login_size" --parameter "image=$openstack_image"  --parameter "disk_size=$login_disk_size" "$stackname"; result=$?
 
-    # wait for it to finish being created
-    completed=false
-    timeout=120
-    while [[ $completed != true ]]; do 
-      stack_status=$(openstack stack show "$stackname" -f shell | grep "stack_status=")
-      stack_status=${stack_status#*\"} #removes string from start to first "
-      stack_status=${stack_status%\"*} #removes string from end to first "
-
-      if [[ "$stack_status" = 'CREATE_COMPLETE' ]];then
-        completed=true
-        echoplus -c GRN -v 2 -p "$stack_status    "
-        echoplus -p "\\n"
-      elif [[ $timeout -le 0 ]];then
-        echoplus -p "\\n"
-        echoplus -c RED -v 0 "stack creation timed out"
-        exit 1
-      elif [[ "$stack_status" = 'CREATE_FAILED' ]];then
-        echoplus -c RED -v 0 -p "$stack_status""$(openstack stack show "$stackname" -f shell | grep "stack_status_reason=")"
-        echoplus -p "\\n"
-        exit 1
-      else
-        echoplus -c ORNG -v 2 -p "$stack_status\r"
-        let "timeout=timeout-1"
-        sleep 1
-      fi
-    done
+    if [[ $result != 0 ]]; then
+      echoplus -v 0 -c RED "Creation failed. Exiting."
+      exit $result
+    fi
 
     # Get public IP
     login_public_ip=$(openstack stack output show "$stackname" standalone_public_ip -f shell | grep "output_value")
