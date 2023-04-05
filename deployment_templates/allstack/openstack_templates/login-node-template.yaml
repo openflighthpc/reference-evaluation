@@ -1,0 +1,99 @@
+heat_template_version: '2015-04-30'
+
+description: Template to deploy 1 node that can be a standalone or login node
+
+parameters:
+
+  key_name:
+    default: keytest1
+    type: string
+    description: Name of an existing key pair to use for the instances
+    constraints:
+      - custom_constraint: nova.keypair
+        description: Must name a public key (pair) known to Nova
+
+  flavor:
+    type: string
+    description: Flavor for the instances to be created
+    constraints:
+      - custom_constraint: nova.flavor
+        description: Must be a flavor known to Nova
+    default: "m1.small"
+
+  image:
+    type: string
+    description: >
+      Name or ID of the image to use for the instances.
+      You can get the default from
+    constraints:
+      - custom_constraint: glance.image
+        description: Must identify an image known to Glance
+    default: "Flight Solo 2022.4"
+
+  network:
+    default: 9644040a-6f39-4d8f-b108-9ccbd9145feb
+    type: string
+    description: The network for the VM
+    constraints:
+      - {custom_constraint: neutron.network}
+
+  public_net:
+    default: c5febef5-6081-44de-b723-79f069be479d
+    type: string
+    description: >
+      ID of public network for which floating IP addresses will be allocated
+
+  disk_size:
+    default: 20
+    type: number
+    description: The disk/volume size of the vm.
+
+resources:
+
+  head:
+    properties:
+      flavor: { get_param: flavor }
+      image: { get_param: image }
+      key_name: { get_param: key_name }
+      networks:
+      - port:
+          get_resource: standalone_port
+      block_device_mapping:
+        - device_name: vda
+          volume_id: { get_resource: standalone_volume }
+          delete_on_termination: true
+      user_data_format: RAW
+      user_data: |
+                  #cloud-config
+                  users:
+                   - default
+                   - name: flight
+                     ssh_authorized_keys:
+                     - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDWD9MAHnS5o6LrNaCb5gshU4BIpYfqoE2DCW9T2u3v4xOh04JkaMsIzwGc+BNnCh+NlkSE9sPVyPODCVnLnHdyyNfUkLBIUGCM/h9Ox7CTnsbmhnv3tMp4OD2dnGl+wOXWo/0YrWA0cpcl5UchCpZYMGscR4ohg8+/panBJ0//wmQZmCUZkQ20TLumYlL9HdmFl2SO2vraY+nBQCoHtPC80t4BmbPg5atEnQVMngpsRqSykIoUEQKh49t649cF3rBboZT+AmW+O1GWVYu7qlUxqIsdTRJbqbhZ/W2n3rraQh5CR/hOyYikkdn3xqm7Rom5iURvWd6QBh0LhP1UPRIT
+    type: OS::Nova::Server
+
+
+  standalone_volume:
+    type: OS::Cinder::Volume
+    properties:
+      size: { get_param: disk_size }
+      image: { get_param: image }
+
+  standalone_port:
+    properties:
+      network: { get_param: network }
+    type: OS::Neutron::Port
+
+  standalone_floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network_id: { get_param: public_net }
+      port_id: { get_resource: standalone_port }
+
+outputs:
+  standalone_ip:
+    description: The private IP address of the standalone node
+    value: { get_attr: [head, first_address] }
+  standalone_public_ip:
+    description: Floating IP address of standalone node
+    value: { get_attr: [ standalone_floating_ip, floating_ip_address ] }
