@@ -58,6 +58,8 @@ if [[ $delete_on_success = true && $test_result = 0 ]]; then
       ;;
     aws)
       echo "aws"
+      aws cloudformation delete-stack --stack-name $stackname 
+      aws cloudformation wait stack-delete-complete --stack-name $stackname; result=$?
       echo "$stackname"
       ;;
     azure)
@@ -66,7 +68,7 @@ if [[ $delete_on_success = true && $test_result = 0 ]]; then
       ;;
   esac
   if [[ $result != 0 ]]; then
-    echoplus -v 0 -c RED "Failed to delete. Exiting."
+    echoplus -v 0 -c RED "Failed to delete. Exiting with code $result"
   fi
   exit $result
 fi
