@@ -62,6 +62,7 @@ azure_adminkey="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDXqGRCY+Rx/cu5qokWOAU5UsH8
 azure_adminname="flight"
 azure_resourcegroup="Regression-Testing"
 
+
 azure_login_cloudscript="#cloud-config\nusers:\n  - default\n  - name: flight\n    ssh_authorized_keys:\n    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDWD9MAHnS5o6LrNaCb5gshU4BIpYfqoE2DCW9T2u3v4xOh04JkaMsIzwGc+BNnCh+NlkSE9sPVyPODCVnLnHdyyNfUkLBIUGCM/h9Ox7CTnsbmhnv3tMp4OD2dnGl+wOXWo/0YrWA0cpcl5UchCpZYMGscR4ohg8+/panBJ0//wmQZmCUZkQ20TLumYlL9HdmFl2SO2vraY+nBQCoHtPC80t4BmbPg5atEnQVMngpsRqSykIoUEQKh49t649cF3rBboZT+AmW+O1GWVYu7qlUxqIsdTRJbqbhZ/W2n3rraQh5CR/hOyYikkdn3xqm7Rom5iURvWd6QBh0LhP1UPRIT\n    "
 azure_login_based_cloudscript=$(echo -e "$azure_login_cloudscript" | base64 -w0)
 
@@ -300,3 +301,11 @@ fi
 
 # set keyfile to be the keyfile for this platform
 eval keyfile='$'$platform"_keyfile"
+
+
+# make a new resource group for each cluster (this should probably be in the azure template)
+if [[ "$platform" = "azure" ]]; then
+  azure_resourcegroup="${stackname}_resource_group"
+  az group create --location "$azure_location" --name "$azure_resourcegroup"
+  az group wait --name "$azure_resourcegroup" --created
+fi
