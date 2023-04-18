@@ -63,7 +63,7 @@ case $platform in
     while [[ $completed != "true" ]];do
       vm_status=$(az vm list -d -o yaml --query "[?name=='${stackname}-chead1']" | grep "provisioningState")
       if [[ $vm_status = "  provisioningState: Succeeded" ]];then
-        echo "true"
+        echo "provisioning completed"
         completed="true"
       elif [[ $timeout -le 0 ]]; then
         echo "ERR TIMED OUT"
