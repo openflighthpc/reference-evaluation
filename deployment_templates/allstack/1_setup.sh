@@ -76,12 +76,12 @@ openstack_standalone_cloudinit="
 # platform sizes
 
 #openstack
-openstack_small="m1.small" # m1.medium
+openstack_small="m1.medium" # m1.small
 openstack_medium="m1.large"
 openstack_large="m1.xlarge"
 openstack_gpu="0"
 #aws
-aws_small="t3.small" # c5.large
+aws_small="c5.large" #  t3.small
 aws_medium="c5.4xlarge"
 aws_large="c5d.metal"
 aws_gpu="0"
