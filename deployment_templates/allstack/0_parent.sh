@@ -29,7 +29,7 @@ if [[ $standalone = true ]];then
   exit $result
 fi
 
-source "./3_create_cnodes_test.sh"; result=$?
+source "./3_create_cnodes.sh"; result=$?
 echo "compute node deployment: $result"
 #source "./4_cnode_testing.sh"; result=$?
 
