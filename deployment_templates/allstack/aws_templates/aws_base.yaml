@@ -44,6 +44,10 @@ Parameters:
     Type: String
     Description: key data from the standalone node
 
+  UserData:
+    Type: String
+    Description: User data aka cloud init data
+
   InstanceDiskSize:
     Type:  Number
     Description: The disk size of these instances.

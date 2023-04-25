@@ -13,10 +13,15 @@ openstack_computetemplate="temp/${stackname}_openstack_cnode_template.yaml"
 
 computetemplate="changestack.yaml" 
 
-aws_cnode_base_file="aws_templates/aws_base.yaml"
+aws_cnode_base_file="aws_templates/aws_base_test.yaml"
 aws_compute_template="temp/${stackname}_aws_cnode_template.yaml"
 
 azure_compute_template="azure_templates/multinode_azure.json"
+
+
+azure_cnode_cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SERVER=${login_private_ip}\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - default\n  - name: root\n    ssh_authorized_keys:\n    - ${login_root_contents}\n  - name: flight\n    ssh_authorized_keys:\n    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDWD9MAHnS5o6LrNaCb5gshU4BIpYfqoE2DCW9T2u3v4xOh04JkaMsIzwGc+BNnCh+NlkSE9sPVyPODCVnLnHdyyNfUkLBIUGCM/h9Ox7CTnsbmhnv3tMp4OD2dnGl+wOXWo/0YrWA0cpcl5UchCpZYMGscR4ohg8+/panBJ0//wmQZmCUZkQ20TLumYlL9HdmFl2SO2vraY+nBQCoHtPC80t4BmbPg5atEnQVMngpsRqSykIoUEQKh49t649cF3rBboZT+AmW+O1GWVYu7qlUxqIsdTRJbqbhZ/W2n3rraQh5CR/hOyYikkdn3xqm7Rom5iURvWd6QBh0LhP1UPRIT\n    "
+
+azure_cnodescript_based=$(echo -e "$azure_cnode_cloudscript" | base64 -w0)
 
 # arrays containing ips regardless of platform
 cnodes_public_ips=()
@@ -130,29 +135,8 @@ case $platform in
                   Ref: InstanceDiskSize
                 DeleteOnTermination: 'true'
                 Encrypted: 'true'
-          UserData: !Base64 
-              Fn::Join:
-                - ''
-                - - \"#cloud-config\n\"
-                  - \"write_files:\n\"
-                  - \"  - content: |\n\"
-                  - \"      SERVER=\"
-                  - Ref: IpData
-                  - \"\n\"
-                  - \"    path: /opt/flight/cloudinit.in\n\"
-                  - \"    permissions: '0644'\n\"
-                  - \"    owner: root:root\n\"
-                  - \"users:\n\"
-                  - \"  - default\n\"
-                  - \"  - name: root\n\"
-                  - \"    ssh_authorized_keys:\n\"
-                  - \"      - \"
-                  - Ref: KeyData
-                  - \"\n\"
-                  - \"  - name: flight\n\"
-                  - \"    ssh_authorized_keys:\n\"
-                  - \"      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDWD9MAHnS5o6LrNaCb5gshU4BIpYfqoE2DCW9T2u3v4xOh04JkaMsIzwGc+BNnCh+NlkSE9sPVyPODCVnLnHdyyNfUkLBIUGCM/h9Ox7CTnsbmhnv3tMp4OD2dnGl+wOXWo/0YrWA0cpcl5UchCpZYMGscR4ohg8+/panBJ0//wmQZmCUZkQ20TLumYlL9HdmFl2SO2vraY+nBQCoHtPC80t4BmbPg5atEnQVMngpsRqSykIoUEQKh49t649cF3rBboZT+AmW+O1GWVYu7qlUxqIsdTRJbqbhZ/W2n3rraQh5CR/hOyYikkdn3xqm7Rom5iURvWd6QBh0LhP1UPRIT\"
-                  - \"\n\"
+          UserData: 
+            Ref: UserData
                   " >> $aws_compute_template # add an instance to template for every node
     done
     echo "Outputs:" >> $aws_compute_template
@@ -169,7 +153,7 @@ case $platform in
     done
 
     # create stack
-    aws cloudformation create-stack --template-body "$(cat "$aws_compute_template")" --stack-name "$compute_stackname" --parameters "ParameterKey=KeyPair,ParameterValue=ivan-keypair,UsePreviousValue=false" "ParameterKey=InstanceAmi,ParameterValue=$aws_image,UsePreviousValue=false" "ParameterKey=InstanceSize,ParameterValue=$compute_instance_size,UsePreviousValue=false" "ParameterKey=SecurityGroup,ParameterValue=$aws_sgroup,UsePreviousValue=false" "ParameterKey=InstanceSubnet,ParameterValue=$aws_subnet,UsePreviousValue=false" "ParameterKey=IpData,ParameterValue=$login_private_ip,UsePreviousValue=false" "ParameterKey=KeyData,ParameterValue=$login_root_contents,UsePreviousValue=false"
+    aws cloudformation create-stack --template-body "$(cat "$aws_compute_template")" --stack-name "$compute_stackname" --parameters "ParameterKey=KeyPair,ParameterValue=ivan-keypair,UsePreviousValue=false" "ParameterKey=InstanceAmi,ParameterValue=$aws_image,UsePreviousValue=false" "ParameterKey=InstanceSize,ParameterValue=$compute_instance_size,UsePreviousValue=false" "ParameterKey=SecurityGroup,ParameterValue=$aws_sgroup,UsePreviousValue=false" "ParameterKey=InstanceSubnet,ParameterValue=$aws_subnet,UsePreviousValue=false" "ParameterKey=IpData,ParameterValue=$login_private_ip,UsePreviousValue=false" "ParameterKey=KeyData,ParameterValue=$login_root_contents,UsePreviousValue=false" "ParameterKey=UserData,ParameterValue=$azure_cnodescript_based,UsePreviousValue=false"
 
     aws cloudformation wait stack-create-complete --stack-name "$compute_stackname"
 
@@ -184,10 +168,10 @@ case $platform in
 
     # azure
 
-    azure_cnode_cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SERVER=${login_private_ip}\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - default\n  - name: root\n    ssh_authorized_keys:\n    - ${login_root_contents}\n  - name: flight\n    ssh_authorized_keys:\n    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDWD9MAHnS5o6LrNaCb5gshU4BIpYfqoE2DCW9T2u3v4xOh04JkaMsIzwGc+BNnCh+NlkSE9sPVyPODCVnLnHdyyNfUkLBIUGCM/h9Ox7CTnsbmhnv3tMp4OD2dnGl+wOXWo/0YrWA0cpcl5UchCpZYMGscR4ohg8+/panBJ0//wmQZmCUZkQ20TLumYlL9HdmFl2SO2vraY+nBQCoHtPC80t4BmbPg5atEnQVMngpsRqSykIoUEQKh49t649cF3rBboZT+AmW+O1GWVYu7qlUxqIsdTRJbqbhZ/W2n3rraQh5CR/hOyYikkdn3xqm7Rom5iURvWd6QBh0LhP1UPRIT\n    "
+    
 
     # azure make stack with compute nodes
-    azure_cnodescript_based=$(echo -e "$azure_cnode_cloudscript" | base64 -w0)
+    
     az deployment group create --name "$compute_stackname" --debug --resource-group "$azure_resourcegroup" --template-file "$azure_compute_template" --parameters sourceimage="$azure_image" clustername="$stackname" customdatanode="$azure_cnodescript_based" computeNodesCount="$cnode_count"
 
     #  computeinstancetype="$computetype" adminUsername="$adminname" adminPublicKey="$adminkey"
