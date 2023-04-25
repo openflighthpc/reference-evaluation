@@ -21,7 +21,7 @@ azure_compute_template="azure_templates/multinode_azure.json"
 # arrays containing ips regardless of platform
 cnodes_public_ips=()
 cnodes_private_ips=()
-all_nodes_login_private_ip=("$login_private_ip")
+all_nodes_private_ip=("$login_private_ip")
 
 case $platform in
   openstack)
@@ -88,18 +88,18 @@ case $platform in
 
     # grab the ips and store them
     for x in `seq 1 $cnode_count`; do
-      node_public_ip=$(openstack stack output show "$compute_stackname" "node${x}_public_ip" -f shell | grep "output_value")
-      node_public_ip=${nodelogin_public_ip#*\"} #removes stuff upto // from begining
-      node_public_ip=${nodelogin_public_ip%\"*} #removes stuff from / all the way to end
+
+      node_public_ip=$(openstack stack output show "$compute_stackname" "node${x}_public_ip" -f shell | grep "output_value") # output_value="10.151.15.235"
+      node_public_ip=${node_public_ip#*\"} # 10.151.15.235"
+      node_public_ip=${node_public_ip%\"*} # 10.151.15.235
 
       node_private_ip=$(openstack stack output show "$compute_stackname" "node${x}_ip" -f shell | grep "output_value")
-      node_private_ip=${nodelogin_private_ip#*\"} #removes stuff upto // from begining
-      node_private_ip=${nodelogin_private_ip%\"*} #removes stuff from / all the way to end
+      node_private_ip=${node_private_ip#*\"} 
+      node_private_ip=${node_private_ip%\"*} 
 
       echoplus -v 0 "node${x}_public_ip=$node_public_ip"
       echoplus -v 0 "node${x}_private_ip=$node_private_ip"
 
-      all_nodes_private_ips+=("$node_private_ip")
       cnodes_private_ips+=("$node_private_ip")
       cnodes_public_ips+=("$node_public_ip")
     done
@@ -176,9 +176,7 @@ case $platform in
     # get public and private ips
     for x in `seq 1 $cnode_count`; do
       cnodes_public_ips+=("$(aws cloudformation describe-stacks --stack-name "$compute_stackname" --output text | grep "PublicIpNode${x}" | grep -Pom 1 '[0-9.]{7,15}')")
-      cnodelogin_private_ip="$(aws cloudformation describe-stacks --stack-name "$compute_stackname" --output text | grep "PrivateIpNode${x}" | grep -Pom 1 '[0-9.]{7,15}')"
-      cnodes_private_ips+=("$cnodelogin_private_ip")
-      all_nodes_login_private_ip+=("$cnodelogin_private_ip")
+      cnodes_private_ips+="$(aws cloudformation describe-stacks --stack-name "$compute_stackname" --output text | grep "PrivateIpNode${x}" | grep -Pom 1 '[0-9.]{7,15}')"
     done
     ;;
 
@@ -194,30 +192,21 @@ case $platform in
 
     #  computeinstancetype="$computetype" adminUsername="$adminname" adminPublicKey="$adminkey"
 
-
     echoplus -v 0 "login_public_ip=$login_public_ip"
     echoplus -v 0 "login_private_ip=$login_private_ip"
 
-    # now get the ips somehow
-
-
     # get public and private ips
-    cnodes_public_ips=()
-    cnodes_private_ips=()
-    all_nodes_login_private_ip=("$login_private_ip")
 
     for x in `seq 1 $cnode_count`; do
       cnodes_public_ips+=($(az vm list -d -o yaml --query "[?name=='${stackname}-cnode0${x}']" | grep "publicIps" | grep -Pom 1 '[0-9.]{7,15}'))
-      cnodelogin_private_ip=($(az vm list -d -o yaml --query "[?name=='${stackname}-cnode0${x}']" | grep "privateIps" | grep -Pom 1 '[0-9.]{7,15}'))
-      cnodes_private_ips+=($cnodelogin_private_ip)
-      all_nodes_login_private_ip+=($cnodelogin_private_ip)
+      cnodes_private_ips+=($(az vm list -d -o yaml --query "[?name=='${stackname}-cnode0${x}']" | grep "privateIps" | grep -Pom 1 '[0-9.]{7,15}'))
     done
   ;;
 esac
 
-echo "${cnodes_public_ips[@]}"
-echo "${cnodes_private_ips[@]}"
-echo "${all_nodes_login_private_ip[@]}"
+echo "${cnodes_public_ips[*]}"
+echo "${cnodes_private_ips[*]}"
+echo "${all_nodes_private_ip[*]}"
 # the same for all platforms
 
 # Wait for compute nodes to be sshable\
@@ -237,3 +226,5 @@ for n in "${cnodes_public_ips[@]}"; do
   echoplus -p -v 2 "\\n"
   echoplus -v 2 -c GRN "[$n] SSH connection succeeded."
 done
+
+echoplus -v 2 "Finished testing ssh connection to compute nodes"
