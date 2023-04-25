@@ -29,10 +29,25 @@ if [[ $standalone = true ]];then
   exit $result
 fi
 
-source "./3_create_cnodes.sh"; result=$?
+source "./3_create_cnodes_test.sh"; result=$?
+echo "compute node deployment: $result"
+#source "./4_cnode_testing.sh"; result=$?
+
+echoplus -v 0 "login_public_ip=${login_public_ip}"
+echoplus -v 0 "login_private_ip=${login_private_ip}"
+
+#cnodes_public_ips=()
+#cnodes_private_ips=()
+
+for i in ${cnodes_public_ips[@]}; do
+  echoplus -v 0 "cnode0${x}_public_ip=${i}"
+done
+for i in ${cnodes_private_ips[@]}; do
+  echoplus -v 0 "cnode0${x}_private_ip=${i}"
+done
 
 # get exit code and output it to console and log file during creation
-# use success/failure to determin if should auto delete
+# use success/failure to determine if should auto delete
 # bulk create
 # 
 # Additional?
