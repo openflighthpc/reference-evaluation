@@ -27,8 +27,8 @@ case $platform in
 
     # Get public IP
     login_public_ip=$(openstack stack output show "$stackname" standalone_public_ip -f shell | grep "output_value")
-    login_public_ip=${login_public_ip#*\"} #removes stuff upto // from begining
-    login_public_ip=${login_public_ip%\"*} #removes stuff from / all the way to end
+    login_public_ip=${login_public_ip#*\"} 
+    login_public_ip=${login_public_ip%\"*} 
     # Get private IP
     login_private_ip=$(openstack stack output show "$stackname" standalone_ip -f shell | grep "output_value")
     login_private_ip=${login_private_ip#*\"} #removes stuff upto // from begining
