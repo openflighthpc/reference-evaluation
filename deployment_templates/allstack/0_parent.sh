@@ -38,12 +38,15 @@ echoplus -v 0 "login_private_ip=${login_private_ip}"
 
 #cnodes_public_ips=()
 #cnodes_private_ips=()
-
+count=1
 for i in ${cnodes_public_ips[@]}; do
-  echoplus -v 0 "cnode0${x}_public_ip=${i}"
+  echoplus -v 0 "cnode0${count}_public_ip=${i}"
+  let count+=1
 done
+count=1
 for i in ${cnodes_private_ips[@]}; do
-  echoplus -v 0 "cnode0${x}_private_ip=${i}"
+  echoplus -v 0 "cnode0${count}_private_ip=${i}"
+  let count+=1
 done
 
 # get exit code and output it to console and log file during creation
