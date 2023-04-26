@@ -5,8 +5,8 @@ compute_stackname="compute-${stackname}"
 login_root_contents=$(ssh -i "$keyfile" -o 'StrictHostKeyChecking=no' "flight@$login_public_ip" "sudo /bin/bash -l -c 'echo -n'; sudo cat /root/.ssh/id_alcescluster.pub")
 
 # openstack vars
-openstack_cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SERVER=$login_private_ip\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - default\n  - name: root\n    ssh_authorized_keys:\n    - $login_root_contents\n  - name: flight\n    ssh_authorized_keys:\n    - $openflightkey\n    "
-openstack_cloudinit=$(echo -e "$openstack_cloudscript")
+compute_cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SERVER=${login_private_ip}\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - default\n  - name: root\n    ssh_authorized_keys:\n    - ${login_root_contents}\n  - name: flight\n    ssh_authorized_keys:\n    - ${openflightkey}\n    "
+
 
 openstack_cnode_base_file="openstack_templates/base.yaml"
 openstack_computetemplate="temp/${stackname}_openstack_cnode_template.yaml"
@@ -19,9 +19,8 @@ aws_compute_template="temp/${stackname}_aws_cnode_template.yaml"
 azure_compute_template="azure_templates/multinode_azure.json"
 
 
-azure_cnode_cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SERVER=${login_private_ip}\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - default\n  - name: root\n    ssh_authorized_keys:\n    - ${login_root_contents}\n  - name: flight\n    ssh_authorized_keys:\n    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDWD9MAHnS5o6LrNaCb5gshU4BIpYfqoE2DCW9T2u3v4xOh04JkaMsIzwGc+BNnCh+NlkSE9sPVyPODCVnLnHdyyNfUkLBIUGCM/h9Ox7CTnsbmhnv3tMp4OD2dnGl+wOXWo/0YrWA0cpcl5UchCpZYMGscR4ohg8+/panBJ0//wmQZmCUZkQ20TLumYlL9HdmFl2SO2vraY+nBQCoHtPC80t4BmbPg5atEnQVMngpsRqSykIoUEQKh49t649cF3rBboZT+AmW+O1GWVYu7qlUxqIsdTRJbqbhZ/W2n3rraQh5CR/hOyYikkdn3xqm7Rom5iURvWd6QBh0LhP1UPRIT\n    "
-
-azure_cnodescript_based=$(echo -e "$azure_cnode_cloudscript" | base64 -w0)
+spaced_cloudscript=$(echo -e "$compute_cloudscript")
+spaced_based_cloudscript=$(echo -e "$compute_cloudscript" | base64 -w0) #cloudinit data spaced properly and in base64
 
 # arrays containing ips regardless of platform
 cnodes_public_ips=()
@@ -80,7 +79,7 @@ case $platform in
     # openstack compute template made
 
     # make a stack with the compute nodes
-    openstack stack create --wait --template "$openstack_computetemplate" --parameter "key_name=$openstack_key" --parameter "flavor=$openstack_compute_size" --parameter "image=$openstack_image" --parameter "login_node_ip=$login_private_ip" --parameter "login_node_key=$login_root_contents" "$compute_stackname" --parameter "custom_data=$openstack_cloudinit" --parameter "disk_size=$compute_disk_size"; result=$?
+    openstack stack create --wait --template "$openstack_computetemplate" --parameter "key_name=$openstack_key" --parameter "flavor=$openstack_compute_size" --parameter "image=$openstack_image" --parameter "login_node_ip=$login_private_ip" --parameter "login_node_key=$login_root_contents" "$compute_stackname" --parameter "custom_data=$spaced_cloudscript" --parameter "disk_size=$compute_disk_size"; result=$?
 
     # confirm that cluster created successfully
     if [[ $result != 0 ]]; then
@@ -153,7 +152,7 @@ case $platform in
     done
 
     # create stack
-    aws cloudformation create-stack --template-body "$(cat "$aws_compute_template")" --stack-name "$compute_stackname" --parameters "ParameterKey=KeyPair,ParameterValue=ivan-keypair,UsePreviousValue=false" "ParameterKey=InstanceAmi,ParameterValue=$aws_image,UsePreviousValue=false" "ParameterKey=InstanceSize,ParameterValue=$compute_instance_size,UsePreviousValue=false" "ParameterKey=SecurityGroup,ParameterValue=$aws_sgroup,UsePreviousValue=false" "ParameterKey=InstanceSubnet,ParameterValue=$aws_subnet,UsePreviousValue=false" "ParameterKey=IpData,ParameterValue=$login_private_ip,UsePreviousValue=false" "ParameterKey=KeyData,ParameterValue=$login_root_contents,UsePreviousValue=false" "ParameterKey=UserData,ParameterValue=$azure_cnodescript_based,UsePreviousValue=false"
+    aws cloudformation create-stack --template-body "$(cat "$aws_compute_template")" --stack-name "$compute_stackname" --parameters "ParameterKey=KeyPair,ParameterValue=ivan-keypair,UsePreviousValue=false" "ParameterKey=InstanceAmi,ParameterValue=$aws_image,UsePreviousValue=false" "ParameterKey=InstanceSize,ParameterValue=$compute_instance_size,UsePreviousValue=false" "ParameterKey=SecurityGroup,ParameterValue=$aws_sgroup,UsePreviousValue=false" "ParameterKey=InstanceSubnet,ParameterValue=$aws_subnet,UsePreviousValue=false" "ParameterKey=IpData,ParameterValue=$login_private_ip,UsePreviousValue=false" "ParameterKey=KeyData,ParameterValue=$login_root_contents,UsePreviousValue=false" "ParameterKey=UserData,ParameterValue=$spaced_based_cloudscript,UsePreviousValue=false"
 
     aws cloudformation wait stack-create-complete --stack-name "$compute_stackname"
 
@@ -172,7 +171,7 @@ case $platform in
 
     # azure make stack with compute nodes
     
-    az deployment group create --name "$compute_stackname" --debug --resource-group "$azure_resourcegroup" --template-file "$azure_compute_template" --parameters sourceimage="$azure_image" clustername="$stackname" customdatanode="$azure_cnodescript_based" computeNodesCount="$cnode_count"
+    az deployment group create --name "$compute_stackname" --debug --resource-group "$azure_resourcegroup" --template-file "$azure_compute_template" --parameters sourceimage="$azure_image" clustername="$stackname" customdatanode="$spaced_based_cloudscript" computeNodesCount="$cnode_count"
 
     #  computeinstancetype="$computetype" adminUsername="$adminname" adminPublicKey="$adminkey"
 
