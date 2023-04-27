@@ -41,6 +41,10 @@ Parameters:
     Description: The disk size of this instance.
     Default: 20
 
+  CloudInit:
+    Type: String
+    Description: Cloudinit data for this node
+
 Resources:
 
   StandaloneInstance:
@@ -63,16 +67,8 @@ Resources:
               Ref: InstanceDiskSize
             DeleteOnTermination: 'true'
             Encrypted: 'true'
-      UserData: !Base64 
-          Fn::Join:
-            - ''
-            - - "#cloud-config\n"
-              - "users:\n"
-              - "  - default\n"
-              - "  - name: flight\n"
-              - "    ssh_authorized_keys:\n"
-              - "      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDWD9MAHnS5o6LrNaCb5gshU4BIpYfqoE2DCW9T2u3v4xOh04JkaMsIzwGc+BNnCh+NlkSE9sPVyPODCVnLnHdyyNfUkLBIUGCM/h9Ox7CTnsbmhnv3tMp4OD2dnGl+wOXWo/0YrWA0cpcl5UchCpZYMGscR4ohg8+/panBJ0//wmQZmCUZkQ20TLumYlL9HdmFl2SO2vraY+nBQCoHtPC80t4BmbPg5atEnQVMngpsRqSykIoUEQKh49t649cF3rBboZT+AmW+O1GWVYu7qlUxqIsdTRJbqbhZ/W2n3rraQh5CR/hOyYikkdn3xqm7Rom5iURvWd6QBh0LhP1UPRIT"
-              - "\n"
+      UserData: 
+          Ref: CloudInit
 
 Outputs:
   PrivateIp:
