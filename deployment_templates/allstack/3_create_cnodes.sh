@@ -5,7 +5,7 @@ compute_stackname="compute-${stackname}"
 login_root_contents=$(ssh -i "$keyfile" -o 'StrictHostKeyChecking=no' "flight@$login_public_ip" "sudo /bin/bash -l -c 'echo -n'; sudo cat /root/.ssh/id_alcescluster.pub")
 
 # openstack vars
-compute_cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SERVER=${login_private_ip}\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - default\n  - name: root\n    ssh_authorized_keys:\n    - ${login_root_contents}\n  - name: flight\n    ssh_authorized_keys:\n    - ${openflightkey}\n    "
+compute_cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SERVER=${login_private_ip}\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - default  - name: flight\n    ssh_authorized_keys:\n    - ${openflightkey}\n    " #"#cloud-config\nwrite_files:\n  - content: |\n      SERVER=${login_private_ip}\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - default\n  - name: root\n    ssh_authorized_keys:\n    - ${login_root_contents}\n  - name: flight\n    ssh_authorized_keys:\n    - ${openflightkey}\n    "
 
 
 openstack_cnode_base_file="openstack_templates/base.yaml"
@@ -13,7 +13,7 @@ openstack_computetemplate="temp/${stackname}_openstack_cnode_template.yaml"
 
 computetemplate="changestack.yaml" 
 
-aws_cnode_base_file="aws_templates/aws_base_test.yaml"
+aws_cnode_base_file="aws_templates/aws_base.yaml"
 aws_compute_template="temp/${stackname}_aws_cnode_template.yaml"
 
 azure_compute_template="azure_templates/multinode_azure.json"
