@@ -22,9 +22,9 @@ keyfile="0"
 
 
 #defaults (all platforms)
-openstack_image="Flight Solo 2023.2"
-aws_image="ami-00c0385bab48a6406" # instance ami
-azure_image="/subscriptions/a41c5728-46d9-4f9c-aefe-ffd2a83df476/resourceGroups/openflight-images/providers/Microsoft.Compute/images/Flight-Solo-2023.2-rc1-2203231314-westeurope" # source image link
+openstack_image="Flight Solo 2023.3-rc3-28.04.23"
+aws_image="ami-0d2b4bf281f7eefe2" # instance ami
+azure_image="/subscriptions/a41c5728-46d9-4f9c-aefe-ffd2a83df476/resourceGroups/openflight-images/providers/Microsoft.Compute/images/Flight-Solo-2023.3-rc3-2804231746-westeurope" # source image link
 
 openstack_keyfile="keys/key1.pem"
 aws_keyfile="keys/ivan-keypair.pem"
@@ -65,7 +65,8 @@ azure_adminkey="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDXqGRCY+Rx/cu5qokWOAU5UsH8
 azure_adminname="flight"
 azure_resourcegroup="Regression-Testing"
 
-login_cloudscript="#cloud-config\nusers:\n  - default\n  - name: flight\n    ssh_authorized_keys:\n    - ${openflightkey}\n    "
+login_cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      AUTOPARSEMATCH=c\n      SHAREPUBKEY=true\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - default    \n  - name: flight\n    ssh_authorized_keys:\n      - ${openflightkey}\n"     #"#cloud-config\nusers:\n  - default\n  - name: flight\n    ssh_authorized_keys:\n    - ${openflightkey}\n    "
+
 spaced_login_cloudscript=$(echo -e "$login_cloudscript")
 spaced_based_login_cloudscript=$(echo -e "$login_cloudscript" | base64 -w0)
 
