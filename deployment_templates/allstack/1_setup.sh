@@ -65,6 +65,11 @@ azure_adminkey="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDXqGRCY+Rx/cu5qokWOAU5UsH8
 azure_adminname="flight"
 azure_resourcegroup="Regression-Testing"
 
+# note for autoparse: 
+# aws hostnames are: ip-<private ip address>.eu-west-2.compute.internal
+# openstack hostnames are: $clustername-<random alphanumeric code>.novalocal
+# azure hostnames are: chead1 for login, cnode0x for compute
+
 login_cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      AUTOPARSEMATCH=c\n      SHAREPUBKEY=true\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - default    \n  - name: flight\n    ssh_authorized_keys:\n      - ${openflightkey}\n"     #"#cloud-config\nusers:\n  - default\n  - name: flight\n    ssh_authorized_keys:\n    - ${openflightkey}\n    "
 
 spaced_login_cloudscript=$(echo -e "$login_cloudscript")
@@ -89,7 +94,7 @@ aws_large="c5d.metal"
 aws_gpu="0"
 #azure
 azure_small="Standard_F2s_v2" 
-azure_medium="DS5_v2"
+azure_medium="Standard_DS5_v2"
 azure_large="Standard_HC44rs"
 azure_gpu="0"
 
