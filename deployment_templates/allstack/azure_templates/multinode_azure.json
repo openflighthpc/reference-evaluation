@@ -39,6 +39,13 @@
               "description": "Instance type to use for compute nodes"
           }
       },
+      "computedisksize": {
+          "type": "int",
+          "defaultValue": 20,
+          "metadata": {
+              "description": "Disk size to use for compute nodes"
+          }
+      },
       "computeNodesCount": {
           "type": "int",
           "defaultValue": 2,
@@ -141,7 +148,7 @@
         "storageProfile": {
           "osDisk": {
             "createOption": "fromImage",
-            "DiskSizeGB": 12,
+            "DiskSizeGB": "[parameters('computedisksize')]",
             "managedDisk": {
               "storageAccountType": "Premium_LRS"
             }

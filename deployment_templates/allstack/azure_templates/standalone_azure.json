@@ -31,7 +31,14 @@
           "metadata": {
               "description": "Cloud-init customdata for login node encoded in base64"
           }
-      },        
+      },
+      "logindisksize": {
+          "type": "int",
+          "defaultValue": 20,
+          "metadata": {
+              "description": "login disk size"
+          }
+      },   
       "cheadinstancetype": {
           "type": "string",
           "defaultValue": "Standard_DS1_v2",
@@ -245,7 +252,7 @@
         "storageProfile": {
           "osDisk": {
             "createOption": "fromImage",
-            "DiskSizeGB": 32,
+            "DiskSizeGB": "[parameters('logindisksize')]", 
             "managedDisk": {
               "storageAccountType": "Premium_LRS"
             }

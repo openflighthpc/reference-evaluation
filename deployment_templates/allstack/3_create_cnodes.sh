@@ -167,11 +167,9 @@ case $platform in
 
     # azure
 
-    
-
     # azure make stack with compute nodes
     
-    az deployment group create --name "$compute_stackname" --debug --resource-group "$azure_resourcegroup" --template-file "$azure_compute_template" --parameters sourceimage="$azure_image" clustername="$stackname" customdatanode="$spaced_based_cloudscript" computeNodesCount="$cnode_count" computeinstancetype="$compute_instance_size"
+    az deployment group create --name "$compute_stackname" --debug --resource-group "$azure_resourcegroup" --template-file "$azure_compute_template" --parameters sourceimage="$azure_image" clustername="$stackname" customdatanode="$spaced_based_cloudscript" computeNodesCount="$cnode_count" computeinstancetype="$compute_instance_size" computedisksize="$compute_disk_size"
 
     #  computeinstancetype="$computetype" adminUsername="$adminname" adminPublicKey="$adminkey"
 
