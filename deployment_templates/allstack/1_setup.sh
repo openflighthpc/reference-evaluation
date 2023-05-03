@@ -22,7 +22,7 @@ keyfile="0"
 
 
 #defaults (all platforms)
-openstack_image="Flight Solo 2023.3-rc3-28.04.23"
+openstack_image="Flight Solo 2023.3"
 aws_image="ami-0d2b4bf281f7eefe2" # instance ami
 azure_image="/subscriptions/a41c5728-46d9-4f9c-aefe-ffd2a83df476/resourceGroups/openflight-images/providers/Microsoft.Compute/images/Flight-Solo-2023.3-rc3-2804231746-westeurope" # source image link
 
