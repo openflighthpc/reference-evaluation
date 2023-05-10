@@ -1,14 +1,12 @@
+# ignore all private key files
 *.pem
-
 #ignore the openstack project rc file
 *openrc.sh
 # ignore dynamic yaml files
-deployment_automated/openstack/changestack.yaml
-deployment_automated/aws/changestack.yaml
+*changestack.yaml
 # ignore the openstack environment
-deployment_automated/openstack/openstack/
 deployment_automated/setup
 # ignore cram error files
 *.t.err
-# ignore test output files
+# ignore cram test output files
 deployment_automated/test_output/*.out
