@@ -30,7 +30,7 @@ compute_basic_tests="cram -v generic_launch_tests/allnode-generic_launch_tests f
 # setup each node in cluster for testing
 for i in "${all_public_ips[@]}"; do
   # copy across cram tests
-  scp -i "$keyfile" -r "../../regression_tests" "flight@${i}:/home/flight/"
+  scp -i "$keyfile" -r "$regression_test_dir" "flight@${i}:/home/flight/"
   # install necessary tools: cram and nmap
   ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${i}" 'sudo pip3 install cram; sudo yum install -y nmap' 
   # write to env file

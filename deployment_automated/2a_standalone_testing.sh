@@ -19,7 +19,7 @@ cram_slurm_standalone_tests="profile_tests/slurm_standalone cluster_tests/slurm_
 # if we're doing testing, then:
 
 # copy across cram tests
-scp -i "$keyfile" -r "../../regression_tests" "flight@${login_public_ip}:/home/flight/"
+scp -i "$keyfile" -r "$regression_test_dir" "flight@${login_public_ip}:/home/flight/"
 # install necessary tools: cram and nmap
 ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" 'sudo pip3 install cram' #; sudo yum install -y nmap
 # write to env file
