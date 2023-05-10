@@ -7,7 +7,7 @@ deployment_templates/openstack/changestack.yaml
 deployment_templates/aws/changestack.yaml
 # ignore the openstack environment
 deployment_templates/openstack/openstack/
-deployment_templates/allstack/setup/
+deployment_templates/setup
 # ignore cram error files
 *.t.err
 # ignore test output files
