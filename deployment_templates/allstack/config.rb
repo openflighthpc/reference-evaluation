@@ -25,7 +25,11 @@ module Config
   cram_testing = !cram_testing
 
   if cram_testing 
-    cluster_type_choices = %w(slurm jupyter kubernetes)
+    if standalone
+      cluster_type_choices = %w(slurm jupyter)
+    else
+      cluster_type_choices = %w(slurm kubernetes)
+    end
     cluster_type = prompt.select("What cluster type?", cluster_type_choices)
   end
 
