@@ -21,6 +21,8 @@ generic_size=false
 keyfile="0"
 
 
+regression_test_dir="../regression_tests/" # location of the regression tests
+
 #defaults (all platforms)
 openstack_image="Flight Solo 2023.3"
 aws_image="ami-0d2b4bf281f7eefe2" # instance ami

@@ -31,7 +31,7 @@ fi
 
 source "./3_create_cnodes.sh"; result=$?
 echo "compute node deployment: $result"
-#source "./4_cnode_testing.sh"; result=$?
+source "./4_cnode_testing.sh"; result=$?
 
 echoplus -v 0 "login_public_ip=${login_public_ip}"
 echoplus -v 0 "login_private_ip=${login_private_ip}"

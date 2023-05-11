@@ -19,7 +19,7 @@ cram_slurm_standalone_tests="profile_tests/slurm_standalone cluster_tests/slurm_
 # if we're doing testing, then:
 
 # copy across cram tests
-scp -i "$keyfile" -r "../../regression_tests" "flight@${login_public_ip}:/home/flight/"
+scp -i "$keyfile" -r "$regression_test_dir" "flight@${login_public_ip}:/home/flight/"
 # install necessary tools: cram and nmap
 ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" 'sudo pip3 install cram' #; sudo yum install -y nmap
 # write to env file
@@ -47,7 +47,7 @@ else # do cram testing
   # run cram command
   ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; $cram_command > /home/flight/cram_test.out"; test_result=$?
   echoplus -v 2 "Cram testing exit code: $test_result"
-  scp -i "$keyfile" "flight@${login_public_ip}:/home/flight/cram_test.out" "test_output/${stackname}_cram_$test_result.out"
+  scp -i "$keyfile" "flight@${login_public_ip}:/home/flight/cram_test.out" "log/tests/${stackname}_cram_$test_result.out"
 fi
 echo "exit code for the tests was: $test_result"
 
