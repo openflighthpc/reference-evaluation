@@ -11,6 +11,8 @@ Check that the flight tools are up and ready to run
 
   $ flight env --version
   flight env * (glob)
+  $ flight silo --version
+  flight silo * (glob)
 
   $ pdsh -V
   pdsh-* (+readline) (glob)
