@@ -7,7 +7,7 @@ Check that the firewall is set correctly
     interfaces: eth0
     * (glob)
     services: * http https ssh (glob)
-    ports: 5900-6000/tcp 8888/tcp 8888/udp
+    ports: 5900-6000/tcp 8888/tcp 8888/udp 1234/tcp
     * (glob)
     * (glob)
     * (glob)
