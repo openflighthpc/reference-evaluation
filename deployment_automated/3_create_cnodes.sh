@@ -9,12 +9,12 @@ compute_cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SERVER=$
 
 
 openstack_cnode_base_file="openstack_templates/base.yaml"
-openstack_computetemplate="temp/${stackname}_openstack_cnode_template.yaml"
+openstack_computetemplate="log/templates/${stackname}_openstack_cnode_template.yaml"
 
 computetemplate="changestack.yaml" 
 
 aws_cnode_base_file="aws_templates/aws_base.yaml"
-aws_compute_template="temp/${stackname}_aws_cnode_template.yaml"
+aws_compute_template="log/templates/${stackname}_aws_cnode_template.yaml"
 
 azure_compute_template="azure_templates/multinode_azure.json"
 

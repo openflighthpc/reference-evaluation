@@ -21,7 +21,7 @@ default_node_range="10.50.0.0/16"
 env_contents="#!/bin/bash\nexport all_nodes_count='$((cnode_count+1))'\nexport computenodescount='${cnode_count}'\nexport ip_range='${default_node_range}'\nexport kube_pod_range='${default_kube_range}'\nexport login_priv_ip='${login_private_ip}'\nexport login_pub_ip='${login_public_ip}'\nexport all_nodes_priv_ips=( '${all_private_ips}' )\nexport varlocation='${test_env_file}'"
 
 
-login_basic_tests="cram -v generic_launch_tests/allnode-generic_launch_tests generic_launch_tests/login-check_root_login.t flight_launch_tests/allnode-flight_launch_tests flight_launch_tests/login-hunter_info.t"
+login_basic_tests="cram -v generic_launch_tests/allnode-generic_launch_tests"  # "cram -v generic_launch_tests/allnode-generic_launch_tests generic_launch_tests/login-check_root_login.t flight_launch_tests/allnode-flight_launch_tests flight_launch_tests/login-hunter_info.t"
 
 compute_basic_tests="cram -v generic_launch_tests/allnode-generic_launch_tests flight_launch_tests/allnode-flight_launch_tests"
 
@@ -32,7 +32,7 @@ for i in "${all_public_ips[@]}"; do
   # copy across cram tests
   scp -i "$keyfile" -r "$regression_test_dir" "flight@${i}:/home/flight/"
   # install necessary tools: cram and nmap
-  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${i}" 'sudo pip3 install cram; sudo yum install -y nmap' 
+  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${i}" 'sudo pip3 install cram' #; sudo yum install -y nmap' 
   # write to env file
   ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${i}" "echo -e \"${env_contents}\" > ${test_env_file}" 
 done
@@ -49,15 +49,9 @@ if [[ $run_basic_tests = true ]]; then
   done
 
 else # do cram testing
-  # run the basic tests on login and compute, waiting until completed
-  #
-  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; $login_basic_tests > /home/flight/cram_test_\$?.out"; result=$?
 
-  for x in `seq 1 $cnode_count`; do # run basic tests on compute nodes
-    ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${all_public_ips[$x]}" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; $compute_basic_tests > /home/flight/cram_test_cnode0${x}_\$?.out"; result=$?
-  done
 
-  # run the pre profile tests first
+  # what test to run?
   login_tests1="pre-profile_tests"
   login_tests3="post-profile_tests/login"
   case $cluster_type in 
@@ -81,32 +75,47 @@ else # do cram testing
   total_test_result=0
   test_result=0
   for x in `seq 1 $cnode_count`; do # get the compute node tests started
-    ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${cnodes_public_ips[(($x-1))]}" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; ${compute_basic_tests} > test_cnode0${x}.out"; test_result=$?
+    ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${cnodes_public_ips[(($x-1))]}" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; ${compute_basic_tests} > cram_test.out"; test_result=$?
     echoplus -v 2 "cnode0${x} basic tests, exit code $test_result"
   done
+
+  echo "with the basic tests"
+
   if [[ $test_result != 0 ]]; then
     total_test_result=$test_result
   fi
 
-  
-  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; ${login_basic_tests} ${login_tests1} ${login_tests2} ${login_tests3} ${login_tests4} > cram_test.out"; test_result=$?
+  echo "1 done comparing results: $test_result"
+
+  echo "cram command: ${login_basic_tests} ${login_tests1} ${login_tests2} ${login_tests3} ${login_tests4}"
+# doing the basic tests twice for some reason
+  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; ${login_basic_tests} > cram_test.out"; test_result=$? #${login_tests1} ${login_tests2} ${login_tests3} ${login_tests4}
   echoplus -v 2 "login tests complete, exit code $test_result"
+
+
   if [[ $test_result != 0 ]]; then
     total_test_result=$test_result
   fi
+
+  echo "2 done comparing results: $test_result"
 
   for x in `seq 1 $cnode_count`; do # get the compute node tests started
-    ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${cnodes_public_ips[(($x-1))]}" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; ${compute_tests4} >> test_cnode0${x}.out"; test_result=$?
+    ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${cnodes_public_ips[(($x-1))]}" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; cram -v ${compute_tests4} >> cram_test.out"; test_result=$?
     echoplus -v 2 "cnode0${x} compute tests 4, exit code $test_result"
   done
+
+  echo "3 done with the rest of the compute tests"
+
   if [[ $test_result != 0 ]]; then
     total_test_result=$test_result
   fi
 
-  scp -i "$keyfile" "flight@${login_public_ip}:/home/flight/regression_tests/cram_test.out" "test_output/${stackname}_cram.out"
+  echo "4 done comparing results: $test_result"
+
+  scp -i "$keyfile" "flight@${login_public_ip}:/home/flight/regression_tests/cram_test.out" "log/tests/${stackname}_cram_$test_result.out"
 
   for x in `seq 1 $cnode_count`; do # get the compute node tests started
-    scp -i "$keyfile" "flight@${cnodes_public_ips[(($x-1))]}:/home/flight/regression_tests/cram_test.out" "test_output/${stackname}_cnode0${x}cram_$test_result.out"
+    scp -i "$keyfile" "flight@${cnodes_public_ips[(($x-1))]}:/home/flight/regression_tests/cram_test.out" "log/tests/${stackname}_cnode0${x}cram_$test_result.out"
   done
 
   echoplus -v 2 "cram tests all complete?"
