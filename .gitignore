@@ -9,4 +9,6 @@ deployment_automated/setup
 # ignore cram error files
 *.t.err
 # ignore cram test output files
-deployment_automated/test_output/*.out
+deployment_automated/log/tests/*.out
+deployment_automated/log/templates/*.yaml
+
