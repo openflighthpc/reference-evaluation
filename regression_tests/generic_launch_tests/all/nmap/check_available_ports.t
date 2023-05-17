@@ -1,6 +1,6 @@
 Check that necessary ports are accessible (must be done on the host)
 
-  $ sudo nmap -p 8888,22 -sUS 35.177.251.103
+  $ sudo nmap -p 8888,22 -sUS $self_pub_ip
   Starting Nmap * ( https://nmap.org ) at * * GMT (glob)
   Nmap scan report for * (*) (glob)
   Host is up (*s latency). (glob)
