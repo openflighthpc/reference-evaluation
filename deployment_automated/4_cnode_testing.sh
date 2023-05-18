@@ -17,13 +17,13 @@ test_env_file="/home/flight/regression_tests/environment_variables.sh" # maybe d
 default_kube_range="192.168.0.0/16"
 default_node_range="10.50.0.0/16"
 
-# will have to change teh default node range for platform
+# will have to change the default node range for platform
 env_contents="#!/bin/bash\nexport all_nodes_count='$((cnode_count+1))'\nexport computenodescount='${cnode_count}'\nexport ip_range='${default_node_range}'\nexport kube_pod_range='${default_kube_range}'\nexport login_priv_ip='${login_private_ip}'\nexport login_pub_ip='${login_public_ip}'\nexport all_nodes_priv_ips=( '${all_private_ips}' )\nexport varlocation='${test_env_file}'"
 
 
-login_basic_tests="cram -v generic_launch_tests/allnode-generic_launch_tests"  # "cram -v generic_launch_tests/allnode-generic_launch_tests generic_launch_tests/login-check_root_login.t flight_launch_tests/allnode-flight_launch_tests flight_launch_tests/login-hunter_info.t"
+login_basic_tests="generic_launch_tests/all flight_launch_tests/all flight_launch_tests/login/nodes_in_buffer.t"  # "cram -v generic_launch_tests/allnode-generic_launch_tests generic_launch_tests/login-check_root_login.t flight_launch_tests/allnode-flight_launch_tests flight_launch_tests/login-hunter_info.t"
 
-compute_basic_tests="cram -v generic_launch_tests/allnode-generic_launch_tests flight_launch_tests/allnode-flight_launch_tests"
+compute_basic_tests="cram -v generic_launch_tests/all flight_launch_tests/all"
 
 
 
@@ -40,7 +40,7 @@ done
 
 if [[ $run_basic_tests = true ]]; then 
 # run basic cram tests only
-  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; $login_basic_tests > /home/flight/cram_test_\$?.out"; result=$?
+  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; cram -v $login_basic_tests > /home/flight/cram_test_\$?.out"; result=$?
   echoplus -v 2 "[login] Basic testing exit code: $result"
 
   for x in `seq 1 $cnode_count`; do # run basic tests on compute nodes
@@ -50,18 +50,15 @@ if [[ $run_basic_tests = true ]]; then
 
 else # do cram testing
 
-
   # what test to run?
   login_tests1="pre-profile_tests"
-  login_tests3="post-profile_tests/login"
+  login_tests3="post-profile_tests"
   case $cluster_type in 
     kubernetes)
-      login_tests2="profile_tests/kubernetes_multinode"
-      login_tests4="cluster_tests/kubernetes_multinode"
+      login_tests2="profile_tests/kubernetes_multinode cluster_tests/kubernetes_multinode"
       ;;
     slurm)
-      login_tests2="profile_tests/slurm_multinode"
-      login_tests4="cluster_tests/slurm_multinode/anynode cluster_tests/slurm_multinode/login"
+      login_tests2="profile_tests/slurm_multinode cluster_tests/slurm_multinode/anynode cluster_tests/slurm_multinode/login"
       compute_tests4="cluster_tests/slurm_multinode/anynode cluster_tests/slurm_multinode/compute"
       ;;
     *)
@@ -87,9 +84,9 @@ else # do cram testing
 
   echo "1 done comparing results: $test_result"
 
-  echo "cram command: ${login_basic_tests} ${login_tests1} ${login_tests2} ${login_tests3} ${login_tests4}"
+  echo "cram command: cram -v ${login_basic_tests} ${login_tests1} ${login_tests2} ${login_tests3} ${login_tests4}"
 # doing the basic tests twice for some reason
-  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; ${login_basic_tests} > cram_test.out"; test_result=$? #${login_tests1} ${login_tests2} ${login_tests3} ${login_tests4}
+  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; cram -v ${login_basic_tests} ${login_tests1} ${login_tests2} > cram_test.out"; test_result=$? #${login_tests3} 
   echoplus -v 2 "login tests complete, exit code $test_result"
 
 

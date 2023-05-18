@@ -12,10 +12,11 @@ test_location="/home/flight/regression_tests/"
 test_env_file="${test_location}environment_variables.sh"
 env_contents="#!/bin/bash\nexport all_nodes_count='1'\nexport computenodescount='0'\nexport ip_range='0'\nexport kube_pod_range='0'\nexport login_priv_ip='${login_private_ip}'\nexport login_pub_ip='${login_public_ip}'\nexport all_nodes_priv_ips=( '${login_private_ip}' )\nexport varlocation='${test_env_file}'"
 
-basic_test_command="cram -v generic_launch_tests/allnode-generic_launch_tests generic_launch_tests/login-check_root_login.t flight_launch_tests/allnode-flight_launch_tests flight_launch_tests/login-hunter_info.t"
-cram_extra_tests="pre-profile_tests"
-cram_jupyter_standalone_tests="profile_tests/jupyter_standalone cluster_tests/jupyter_standalone"
-cram_slurm_standalone_tests="profile_tests/slurm_standalone cluster_tests/slurm_standalone"
+basic_test_command="cram -v generic_launch_tests/all flight_launch_tests/all flight_launch_tests/login/nodes_in_buffer.t"
+
+cram_extra_tests="pre-profile_tests" # OR if auto-parse then flight_launch_tests/all
+cram_jupyter_standalone_tests="profile_tests/jupyter_standalone cluster_tests/jupyter_standalone" # post-profile_tests
+cram_slurm_standalone_tests="profile_tests/slurm_standalone cluster_tests/slurm_standalone" # post-profile_tests
 
 # if we're doing testing, then:
 
