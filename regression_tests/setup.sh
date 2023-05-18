@@ -7,6 +7,6 @@ for n in $(seq 1 $all_nodes_count); do
   echo "  node0$((n-1))" >> pre-profile_tests/1_hunter_parse.t 
   echo "   node0$((n-1)) complete" >> profile_tests/kubernetes_multinode/4_confirm_application.t 
   label="$(flight hunter list --plain | sed -n "$n"p | awk '{print $5}')"
-  flight hunter modify-label $label "node0$((n-1))"
+#  flight hunter modify-label $label "node0$((n-1))"
 
 done
