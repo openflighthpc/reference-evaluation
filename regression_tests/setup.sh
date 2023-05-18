@@ -10,3 +10,11 @@ for n in $(seq 1 $all_nodes_count); do
 #  flight hunter modify-label $label "node0$((n-1))"
 
 done
+
+# get rid of unnecessary tests based on the kind of tests needing to be run
+
+if [[ $autoparsematch = false ]]; then
+  rm flight_launch_tests/login/nodes_in_parsed.t
+else
+  rm flight_launch_tests/login/nodes_in_buffer.t
+fi
