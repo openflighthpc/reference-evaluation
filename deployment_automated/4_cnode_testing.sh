@@ -18,9 +18,11 @@ default_kube_range="192.168.0.0/16"
 default_node_range="10.50.0.0/16"
 
 # will have to change the default node range for platform
-env_contents="#!/bin/bash\nexport all_nodes_count='$((cnode_count+1))'\nexport computenodescount='${cnode_count}'\nexport ip_range='${default_node_range}'\nexport kube_pod_range='${default_kube_range}'\nexport login_priv_ip='${login_private_ip}'\nexport login_pub_ip='${login_public_ip}'\nexport all_nodes_priv_ips=( '${all_private_ips}' )\nexport varlocation='${test_env_file}'"
 
-env_contents="#!/bin/bash\nexport dirlocation='${test_location}'\nexport varlocation='${test_env_file}'\nexport all_nodes_count='$((cnode_count+1))'\nexport computenodescount='${cnode_count}'\nexport ip_range='${default_node_range}'\nexport kube_pod_range='${default_kube_range}'\nexport login_priv_ip='${login_private_ip}'\nexport login_pub_ip='${login_public_ip}'\nexport all_nodes_priv_ips=( ${all_private_ips[@]} )\nexport autoparsematch='false'\nexport self_pub_ip='${login_public_ip}'\nexport self_label=''\nexport self_prefix=''"
+
+env_contents="#!/bin/bash\nexport dirlocation='${test_location}'\nexport varlocation='${test_env_file}'\nexport all_nodes_count='$((cnode_count+1))'\nexport computenodescount='${cnode_count}'\nexport ip_range='${default_node_range}'\nexport kube_pod_range='${default_kube_range}'\nexport login_priv_ip='${login_private_ip}'\nexport login_pub_ip='${login_public_ip}'\nexport all_nodes_priv_ips=( ${all_private_ips[@]} )\nexport autoparsematch='false'\nexport sharepubkey='${cloud_sharepubkey}'" # just the env data that is the same across nodes
+
+#\nexport self_pub_ip='${login_public_ip}'\nexport self_label=''\nexport self_prefix=''
 
 login_basic_tests="generic_launch_tests/all flight_launch_tests/all flight_launch_tests/login/nodes_in_buffer.t"  # "cram -v generic_launch_tests/allnode-generic_launch_tests generic_launch_tests/login-check_root_login.t flight_launch_tests/allnode-flight_launch_tests flight_launch_tests/login-hunter_info.t"
 
@@ -34,19 +36,20 @@ for i in "${all_public_ips[@]}"; do
   # copy across cram tests
   scp -i "$keyfile" -r "$regression_test_dir" "flight@${i}:/home/flight/"
   # install necessary tools: cram and nmap
-  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${i}" 'sudo pip3 install cram; sudo yum install -y nmap' #; sudo yum install -y nmap' 
+  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${i}" 'sudo pip3 install cram; sudo yum install -y nmap' 
   # write to env file, run setup file
-  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${i}" "echo -e \"${env_contents}\" > ${test_env_file}; cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh;" 
+  self_info="\nexport self_pub_ip='${i}'\nexport self_label=''\nexport self_prefix=''"
+  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${i}" "echo -e \"${env_contents}${self_info}\" > ${test_env_file}; cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh;" 
 done
 
 
 if [[ $run_basic_tests = true ]]; then 
 # run basic cram tests only
-  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "cd /home/flight/regression_tests; . environment_variables.sh; $cram_args $login_basic_tests > /home/flight/cram_test_\$?.out"; result=$?
+  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "cd /home/flight/regression_tests; . environment_variables.sh; $cram_args $login_basic_tests > /home/flight/cram_test_$?.out"; result=$?
   echoplus -v 2 "[login] Basic testing exit code: $result"
 
   for x in `seq 1 $cnode_count`; do # run basic tests on compute nodes
-    ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${all_public_ips[$x]}" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; $cram_args $compute_basic_tests > /home/flight/cram_test_cnode0${x}_\$?.out"; result=$?
+    ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${all_public_ips[$x]}" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; $cram_args $compute_basic_tests > /home/flight/cram_test_cnode0${x}_$?.out"; result=$?
     echoplus -v 2 "[cnode0${x}] Basic testing exit code: $result"
   done
 
