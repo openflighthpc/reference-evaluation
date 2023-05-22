@@ -9,6 +9,7 @@ export login_priv_ip="10.50.0.47"
 export login_pub_ip="10.151.15.229"
 export all_nodes_priv_ips=( "10.50.0.47" "10.50.0.37" "10.50.0.33" )
 export autoparsematch="false"
+export sharepubkey="true"
 export self_pub_ip="10.151.15.229"
 export self_label=""
 export self_prefix=""
