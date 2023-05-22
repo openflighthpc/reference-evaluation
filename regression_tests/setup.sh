@@ -13,8 +13,9 @@ done
 
 # get rid of unnecessary tests based on the kind of tests needing to be run
 
-if [[ $autoparsematch = false ]]; then
+if [[ $autoparsematch = false ]]; then # delete test based on cloud init data
   rm flight_launch_tests/login/nodes_in_parsed.t
 else
   rm flight_launch_tests/login/nodes_in_buffer.t
 fi
+
