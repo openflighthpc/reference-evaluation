@@ -1,33 +1,14 @@
 Check that the firewall is set correctly
 
-  $ sudo firewall-cmd --list-all --zone public
-  public (active)
-    * (glob)
-    * (glob)
+  $ sudo firewall-cmd --list-all --zone public | grep -e "interfaces" -e "ports:" -e "services"
     interfaces: eth0
-    * (glob)
-    services: * http https ssh (glob)
-    ports: 5900-6000/tcp 8888/tcp 8888/udp 1234/tcp
-    * (glob)
-    * (glob)
-    * (glob)
-    * (glob)
-    * (glob)
-    * (glob)
-    * (glob)
-
-  $ sudo firewall-cmd --list-all --zone trusted
-  trusted
-    * (glob)
-    * (glob)
+    services: cockpit dhcpv6-client http https ssh
+    ports: 5900-6000/tcp 8888/tcp 8888/udp
+    forward-ports: 
+    source-ports: 
+  $ sudo firewall-cmd --list-all --zone trusted | grep -e "interfaces" -e "ports:" -e "services"
     interfaces: 
-    * (glob)
     services: 
     ports: 
-    * (glob)
-    * (glob)
-    * (glob)
-    * (glob)
-    * (glob)
-    * (glob)
-    * (glob)
+    forward-ports: 
+    source-ports: 
