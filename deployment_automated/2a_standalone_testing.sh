@@ -11,7 +11,7 @@ test_result=1
 test_location="/home/flight/regression_tests/"
 test_env_file="${test_location}environment_variables.sh"
 #env_contents="#!/bin/bash\nexport all_nodes_count='1'\nexport computenodescount='0'\nexport ip_range='0'\nexport kube_pod_range='0'\nexport login_priv_ip='${login_private_ip}'\nexport login_pub_ip='${login_public_ip}'\nexport all_nodes_priv_ips=( '${login_private_ip}' )\nexport varlocation='${test_env_file}'"
-env_contents="#!/bin/bash\nexport all_nodes_count='1'\nexport computenodescount='0'\nexport ip_range='0'\nexport kube_pod_range='0'\nexport login_priv_ip='${login_private_ip}'\nexport login_pub_ip='${login_public_ip}'\nexport self_pub_ip='${login_public_ip}'\nexport all_nodes_priv_ips=( '${login_private_ip}' )\nexport dirlocation='${test_location}'\nexport varlocation='${test_env_file}'\nexport autoparsematch='false'\nexport self_label=''\nexport self_prefix=''"
+env_contents="#!/bin/bash\nexport dirlocation='${test_location}'\nexport varlocation='${test_env_file}'\nexport all_nodes_count='1'\nexport computenodescount='0'\nexport ip_range='0'\nexport kube_pod_range='0'\nexport login_priv_ip='${login_private_ip}'\nexport login_pub_ip='${login_public_ip}'\nexport all_nodes_priv_ips=( '${login_private_ip}' )\nexport autoparsematch='false'\nexport self_pub_ip='${login_public_ip}'\nexport self_label=''\nexport self_prefix=''"
 
 basic_test_command="cram -v generic_launch_tests/all flight_launch_tests/all flight_launch_tests/login/nodes_in_buffer.t"
 

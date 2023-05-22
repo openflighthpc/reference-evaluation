@@ -20,6 +20,7 @@ default_node_range="10.50.0.0/16"
 # will have to change the default node range for platform
 env_contents="#!/bin/bash\nexport all_nodes_count='$((cnode_count+1))'\nexport computenodescount='${cnode_count}'\nexport ip_range='${default_node_range}'\nexport kube_pod_range='${default_kube_range}'\nexport login_priv_ip='${login_private_ip}'\nexport login_pub_ip='${login_public_ip}'\nexport all_nodes_priv_ips=( '${all_private_ips}' )\nexport varlocation='${test_env_file}'"
 
+env_contents="#!/bin/bash\nexport dirlocation='${test_location}'\nexport varlocation='${test_env_file}'\nexport all_nodes_count='$((cnode_count+1))'\nexport computenodescount='${cnode_count}'\nexport ip_range='${default_node_range}'\nexport kube_pod_range='${default_kube_range}'\nexport login_priv_ip='${login_private_ip}'\nexport login_pub_ip='${login_public_ip}'\nexport all_nodes_priv_ips=( ${all_private_ips} )\nexport autoparsematch='false'\nexport self_pub_ip='${login_public_ip}'\nexport self_label=''\nexport self_prefix=''"
 
 login_basic_tests="generic_launch_tests/all flight_launch_tests/all flight_launch_tests/login/nodes_in_buffer.t"  # "cram -v generic_launch_tests/allnode-generic_launch_tests generic_launch_tests/login-check_root_login.t flight_launch_tests/allnode-flight_launch_tests flight_launch_tests/login-hunter_info.t"
 
