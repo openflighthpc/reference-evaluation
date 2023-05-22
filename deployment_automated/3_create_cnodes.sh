@@ -5,7 +5,12 @@ compute_stackname="compute-${stackname}"
 login_root_contents=$(ssh -i "$keyfile" -o 'StrictHostKeyChecking=no' "flight@$login_public_ip" "sudo /bin/bash -l -c 'echo -n'; sudo cat /root/.ssh/id_alcescluster.pub")
 
 # openstack vars
-compute_cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SERVER=${login_private_ip}\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - default  - name: flight\n    ssh_authorized_keys:\n    - ${openflightkey}\n    " #"#cloud-config\nwrite_files:\n  - content: |\n      SERVER=${login_private_ip}\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - default\n  - name: root\n    ssh_authorized_keys:\n    - ${login_root_contents}\n  - name: flight\n    ssh_authorized_keys:\n    - ${openflightkey}\n    "
+if [[ $cloud_sharepubkey = true ]]; then
+  compute_cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SERVER=${login_private_ip}\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - default  - name: flight\n    ssh_authorized_keys:\n    - ${openflightkey}\n    "
+else
+  compute_cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SERVER=${login_private_ip}\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - default\n  - name: root\n    ssh_authorized_keys:\n    - ${login_root_contents}\n  - name: flight\n    ssh_authorized_keys:\n    - ${openflightkey}\n    "
+fi
+
 
 
 openstack_cnode_base_file="openstack_templates/base.yaml"
@@ -159,7 +164,7 @@ case $platform in
     # get public and private ips
     for x in `seq 1 $cnode_count`; do
       cnodes_public_ips+=("$(aws cloudformation describe-stacks --stack-name "$compute_stackname" --output text | grep "PublicIpNode${x}" | grep -Pom 1 '[0-9.]{7,15}')")
-      cnodes_private_ips+="$(aws cloudformation describe-stacks --stack-name "$compute_stackname" --output text | grep "PrivateIpNode${x}" | grep -Pom 1 '[0-9.]{7,15}')"
+      cnodes_private_ips+=("$(aws cloudformation describe-stacks --stack-name "$compute_stackname" --output text | grep "PrivateIpNode${x}" | grep -Pom 1 '[0-9.]{7,15}')")
     done
     ;;
 
@@ -179,8 +184,8 @@ case $platform in
     # get public and private ips
 
     for x in `seq 1 $cnode_count`; do
-      cnodes_public_ips+=($(az vm list -d -o yaml --query "[?name=='${stackname}-cnode0${x}']" | grep "publicIps" | grep -Pom 1 '[0-9.]{7,15}'))
-      cnodes_private_ips+=($(az vm list -d -o yaml --query "[?name=='${stackname}-cnode0${x}']" | grep "privateIps" | grep -Pom 1 '[0-9.]{7,15}'))
+      cnodes_public_ips+=("$(az vm list -d -o yaml --query "[?name=='${stackname}-cnode0${x}']" | grep "publicIps" | grep -Pom 1 '[0-9.]{7,15}')")
+      cnodes_private_ips+=("$(az vm list -d -o yaml --query "[?name=='${stackname}-cnode0${x}']" | grep "privateIps" | grep -Pom 1 '[0-9.]{7,15}')")
     done
   ;;
 esac
