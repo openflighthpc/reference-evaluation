@@ -72,7 +72,11 @@ azure_resourcegroup="Regression-Testing"
 # openstack hostnames are: $clustername-<random alphanumeric code>.novalocal
 # azure hostnames are: chead1 for login, cnode0x for compute
 
-login_cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SHAREPUBKEY=true\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - default    \n  - name: flight\n    ssh_authorized_keys:\n      - ${openflightkey}\n"     #"#cloud-config\nusers:\n  - default\n  - name: flight\n    ssh_authorized_keys:\n    - ${openflightkey}\n    "
+
+# cloud init stuff
+cloud_sharepubkey=false
+cloud_autoparsematch="" # does empty mean it doesn't do it?
+login_cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SHAREPUBKEY=${cloud_sharepubkey}\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - default    \n  - name: flight\n    ssh_authorized_keys:\n      - ${openflightkey}\n"     #"#cloud-config\nusers:\n  - default\n  - name: flight\n    ssh_authorized_keys:\n    - ${openflightkey}\n    "
 
 spaced_login_cloudscript=$(echo -e "$login_cloudscript")
 spaced_based_login_cloudscript=$(echo -e "$login_cloudscript" | base64 -w0)
