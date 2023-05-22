@@ -19,3 +19,6 @@ else
   rm flight_launch_tests/login/nodes_in_buffer.t
 fi
 
+if [[ $sharepubkey == true && "$login_pub_ip" == "$self_pub_ip"  ]] ; then
+  sed -i '6s/$/ 1234\/tcp/' generic_launch_tests/all/basic/5_check_firewall.t 
+fi
