@@ -24,7 +24,7 @@ env_contents="#!/bin/bash\nexport dirlocation='${test_location}'\nexport varloca
 
 #\nexport self_pub_ip='${login_public_ip}'\nexport self_label=''\nexport self_prefix=''
 
-login_basic_tests="generic_launch_tests/all flight_launch_tests/all flight_launch_tests/login/nodes_in_buffer.t"  # "cram -v generic_launch_tests/allnode-generic_launch_tests generic_launch_tests/login-check_root_login.t flight_launch_tests/allnode-flight_launch_tests flight_launch_tests/login-hunter_info.t"
+login_basic_tests="generic_launch_tests/all flight_launch_tests/"  # "cram -v generic_launch_tests/allnode-generic_launch_tests generic_launch_tests/login-check_root_login.t flight_launch_tests/allnode-flight_launch_tests flight_launch_tests/login-hunter_info.t"
 
 compute_basic_tests="generic_launch_tests/all flight_launch_tests/all"
 
