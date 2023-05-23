@@ -76,14 +76,7 @@ azure_resourcegroup="Regression-Testing"
 # cloud init stuff
 cloud_sharepubkey=false
 cloud_autoparsematch="" # does empty mean it doesn't do it?
-login_cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SHAREPUBKEY=${cloud_sharepubkey}\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - default    \n  - name: flight\n    ssh_authorized_keys:\n      - ${openflightkey}\n"     #"#cloud-config\nusers:\n  - default\n  - name: flight\n    ssh_authorized_keys:\n    - ${openflightkey}\n    "
 
-spaced_login_cloudscript=$(echo -e "$login_cloudscript")
-spaced_based_login_cloudscript=$(echo -e "$login_cloudscript" | base64 -w0)
-
-
-
-openstack_standalone_cloudinit="#cloud-config\nusers:\n  - default\n  - name: flight\n    ssh_authorized_keys:\n    - $openflightkey\n    "
 
 
 # platform sizes
@@ -286,6 +279,26 @@ if [[ $input = true ]]; then
 fi
 
 # final processing and adjusting based on interactive and/or argument input
+
+
+if [[ -z "$cloud_autoparsematch" ]]; then
+  bool_autoparsematch=false
+else
+  bool_autoparsematch=true
+fi
+
+echo "sharepubkey? $cloud_sharepubkey"
+echo "autoparsematch regex: $cloud_autoparsematch"
+echo "do autoparsematch? $bool_autoparsematch"
+
+login_cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SHAREPUBKEY=${cloud_sharepubkey}\n      AUTOPARSEMATCH=${cloud_autoparsematch}\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - default    \n  - name: flight\n    ssh_authorized_keys:\n      - ${openflightkey}\n"     #"#cloud-config\nusers:\n  - default\n  - name: flight\n    ssh_authorized_keys:\n    - ${openflightkey}\n    "
+
+spaced_login_cloudscript=$(echo -e "$login_cloudscript")
+spaced_based_login_cloudscript=$(echo -e "$login_cloudscript" | base64 -w0)
+
+openstack_standalone_cloudinit="#cloud-config\nusers:\n  - default\n  - name: flight\n    ssh_authorized_keys:\n    - $openflightkey\n    "
+
+
 
 # in case a compute size isn't put in
 if [[ $compute_instance_size = "0" ]]; then

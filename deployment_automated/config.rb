@@ -43,8 +43,16 @@ module Config
     compute_size = prompt.select("What instance size compute nodes?", size_choices)
     compute_volume_size = prompt.ask("What volume size compute nodes? (GB)", default: "20") #{ |q| q.validate(/\^[0-9]+\$/) }
   end
+
+  puts "Cloud init options:"
+  sharepubkey = prompt.no?("Share Pub Key?") { |q| q.convert } 
+  sharepubkey = !sharepubkey
+  puts sharepubkey
+  autoparsematch = prompt.ask("Auto Parse match regex:", default: "")
+
+
   #optional -b (basic tests)
-  launch_code = "echo 'starting'; . setup/Ivan_testing-openrc.sh; source setup/openstack/bin/activate; bash 0_parent.sh -g -i -p 'stackname=#{stack_name}' -p 'cnode_count=#{num_of_compute_nodes}' -p 'cluster_type=#{cluster_type}' -p 'login_instance_size=#{login_size}' -p 'compute_instance_size=#{compute_size}' -p 'login_disk_size=#{login_volume_size}' -p 'compute_disk_size=#{compute_volume_size}' -p 'platform=#{platform}' -p 'standalone=#{standalone}' -p 'cram_testing=#{cram_testing}' -p 'run_basic_tests=#{!cram_testing}'"
+  launch_code = "echo 'starting'; . setup/Ivan_testing-openrc.sh; source setup/openstack/bin/activate; bash 0_parent.sh -g -i -p 'stackname=#{stack_name}' -p 'cnode_count=#{num_of_compute_nodes}' -p 'cluster_type=#{cluster_type}' -p 'login_instance_size=#{login_size}' -p 'compute_instance_size=#{compute_size}' -p 'login_disk_size=#{login_volume_size}' -p 'compute_disk_size=#{compute_volume_size}' -p 'platform=#{platform}' -p 'standalone=#{standalone}' -p 'cram_testing=#{cram_testing}' -p 'run_basic_tests=#{!cram_testing}' -p 'cloud_sharepubkey=#{sharepubkey}' -p 'cloud_autoparsematch=#{autoparsematch}'" 
 
   exec ( launch_code ) 
 

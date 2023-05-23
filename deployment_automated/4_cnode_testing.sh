@@ -20,7 +20,7 @@ default_node_range="10.50.0.0/16"
 # will have to change the default node range for platform
 
 
-env_contents="#!/bin/bash\nexport dirlocation='${test_location}'\nexport varlocation='${test_env_file}'\nexport all_nodes_count='$((cnode_count+1))'\nexport computenodescount='${cnode_count}'\nexport ip_range='${default_node_range}'\nexport kube_pod_range='${default_kube_range}'\nexport login_priv_ip='${login_private_ip}'\nexport login_pub_ip='${login_public_ip}'\nexport all_nodes_priv_ips=( ${all_private_ips[@]} )\nexport autoparsematch='false'\nexport sharepubkey='${cloud_sharepubkey}'" # just the env data that is the same across nodes
+env_contents="#!/bin/bash\nexport dirlocation='${test_location}'\nexport varlocation='${test_env_file}'\nexport all_nodes_count='$((cnode_count+1))'\nexport computenodescount='${cnode_count}'\nexport ip_range='${default_node_range}'\nexport kube_pod_range='${default_kube_range}'\nexport login_priv_ip='${login_private_ip}'\nexport login_pub_ip='${login_public_ip}'\nexport all_nodes_priv_ips=( ${all_private_ips[@]} )\nexport autoparsematch='${bool_autoparsematch}'\nexport sharepubkey='${cloud_sharepubkey}'" # just the env data that is the same across nodes
 
 #\nexport self_pub_ip='${login_public_ip}'\nexport self_label=''\nexport self_prefix=''
 
