@@ -49,7 +49,7 @@ if [[ $run_basic_tests = true ]]; then
   echoplus -v 2 "[login] Basic testing exit code: $result"
 
   for x in `seq 1 $cnode_count`; do # run basic tests on compute nodes
-    ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${all_public_ips[$x]}" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; $cram_args $compute_basic_tests > /home/flight/cram_test_cnode0${x}_$?.out"; result=$?
+    ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${all_public_ips[$x]}" "cd /home/flight/regression_tests; . environment_variables.sh; $cram_args $compute_basic_tests > /home/flight/cram_test_cnode0${x}_$?.out"; result=$?
     echoplus -v 2 "[cnode0${x}] Basic testing exit code: $result"
   done
 
@@ -87,11 +87,12 @@ else # do cram testing
     total_test_result=$test_result
   fi
 
-  echo "1 done comparing results: $test_result"
+  echo "[1] done comparing results: $test_result"
 
   echo "cram command: cram -v ${login_basic_tests} ${login_tests1} ${login_tests2} ${login_tests3} ${login_tests4}"
-# doing the basic tests twice for some reason
-  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; cram -v ${login_basic_tests} ${login_tests1} ${login_tests2} > cram_test.out"; test_result=$? #${login_tests3} 
+
+  # do the next stretch of tests on the login node
+  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "cd /home/flight/regression_tests; . environment_variables.sh; cram -v ${login_basic_tests} ${login_tests1} ${login_tests2} > cram_test.out"; test_result=$? #${login_tests3} 
   echoplus -v 2 "login tests complete, exit code $test_result"
 
 
@@ -102,7 +103,7 @@ else # do cram testing
   echo "2 done comparing results: $test_result"
 
   for x in `seq 1 $cnode_count`; do # get the compute node tests started
-    ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${cnodes_public_ips[(($x-1))]}" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; cram -v ${compute_tests4} >> cram_test.out"; test_result=$?
+    ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${cnodes_public_ips[(($x-1))]}" "cd /home/flight/regression_tests; . environment_variables.sh; cram -v ${compute_tests4} >> cram_test.out"; test_result=$?
     echoplus -v 2 "cnode0${x} compute tests 4, exit code $test_result"
   done
 
