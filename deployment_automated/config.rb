@@ -23,7 +23,7 @@ module Config
   standalone = prompt.no?("Standalone cluster?") { |q| q.convert } # .convert maybe?
   standalone = !standalone
 
-  testing_type_choices = %w(cram basic none)
+  testing_type_choices = %w(basic cram none)
   testing_type = prompt.select("What testing?", testing_type_choices)
 
   case testing_type
