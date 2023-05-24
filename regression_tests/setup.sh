@@ -7,16 +7,18 @@ for n in $(seq 1 $all_nodes_count); do
   echo "   node0$((n-1))" >> pre-profile_tests/1_hunter_parse.t 
   echo "   node0$((n-1)) complete" >> profile_tests/kubernetes_multinode/4_confirm_application.t 
   label="$(flight hunter list --plain | sed -n "$n"p | awk '{print $5}')"
-#  flight hunter modify-label $label "node0$((n-1))"
-
 done
 
 # get rid of unnecessary tests based on the kind of tests needing to be run
 
-if [[ $autoparsematch = false ]]; then # delete test based on cloud init data
+if [[ $autoparsematch == false ]]; then # delete test based on cloud init data
   rm flight_launch_tests/login/nodes_in_parsed.t
-else
+else # if autoparsematch is true
   rm flight_launch_tests/login/nodes_in_buffer.t
+  rm pre-profile_tests/1_hunter_parse.t
+  for n in $(seq 1 $all_nodes_count); do
+    flight hunter modify-label $label "node0$((n-1))"
+  done
 fi
 
 if [[ $sharepubkey == true && "$login_pub_ip" == "$self_pub_ip"  ]] ; then
