@@ -49,7 +49,7 @@ else # do cram testing
   esac
   echo "cram tests to run (with cluster type added) are: $cram_command"
   # run cram command
-  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; $cram_command > /home/flight/cram_test.out"; test_result=$?
+  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "cd /home/flight/regression_tests; . environment_variables.sh; $cram_command > /home/flight/cram_test.out"; test_result=$?
   echoplus -v 2 "Cram testing exit code: $test_result"
   scp -i "$keyfile" "flight@${login_public_ip}:/home/flight/cram_test.out" "log/tests/${stackname}_cram_$test_result.out"
 fi
