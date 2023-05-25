@@ -57,7 +57,6 @@ module Config
   puts "Cloud init options:"
   sharepubkey = prompt.no?("Share Pub Key?") { |q| q.convert } 
   sharepubkey = !sharepubkey
-  puts sharepubkey
   autoparsematch = prompt.ask("Auto Parse match regex:", default: "")
 
 
