@@ -97,6 +97,10 @@ azure_medium="Standard_DS5_v2"
 azure_large="Standard_HC44rs"
 azure_gpu="0"
 
+# platform node ranges
+openstack_node_range="10.50.0.0/16"
+aws_node_range="172.31.0.0/16"
+azure_node_range="10.10.0.0/16"
 
 # process arguments
 
@@ -310,6 +314,10 @@ if [[ $generic_size = true ]]; then
   eval login_instance_size='$'$platform"_"$login_instance_size
   eval compute_instance_size='$'$platform"_"$compute_instance_size
 fi
+
+# change default node range based on platform
+eval default_node_range='$'$platform"_node_range"
+echo "$default_node_range"
 
 # login name and compute name (currently only used by azure)
 login_name="${stackname}-chead1"
