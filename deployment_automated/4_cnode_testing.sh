@@ -15,7 +15,7 @@ cnode_exits=()
 test_env_file="/home/flight/regression_tests/environment_variables.sh" # maybe define in setup?
 
 default_kube_range="192.168.0.0/16"
-default_node_range="10.50.0.0/16"
+#default_node_range="10.50.0.0/16"
 
 # will have to change the default node range for platform
 
@@ -54,7 +54,6 @@ if [[ $run_basic_tests = true ]]; then
   done
 
 else # do cram testing
-
   # what test to run?
   login_tests1="pre-profile_tests"
   login_tests3="post-profile_tests"
