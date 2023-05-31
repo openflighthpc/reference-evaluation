@@ -13,7 +13,7 @@ all_public_ips=("$login_public_ip" "${cnodes_public_ips[@]}")
 
 cnode_exits=()
 test_env_file="/home/flight/regression_tests/environment_variables.sh" # maybe define in setup?
-
+test_location="/home/flight/regression_tests/"
 default_kube_range="192.168.0.0/16"
 
 
@@ -76,7 +76,7 @@ else # do cram testing
   total_test_result=0
   test_result=0
   for x in `seq 1 $cnode_count`; do # get the compute node tests started
-    ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${cnodes_public_ips[(($x-1))]}" "cd /home/flight/regression_tests; . environment_variables.sh; $cram_args ${compute_basic_tests} > cram_test.out"; test_result=$?
+    ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${cnodes_public_ips[(($x-1))]}" "cd /home/flight/regression_tests; . environment_variables.sh; $cram_args ${compute_basic_tests} > cnode0${x}_test.out"; test_result=$?
     echoplus -v 2 "cnode0${x} basic tests, exit code $test_result"
   done
 
@@ -99,25 +99,25 @@ else # do cram testing
     total_test_result=$test_result
   fi
 
-  echo "2 done comparing results: $test_result"
-
-  for x in `seq 1 $cnode_count`; do # get the compute node tests started
-    ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${cnodes_public_ips[(($x-1))]}" "cd /home/flight/regression_tests; . environment_variables.sh; cram -v ${compute_tests4} >> cram_test.out"; test_result=$?
-    echoplus -v 2 "cnode0${x} compute tests 4, exit code $test_result"
-  done
-
-  echo "3 done with the rest of the compute tests"
-
+  echo "[2] done comparing results: $test_result"
+  if [[ $cluster_type == "slurm" ]]; then # might be worth reworking if more cluster types with late stage tests are added
+    for x in `seq 1 $cnode_count`; do # get the compute node tests started
+      ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${cnodes_public_ips[(($x-1))]}" "cd /home/flight/regression_tests; . environment_variables.sh; cram -v ${compute_tests4} >> cnode0${x}_test.out"; test_result=$?
+      echoplus -v 2 "cnode0${x} compute tests 4, exit code $test_result"
+    done
+    echo "[3] done with the rest of the compute tests"
+  fi
+  
   if [[ $test_result != 0 ]]; then
     total_test_result=$test_result
   fi
 
-  echo "4 done comparing results: $test_result"
+  echo "[4] done comparing results: $test_result"
 
   scp -i "$keyfile" "flight@${login_public_ip}:/home/flight/regression_tests/cram_test.out" "log/tests/${stackname}_cram_$test_result.out"
 
-  for x in `seq 1 $cnode_count`; do # get the compute node tests started
-    scp -i "$keyfile" "flight@${cnodes_public_ips[(($x-1))]}:/home/flight/regression_tests/cram_test.out" "log/tests/${stackname}_cnode0${x}cram_$test_result.out"
+  for x in `seq 1 $cnode_count`; do # copy over the compute test results
+    scp -i "$keyfile" "flight@${cnodes_public_ips[(($x-1))]}:/home/flight/regression_tests/cnode0${x}_test.out" "log/tests/${stackname}_cnode0${x}_test_$test_result.out"
   done
 
   echoplus -v 2 "cram tests all complete?"

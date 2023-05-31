@@ -5,7 +5,7 @@ for n in $(seq 1 $all_nodes_count); do
   echo "  Pseudo-terminal will not be allocated because stdin is not a terminal.\r (esc)
   Warning: Permanently added '*' (ECDSA) to the list of known hosts.\r (esc) (glob)" >> generic_launch_tests/login/check_root_login.t
   echo "   node0$((n-1))" >> pre-profile_tests/1_hunter_parse.t 
-  echo "   node0$((n-1)) complete" >> profile_tests/kubernetes_multinode/4_confirm_application.t 
+  echo "  node0$((n-1))" >> profile_tests/kubernetes_multinode/4_confirm_application.t 
   if [[ $n != 1 ]]; then
     echo "  Ready" >> cluster_tests/kubernetes_multinode/1_check_nodes.t
   fi
