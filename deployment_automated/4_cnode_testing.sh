@@ -15,7 +15,7 @@ cnode_exits=()
 test_env_file="/home/flight/regression_tests/environment_variables.sh" # maybe define in setup?
 test_location="/home/flight/regression_tests/"
 default_kube_range="192.168.0.0/16"
-
+total_test_result=0
 
 # will have to change the default node range for platform
 
@@ -45,13 +45,21 @@ done
 
 if [[ $run_basic_tests = true ]]; then 
 # run basic cram tests only
-  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "cd /home/flight/regression_tests; . environment_variables.sh; $cram_args $login_basic_tests > /home/flight/cram_test_$?.out"; result=$?
-  echoplus -v 2 "[login] Basic testing exit code: $result"
+  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "cd /home/flight/regression_tests; . environment_variables.sh; $cram_args $login_basic_tests > /home/flight/cram_test_$?.out"; test_result=$?
+  echoplus -v 2 "[login] Basic testing exit code: $test_result"
+
+  if [[ $test_result != 0 ]]; then # combine test results
+    total_test_result=$test_result
+  fi
 
   for x in `seq 1 $cnode_count`; do # run basic tests on compute nodes
-    ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${all_public_ips[$x]}" "cd /home/flight/regression_tests; . environment_variables.sh; $cram_args $compute_basic_tests > /home/flight/cram_test_cnode0${x}_$?.out"; result=$?
-    echoplus -v 2 "[cnode0${x}] Basic testing exit code: $result"
+    ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${all_public_ips[$x]}" "cd /home/flight/regression_tests; . environment_variables.sh; $cram_args $compute_basic_tests > /home/flight/cram_test_cnode0${x}_$?.out"; test_result=$?
+    echoplus -v 2 "[cnode0${x}] Basic testing exit code: $test_result"
+    if [[ $test_result != 0 ]]; then # combine test results
+      total_test_result=$test_result
+    fi
   done
+
 
 else # do cram testing
   # what test to run?
@@ -142,7 +150,7 @@ if [[ $delete_on_success = true && $total_test_result = 0 ]]; then
 
       ;;
     azure)
-      az group delete --name $azure_resourcegroup; result=$?
+      az group delete --yes --name $azure_resourcegroup; result=$?
       echo "$stackname"
       ;;
   esac
