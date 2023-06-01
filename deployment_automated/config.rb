@@ -13,18 +13,16 @@ module Config
   compute_volume_size = "0"
   cram_testing = false
   basic_testing = false
+  delete_on_success = false
 
   stack_name = prompt.ask("Name of cluster?", required: true) # aws says Member must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*|arn:[-a-zA-Z0-9:/._+]*
-  
 
-  platform_choices = %w(openstack aws azure)
-  platform = prompt.select("Launch on what platform?", platform_choices)
-
-
-  
   standalone = prompt.no?("Standalone cluster?") { |q| q.convert } # .convert maybe?
   standalone = !standalone
 
+  platform_choices = %w(openstack aws azure)
+  platform = prompt.select("Launch on what platform?", platform_choices)
+  
   testing_type_choices = %w(basic cram none)
   testing_type = prompt.select("What testing?", testing_type_choices)
 
@@ -35,6 +33,10 @@ module Config
     basic_testing = true
   end
 
+  if cram_testing or basic_testing
+    delete_on_success = prompt.no?("Delete on success?") { |q| q.convert } 
+    delete_on_success = !delete_on_success
+  end
 
   if cram_testing 
     if standalone
@@ -63,7 +65,7 @@ module Config
 
 
   #optional -b (basic tests)
-  launch_code = "echo 'starting'; . setup/Ivan_testing-openrc.sh; source setup/openstack/bin/activate; bash 0_parent.sh -g -i -p 'stackname=#{stack_name}' -p 'cnode_count=#{num_of_compute_nodes}' -p 'cluster_type=#{cluster_type}' -p 'login_instance_size=#{login_size}' -p 'compute_instance_size=#{compute_size}' -p 'login_disk_size=#{login_volume_size}' -p 'compute_disk_size=#{compute_volume_size}' -p 'platform=#{platform}' -p 'standalone=#{standalone}' -p 'cram_testing=#{cram_testing}' -p 'run_basic_tests=#{basic_testing}' -p 'cloud_sharepubkey=#{sharepubkey}' -p 'cloud_autoparsematch=#{autoparsematch}'" 
+  launch_code = "echo 'starting'; . setup/Ivan_testing-openrc.sh; source setup/openstack/bin/activate; bash 0_parent.sh -g -i -p 'stackname=#{stack_name}' -p 'cnode_count=#{num_of_compute_nodes}' -p 'cluster_type=#{cluster_type}' -p 'login_instance_size=#{login_size}' -p 'compute_instance_size=#{compute_size}' -p 'login_disk_size=#{login_volume_size}' -p 'compute_disk_size=#{compute_volume_size}' -p 'platform=#{platform}' -p 'standalone=#{standalone}' -p 'cram_testing=#{cram_testing}' -p 'run_basic_tests=#{basic_testing}' -p 'cloud_sharepubkey=#{sharepubkey}' -p 'cloud_autoparsematch=#{autoparsematch}' -p 'delete_on_success=#{delete_on_success}" 
 
   exec ( launch_code ) 
 
