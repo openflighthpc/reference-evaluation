@@ -7,5 +7,5 @@ Launch a pod
   $ kubectl apply -f pod-launch-test.yaml
   pod/ubuntu created
 
-  $ for i in {0..60}; do sleep 1; if [[ $(kubectl get pods ubuntu | awk '{print $3}' | grep -v "STATUS") == "Running" ]]; then echo "running"; break; fi; done;
+  $ for i in {0..60}; do sleep 1; if [[ $(kubectl get pods ubuntu | grep -v "Running") ]]; then echo "running"; break; fi; done;
   running
