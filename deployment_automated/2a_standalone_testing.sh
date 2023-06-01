@@ -67,7 +67,7 @@ if [[ $delete_on_success = true && $test_result = 0 ]]; then
       aws cloudformation wait stack-delete-complete --stack-name $stackname; result=$?
       ;;
     azure)
-      az group delete --name $azure_resourcegroup; result=$?
+      az group delete --yes --name $azure_resourcegroup; result=$?
       echo "$stackname"
       ;;
   esac
