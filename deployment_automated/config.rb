@@ -14,10 +14,12 @@ module Config
   cram_testing = false
   basic_testing = false
 
+  stack_name = prompt.ask("Name of cluster?", required: true) # aws says Member must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*|arn:[-a-zA-Z0-9:/._+]*
+  
+
   platform_choices = %w(openstack aws azure)
   platform = prompt.select("Launch on what platform?", platform_choices)
 
-  stack_name = prompt.ask("Name of cluster?", required: true) # aws says Member must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*|arn:[-a-zA-Z0-9:/._+]*
 
   
   standalone = prompt.no?("Standalone cluster?") { |q| q.convert } # .convert maybe?
