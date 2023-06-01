@@ -86,9 +86,7 @@ else # do cram testing
     total_test_result=$test_result
   fi
 
-  echo "[1] done comparing results: $test_result"
-
-  echo "cram command: cram -v ${login_basic_tests} ${login_tests1} ${login_tests2} ${login_tests3} ${login_tests4}"
+  echo "cram command: cram -v ${login_basic_tests} ${login_tests1} ${login_tests2} ${login_tests3}"
 
   # do the next stretch of tests on the login node
   ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "cd /home/flight/regression_tests; . environment_variables.sh; cram -v ${login_basic_tests} ${login_tests1} ${login_tests2} > cram_test.out"; test_result=$? #${login_tests3} 
@@ -99,25 +97,22 @@ else # do cram testing
     total_test_result=$test_result
   fi
 
-  echo "[2] done comparing results: $test_result"
   if [[ $cluster_type == "slurm" ]]; then # might be worth reworking if more cluster types with late stage tests are added
     for x in `seq 1 $cnode_count`; do # get the compute node tests started
       ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${cnodes_public_ips[(($x-1))]}" "cd /home/flight/regression_tests; . environment_variables.sh; cram -v ${compute_tests4} >> cnode0${x}_test.out"; test_result=$?
-      echoplus -v 2 "cnode0${x} compute tests 4, exit code $test_result"
+      echoplus -v 2 "cnode0${x} advanced compute tests complete, exit code $test_result"
     done
-    echo "[3] done with the rest of the compute tests"
   fi
   
   if [[ $test_result != 0 ]]; then
     total_test_result=$test_result
   fi
+  echo "Total test result: $total_test_result"
 
-  echo "[4] done comparing results: $test_result"
-
-  scp -i "$keyfile" "flight@${login_public_ip}:/home/flight/regression_tests/cram_test.out" "log/tests/${stackname}_cram_$test_result.out"
+  scp -i "$keyfile" "flight@${login_public_ip}:/home/flight/regression_tests/cram_test.out" "log/tests/${stackname}_cram_$total_test_result.out"
 
   for x in `seq 1 $cnode_count`; do # copy over the compute test results
-    scp -i "$keyfile" "flight@${cnodes_public_ips[(($x-1))]}:/home/flight/regression_tests/cnode0${x}_test.out" "log/tests/${stackname}_cnode0${x}_test_$test_result.out"
+    scp -i "$keyfile" "flight@${cnodes_public_ips[(($x-1))]}:/home/flight/regression_tests/cnode0${x}_test.out" "log/tests/${stackname}_cnode0${x}_test_$total_test_result.out"
   done
 
   echoplus -v 2 "cram tests all complete?"
