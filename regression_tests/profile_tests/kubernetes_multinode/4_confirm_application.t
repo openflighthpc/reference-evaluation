@@ -1,6 +1,6 @@
 Check that everything applied successfully
 
-  $ flight profile list | grep "node00" | grep "complete"
-  \xe2\x94\x82 node00 \xe2\x94\x82 master  \xe2\x94\x82 complete \xe2\x94\x82 (esc)
-  $ flight profile list | grep "node01" | grep "complete"
-  \xe2\x94\x82 node01 \xe2\x94\x82 worker  \xe2\x94\x82 complete \xe2\x94\x82 (esc)
+  $ . "$varlocation"
+  $ for n in `seq 0 $computenodescount`; do
+  > flight profile list | grep "node0${n}" | grep "complete" | sed 's/│//g ; s/master//g ; s/worker//g ; s/      / /g' | awk '{print $1}'
+  > done

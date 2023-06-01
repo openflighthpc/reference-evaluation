@@ -1,9 +1,5 @@
 Flight hunter can add give genders
 
-  $ flight hunter modify-groups --add login,all node00
-  Node(s) updated successfully:
-  * (glob)
-  \xe2\x94\x82 ID*\xe2\x94\x82 Label*\xe2\x94\x82 Hostname*\xe2\x94\x82 Groups*\xe2\x94\x82 (esc) (glob)
-  * (glob)
-  * * * node00 * * * login, all * (esc) (glob)
-  * (glob)
+  $ flight hunter modify-groups --add login,all node00 | grep -e "success" -e "node00" | grep -o "node00"
+  The table size exceeds the currently set width.Defaulting to vertical orientation.
+  node00

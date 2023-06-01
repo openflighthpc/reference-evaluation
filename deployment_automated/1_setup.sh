@@ -72,14 +72,11 @@ azure_resourcegroup="Regression-Testing"
 # openstack hostnames are: $clustername-<random alphanumeric code>.novalocal
 # azure hostnames are: chead1 for login, cnode0x for compute
 
-login_cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      AUTOPARSEMATCH=c\n      SHAREPUBKEY=true\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - default    \n  - name: flight\n    ssh_authorized_keys:\n      - ${openflightkey}\n"     #"#cloud-config\nusers:\n  - default\n  - name: flight\n    ssh_authorized_keys:\n    - ${openflightkey}\n    "
 
-spaced_login_cloudscript=$(echo -e "$login_cloudscript")
-spaced_based_login_cloudscript=$(echo -e "$login_cloudscript" | base64 -w0)
+# cloud init stuff
+cloud_sharepubkey=false
+cloud_autoparsematch="" # does empty mean it doesn't do it?
 
-
-
-openstack_standalone_cloudinit="#cloud-config\nusers:\n  - default\n  - name: flight\n    ssh_authorized_keys:\n    - $openflightkey\n    "
 
 
 # platform sizes
@@ -100,6 +97,10 @@ azure_medium="Standard_DS5_v2"
 azure_large="Standard_HC44rs"
 azure_gpu="0"
 
+# platform node ranges
+openstack_node_range="10.50.0.0/16"
+aws_node_range="172.31.0.0/16"
+azure_node_range="10.10.0.0/16"
 
 # process arguments
 
@@ -283,6 +284,26 @@ fi
 
 # final processing and adjusting based on interactive and/or argument input
 
+
+if [[ -z "$cloud_autoparsematch" ]]; then
+  bool_autoparsematch=false
+else
+  bool_autoparsematch=true
+fi
+
+echo "sharepubkey? $cloud_sharepubkey"
+echo "autoparsematch regex: $cloud_autoparsematch"
+echo "do autoparsematch? $bool_autoparsematch"
+
+login_cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SHAREPUBKEY=${cloud_sharepubkey}\n      AUTOPARSEMATCH=${cloud_autoparsematch}\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - default    \n  - name: flight\n    ssh_authorized_keys:\n      - ${openflightkey}\n"     #"#cloud-config\nusers:\n  - default\n  - name: flight\n    ssh_authorized_keys:\n    - ${openflightkey}\n    "
+
+spaced_login_cloudscript=$(echo -e "$login_cloudscript")
+spaced_based_login_cloudscript=$(echo -e "$login_cloudscript" | base64 -w0)
+
+openstack_standalone_cloudinit="#cloud-config\nusers:\n  - default\n  - name: flight\n    ssh_authorized_keys:\n    - $openflightkey\n    "
+
+
+
 # in case a compute size isn't put in
 if [[ $compute_instance_size = "0" ]]; then
   compute_instance_size="$login_instance_size"
@@ -293,6 +314,10 @@ if [[ $generic_size = true ]]; then
   eval login_instance_size='$'$platform"_"$login_instance_size
   eval compute_instance_size='$'$platform"_"$compute_instance_size
 fi
+
+# change default node range based on platform
+eval default_node_range='$'$platform"_node_range"
+echo "$default_node_range"
 
 # login name and compute name (currently only used by azure)
 login_name="${stackname}-chead1"
