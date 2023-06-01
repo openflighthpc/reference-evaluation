@@ -97,7 +97,7 @@ else # do cram testing
   echo "cram command: cram -v ${login_basic_tests} ${login_tests1} ${login_tests2} ${login_tests3}"
 
   # do the next stretch of tests on the login node
-  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "cd /home/flight/regression_tests; . environment_variables.sh; cram -v ${login_basic_tests} ${login_tests1} ${login_tests2} > cram_test.out"; test_result=$? #${login_tests3} 
+  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "cd /home/flight/regression_tests; . environment_variables.sh; cram -v ${login_basic_tests} ${login_tests1} ${login_tests2} ${login_tests3} > cram_test.out"; test_result=$? #${login_tests3} 
   echoplus -v 2 "login tests complete, exit code $test_result"
 
 
