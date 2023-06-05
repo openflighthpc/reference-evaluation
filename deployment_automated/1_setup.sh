@@ -1,6 +1,11 @@
 #!/bin/bash -l
 
 outputlvl=2
+# Verbosity - how much output is generated 
+# 0 - only error messages
+# 1 - quiet, only test exit codes, ips and error messages
+# 2 - default
+# 3 - verbose, extra output that might be useful to know when debugging
 
 # unique settings (same irregardless of platform)
 stackname="default1" # needs to be unique every time
@@ -291,9 +296,9 @@ else
   bool_autoparsematch=true
 fi
 
-echo "sharepubkey? $cloud_sharepubkey"
-echo "autoparsematch regex: $cloud_autoparsematch"
-echo "do autoparsematch? $bool_autoparsematch"
+echoplus -v 2 "sharepubkey: $cloud_sharepubkey"
+echoplus -v 2 "autoparsematch regex: $cloud_autoparsematch"
+echoplus -v 3 "Autoparsing is expected to happen? $bool_autoparsematch"
 
 login_cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SHAREPUBKEY=${cloud_sharepubkey}\n      AUTOPARSEMATCH=${cloud_autoparsematch}\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - default    \n  - name: flight\n    ssh_authorized_keys:\n      - ${openflightkey}\n"     #"#cloud-config\nusers:\n  - default\n  - name: flight\n    ssh_authorized_keys:\n    - ${openflightkey}\n    "
 
@@ -317,7 +322,7 @@ fi
 
 # change default node range based on platform
 eval default_node_range='$'$platform"_node_range"
-echo "$default_node_range"
+echoplus -v 3 "$default_node_range"
 
 # login name and compute name (currently only used by azure)
 login_name="${stackname}-chead1"

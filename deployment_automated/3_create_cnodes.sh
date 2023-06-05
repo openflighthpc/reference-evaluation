@@ -190,9 +190,9 @@ case $platform in
   ;;
 esac
 
-echo "${cnodes_public_ips[*]}"
-echo "${cnodes_private_ips[*]}"
-echo "${all_nodes_private_ip[*]}"
+echoplus -v 3 "${cnodes_public_ips[*]}"
+echoplus -v 3 "${cnodes_private_ips[*]}"
+echoplus -v 3 "${all_nodes_private_ip[*]}"
 # the same for all platforms
 
 # Wait for compute nodes to be sshable\

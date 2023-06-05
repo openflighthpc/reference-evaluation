@@ -88,13 +88,13 @@ else # do cram testing
     echoplus -v 2 "cnode0${x} basic tests, exit code $test_result"
   done
 
-  echo "with the basic tests"
+  echoplus -v 3 "with the basic tests"
 
   if [[ $test_result != 0 ]]; then
     total_test_result=$test_result
   fi
 
-  echo "cram command: cram -v ${login_basic_tests} ${login_tests1} ${login_tests2} ${login_tests3}"
+  echoplus -v 3 "cram command: cram -v ${login_basic_tests} ${login_tests1} ${login_tests2} ${login_tests3}"
 
   # do the next stretch of tests on the login node
   ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "cd /home/flight/regression_tests; . environment_variables.sh; cram -v ${login_basic_tests} ${login_tests1} ${login_tests2} ${login_tests3} > cram_test.out"; test_result=$? #${login_tests3} 
@@ -115,7 +115,7 @@ else # do cram testing
   if [[ $test_result != 0 ]]; then
     total_test_result=$test_result
   fi
-  echo "Total test result: $total_test_result"
+  echoplus -v 1 "Total test result: $total_test_result"
 
   scp -i "$keyfile" "flight@${login_public_ip}:/home/flight/regression_tests/cram_test.out" "log/tests/${stackname}_cram_$total_test_result.out"
 
@@ -136,7 +136,7 @@ fi
 
 
 if [[ $delete_on_success = true && $total_test_result = 0 ]]; then 
-  echo "delete stack"
+  echoplus -v 2 "Deleting stack..."
   case $platform in
     openstack)
       openstack stack delete --wait -y "$stackname"; result=$? 
@@ -151,12 +151,12 @@ if [[ $delete_on_success = true && $total_test_result = 0 ]]; then
       ;;
     azure)
       az group delete --yes --name $azure_resourcegroup; result=$?
-      echo "$stackname"
+      echoplus -v 3 "$stackname"
       ;;
   esac
   if [[ $result != 0 ]]; then
     echoplus -v 0 -c RED "Failed to delete. Exiting with code $result"
   fi
-  echo "Deletion appears to have succeeded."
+  echoplus -v 2 "Delete successful"
   exit $result
 fi

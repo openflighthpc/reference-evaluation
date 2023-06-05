@@ -51,8 +51,8 @@ case $platform in
 
   azure) # azure
 
-    az deployment group create  --name "$login_name"  --resource-group "$azure_resourcegroup"  --template-file "$azure_login_template" --parameters sourceimage=$azure_image clustername="$stackname" cheadinstancetype=$login_instance_size customdatanode="$spaced_based_login_cloudscript" ; success=$?
-    echo "$login_name"
+    az deployment group create  --name "$login_name"  --resource-group "$azure_resourcegroup"  --template-file "$azure_login_template" --parameters sourceimage=$azure_image clustername="$stackname" cheadinstancetype=$login_instance_size customdatanode="$spaced_based_login_cloudscript" 1>/dev/null; success=$?
+    echoplus -v 3 "$login_name"
 
     if [[ $success != "0" ]];then
       exit 1
@@ -63,10 +63,10 @@ case $platform in
     while [[ $completed != "true" ]];do
       vm_status=$(az vm list -d -o yaml --query "[?name=='${stackname}-chead1']" | grep "provisioningState")
       if [[ $vm_status = "  provisioningState: Succeeded" ]];then
-        echo "provisioning completed"
+        echoplus -v 2 "provisioning completed"
         completed="true"
       elif [[ $timeout -le 0 ]]; then
-        echo "ERR TIMED OUT"
+        echoplus -v 0 -c RED "CREATION TIMED OUT"
         exit 1
       fi
       let "timeout-=1"
@@ -75,8 +75,8 @@ case $platform in
     # get private and public ips
     login_private_ip=$(az vm list -d -o yaml --query "[?name=='${stackname}-chead1']" | grep "privateIps" | grep -Pom 1 '[0-9.]{7,15}')
     login_public_ip=$(az vm list -d -o yaml --query "[?name=='${stackname}-chead1']" | grep "publicIps" | grep -Pom 1 '[0-9.]{7,15}')
-    echo "$login_private_ip"
-    echo "$login_public_ip"
+    echoplus -v 3 "$login_private_ip"
+    echoplus -v 3 "$login_public_ip"
 
   ;;
 esac
@@ -90,7 +90,7 @@ fi
 
 # Wait for login/standalone node to come online
 echoplus -v 2 "Trying SSH until connection is available. . ."
-echo "keyfile: ${keyfile}"
+echoplus -v 3 "keyfile: ${keyfile}"
 timeout=60
 until ssh -q -i "$keyfile" -o 'StrictHostKeyChecking=no' "flight@$login_public_ip" 'exit'; do
   echoplus -v 2 -c ORNG -p "failed? \r"
