@@ -36,8 +36,6 @@ source "./4_cnode_testing.sh"; result=$?
 echoplus -v 0 "login_public_ip=${login_public_ip}"
 echoplus -v 0 "login_private_ip=${login_private_ip}"
 
-#cnodes_public_ips=()
-#cnodes_private_ips=()
 count=1
 for i in ${cnodes_public_ips[@]}; do
   echoplus -v 0 "cnode0${count}_public_ip=${i}"
