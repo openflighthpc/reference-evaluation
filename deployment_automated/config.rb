@@ -15,7 +15,8 @@ module Config
   basic_testing = false
   delete_on_success = false
 
-  stack_name = prompt.ask("Name of cluster?", required: true) # aws says Member must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*|arn:[-a-zA-Z0-9:/._+]*
+  stack_name = prompt.ask("Name of cluster?", required: true) { |q| q.validate(/^[a-zA-Z][-a-zA-Z0-9]*$/)} # aws says Member must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*|arn:[-a-zA-Z0-9:/._+]*
+  # /\A[^.]+\.[^.]+\Z/
 
   standalone = prompt.no?("Standalone cluster?") { |q| q.convert } # .convert maybe?
   standalone = !standalone
