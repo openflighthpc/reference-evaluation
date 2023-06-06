@@ -25,13 +25,13 @@ cram_slurm_standalone_tests="profile_tests/slurm_standalone cluster_tests/slurm_
 # if we're doing testing, then:
 
 # copy across cram tests
-scp -i "$keyfile" -r "$regression_test_dir" "flight@${login_public_ip}:/home/flight/"
+redirect_out scp -i "$keyfile" -r "$regression_test_dir" "flight@${login_public_ip}:/home/flight/"
 # install necessary tools: cram and nmap, write to env file, run setup script
-ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "sudo pip3 install cram; sudo yum install -y nmap; echo -e \"${env_contents}\" > ${test_env_file}; cd $test_location; . environment_variables.sh; bash setup.sh" 
+redirect_out ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "sudo pip3 install cram; sudo yum install -y nmap; echo -e \"${env_contents}\" > ${test_env_file}; cd $test_location; . environment_variables.sh; bash setup.sh" 
 
 if [[ $run_basic_tests = true ]]; then
   # run basic cram tests and get output
-  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "cd /home/flight/regression_tests; . environment_variables.sh; $basic_test_command > /home/flight/cram_test_\$?.out"; test_result=$?
+  redirect_out ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "cd /home/flight/regression_tests; . environment_variables.sh; $basic_test_command > /home/flight/cram_test_\$?.out"; test_result=$?
   echoplus -v 1 "Basic testing exit code: $test_result"
 else # do cram testing
   cram_command="${basic_test_command} ${cram_extra_tests}"
@@ -49,9 +49,9 @@ else # do cram testing
   esac
   echoplus -v 3 "cram tests to run (with cluster type added) are: $cram_command"
   # run cram command
-  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "cd /home/flight/regression_tests; . environment_variables.sh; $cram_command > /home/flight/cram_test.out"; test_result=$?
+  redirect_out ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "cd /home/flight/regression_tests; . environment_variables.sh; $cram_command > /home/flight/cram_test.out"; test_result=$?
   echoplus -v 1 "Cram testing exit code: $test_result"
-  scp -i "$keyfile" "flight@${login_public_ip}:/home/flight/cram_test.out" "log/tests/${stackname}_cram_$test_result.out"
+  redirect_out scp -i "$keyfile" "flight@${login_public_ip}:/home/flight/cram_test.out" "log/tests/${stackname}_cram_$test_result.out"
 fi
 echoplus -v 1 "exit code for the tests was: $test_result"
 
@@ -60,14 +60,14 @@ if [[ $delete_on_success = true && $test_result = 0 ]]; then
   echoplus -v 2 "deleting stack"
   case $platform in
     openstack)
-      openstack stack delete --wait -y "$stackname"; result=$?
+      redirect_out openstack stack delete --wait -y "$stackname"; result=$?
       ;;
     aws)
-      aws cloudformation delete-stack --stack-name $stackname 
-      aws cloudformation wait stack-delete-complete --stack-name $stackname; result=$?
+      redirect_out aws cloudformation delete-stack --stack-name $stackname 
+      redirect_out aws cloudformation wait stack-delete-complete --stack-name $stackname; result=$?
       ;;
     azure)
-      az group delete --yes --name $azure_resourcegroup; result=$?
+      redirect_out az group delete --yes --name $azure_resourcegroup; result=$?
       echoplus -v 3 "$stackname"
       ;;
   esac

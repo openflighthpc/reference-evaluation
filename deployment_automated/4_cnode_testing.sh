@@ -34,18 +34,18 @@ cram_args="cram -vE"
 # setup each node in cluster for testing
 for i in "${all_public_ips[@]}"; do
   # copy across cram tests
-  scp -i "$keyfile" -r "$regression_test_dir" "flight@${i}:/home/flight/"
+  redirect_out scp -i "$keyfile" -r "$regression_test_dir" "flight@${i}:/home/flight/"
   # install necessary tools: cram and nmap
-  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${i}" 'sudo pip3 install cram; sudo yum install -y nmap' 
+  redirect_out ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${i}" 'sudo pip3 install cram; sudo yum install -y nmap' 
   # write to env file, run setup file
   self_info="\nexport self_pub_ip='${i}'\nexport self_label=''\nexport self_prefix=''"
-  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${i}" "echo -e \"${env_contents}${self_info}\" > ${test_env_file}; cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh;" 
+  redirect_out ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${i}" "echo -e \"${env_contents}${self_info}\" > ${test_env_file}; cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh;" 
 done
 
 
 if [[ $run_basic_tests = true ]]; then 
 # run basic cram tests only
-  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "cd /home/flight/regression_tests; . environment_variables.sh; $cram_args $login_basic_tests > /home/flight/cram_test_$?.out"; test_result=$?
+  redirect_out ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "cd /home/flight/regression_tests; . environment_variables.sh; $cram_args $login_basic_tests > /home/flight/cram_test_$?.out"; test_result=$?
   echoplus -v 2 "[login] Basic testing exit code: $test_result"
 
   if [[ $test_result != 0 ]]; then # combine test results
@@ -53,7 +53,7 @@ if [[ $run_basic_tests = true ]]; then
   fi
 
   for x in `seq 1 $cnode_count`; do # run basic tests on compute nodes
-    ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${all_public_ips[$x]}" "cd /home/flight/regression_tests; . environment_variables.sh; $cram_args $compute_basic_tests > /home/flight/cram_test_cnode0${x}_$?.out"; test_result=$?
+    redirect_out ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${all_public_ips[$x]}" "cd /home/flight/regression_tests; . environment_variables.sh; $cram_args $compute_basic_tests > /home/flight/cram_test_cnode0${x}_$?.out"; test_result=$?
     echoplus -v 2 "[cnode0${x}] Basic testing exit code: $test_result"
     if [[ $test_result != 0 ]]; then # combine test results
       total_test_result=$test_result
@@ -84,7 +84,7 @@ else # do cram testing
   total_test_result=0
   test_result=0
   for x in `seq 1 $cnode_count`; do # get the compute node tests started
-    ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${cnodes_public_ips[(($x-1))]}" "cd /home/flight/regression_tests; . environment_variables.sh; $cram_args ${compute_basic_tests} > cnode0${x}_test.out"; test_result=$?
+    redirect_out ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${cnodes_public_ips[(($x-1))]}" "cd /home/flight/regression_tests; . environment_variables.sh; $cram_args ${compute_basic_tests} > cnode0${x}_test.out"; test_result=$?
     echoplus -v 2 "cnode0${x} basic tests, exit code $test_result"
   done
 
@@ -94,10 +94,10 @@ else # do cram testing
     total_test_result=$test_result
   fi
 
-  echoplus -v 3 "cram command: cram -v ${login_basic_tests} ${login_tests1} ${login_tests2} ${login_tests3}"
+  echoplus -v 3 "cram command: cram -v ${login_basic_tests} ${login_tests1} ${login_tests2} " #${login_tests3}
 
   # do the next stretch of tests on the login node
-  ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "cd /home/flight/regression_tests; . environment_variables.sh; cram -v ${login_basic_tests} ${login_tests1} ${login_tests2} ${login_tests3} > cram_test.out"; test_result=$? #${login_tests3} 
+  redirect_out ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "cd /home/flight/regression_tests; . environment_variables.sh; cram -v ${login_basic_tests} ${login_tests1} ${login_tests2} ${login_tests3} > cram_test.out"; test_result=$? #${login_tests3} 
   echoplus -v 2 "login tests complete, exit code $test_result"
 
 
@@ -107,7 +107,7 @@ else # do cram testing
 
   if [[ $cluster_type == "slurm" ]]; then # might be worth reworking if more cluster types with late stage tests are added
     for x in `seq 1 $cnode_count`; do # get the compute node tests started
-      ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${cnodes_public_ips[(($x-1))]}" "cd /home/flight/regression_tests; . environment_variables.sh; cram -v ${compute_tests4} >> cnode0${x}_test.out"; test_result=$?
+      redirect_out ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${cnodes_public_ips[(($x-1))]}" "cd /home/flight/regression_tests; . environment_variables.sh; cram -v ${compute_tests4} >> cnode0${x}_test.out"; test_result=$?
       echoplus -v 2 "cnode0${x} advanced compute tests complete, exit code $test_result"
     done
   fi
@@ -117,10 +117,10 @@ else # do cram testing
   fi
   echoplus -v 1 "Total test result: $total_test_result"
 
-  scp -i "$keyfile" "flight@${login_public_ip}:/home/flight/regression_tests/cram_test.out" "log/tests/${stackname}_cram_$total_test_result.out"
+  redirect_out scp -i "$keyfile" "flight@${login_public_ip}:/home/flight/regression_tests/cram_test.out" "log/tests/${stackname}_cram_$total_test_result.out"
 
   for x in `seq 1 $cnode_count`; do # copy over the compute test results
-    scp -i "$keyfile" "flight@${cnodes_public_ips[(($x-1))]}:/home/flight/regression_tests/cnode0${x}_test.out" "log/tests/${stackname}_cnode0${x}_test_$total_test_result.out"
+    redirect_out scp -i "$keyfile" "flight@${cnodes_public_ips[(($x-1))]}:/home/flight/regression_tests/cnode0${x}_test.out" "log/tests/${stackname}_cnode0${x}_test_$total_test_result.out"
   done
 
   echoplus -v 2 "cram tests all complete?"
@@ -139,18 +139,18 @@ if [[ $delete_on_success = true && $total_test_result = 0 ]]; then
   echoplus -v 2 "Deleting stack..."
   case $platform in
     openstack)
-      openstack stack delete --wait -y "$stackname"; result=$? 
-      openstack stack delete --wait -y "$compute_stackname"; result=$?
+      redirect_out openstack stack delete --wait -y "$stackname"; result=$? 
+      redirect_out openstack stack delete --wait -y "$compute_stackname"; result=$?
       ;;
     aws)
-      aws cloudformation delete-stack --stack-name $stackname 
-      aws cloudformation delete-stack --stack-name $compute_stackname
-      aws cloudformation wait stack-delete-complete --stack-name $stackname; result=$?
-      aws cloudformation wait stack-delete-complete --stack-name $compute_stackname; result=$?
+      aredirect_out ws cloudformation delete-stack --stack-name $stackname 
+      redirect_out aws cloudformation delete-stack --stack-name $compute_stackname
+      redirect_out aws cloudformation wait stack-delete-complete --stack-name $stackname; result=$?
+      redirect_out aws cloudformation wait stack-delete-complete --stack-name $compute_stackname; result=$?
 
       ;;
     azure)
-      az group delete --yes --name $azure_resourcegroup; result=$?
+      redirect_out az group delete --yes --name $azure_resourcegroup; result=$?
       echoplus -v 3 "$stackname"
       ;;
   esac

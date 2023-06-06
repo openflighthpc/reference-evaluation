@@ -27,6 +27,8 @@ keyfile="0"
 
 
 regression_test_dir="../regression_tests/" # location of the regression tests
+stdout_dir="log/stdout"
+stdout_action="log"
 
 #defaults (all platforms)
 openstack_image="Flight Solo 2023.3"
@@ -286,6 +288,23 @@ if [[ $input = true ]]; then
     fi
   fi
 fi
+
+redirect_out() {
+    # run the given command, decide if to show output or not/ if to send output to log file
+    case $stdout_action in 
+      log)
+        echoplus -v 3 "standard output logged"
+        "$@" >> "${stdout_dir}/${stackname}"
+        ;;
+      delete)
+        echoplus -v 3 "standard output deleted"
+        "$@" >> /dev/null
+        ;;
+      *)
+        "$@"
+        ;;
+    esac
+}
 
 # final processing and adjusting based on interactive and/or argument input
 
