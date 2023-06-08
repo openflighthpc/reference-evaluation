@@ -294,7 +294,7 @@ redirect_out() {
     case $stdout_action in 
       log)
         echoplus -v 3 "standard output logged"
-        "$@" >> "${stdout_dir}/${stackname}"
+        "$@" >> "${stdout_dir}/${stackname}.out"
         ;;
       delete)
         echoplus -v 3 "standard output deleted"
