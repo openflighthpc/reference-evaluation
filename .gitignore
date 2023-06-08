@@ -13,3 +13,5 @@ deployment_automated/log/tests/*.out
 deployment_automated/log/templates/*.yaml
 # ignore standard out logs
 deployment_automated/log/stdout/*.out
+# ignore vim temporary files
+*.swp
