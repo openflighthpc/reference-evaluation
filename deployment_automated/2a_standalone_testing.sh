@@ -2,7 +2,7 @@
 
 if [[ $cram_testing = false && $run_basic_tests = false ]]; then
   echoplus -v 2 "No tests requested."
-  exit 0
+  return 0
 fi
 
 test_result=1
@@ -19,8 +19,8 @@ env_contents="#!/bin/bash\nexport dirlocation='${test_location}'\nexport varloca
 basic_test_command="cram -v generic_launch_tests/all flight_launch_tests/"
 
 cram_extra_tests="pre-profile_tests" # OR if auto-parse then flight_launch_tests/all
-cram_jupyter_standalone_tests="profile_tests/jupyter_standalone cluster_tests/jupyter_standalone" # post-profile_tests
-cram_slurm_standalone_tests="profile_tests/slurm_standalone cluster_tests/slurm_standalone" # post-profile_tests
+cram_jupyter_standalone_tests="profile_tests/jupyter_standalone cluster_tests/jupyter_standalone post-profile_tests" # post-profile_tests
+cram_slurm_standalone_tests="profile_tests/slurm_standalone cluster_tests/slurm_standalone post-profile_tests" # post-profile_tests
 
 # if we're doing testing, then:
 
