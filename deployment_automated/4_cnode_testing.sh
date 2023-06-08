@@ -3,7 +3,7 @@
 
 if [[ $cram_testing = false && $run_basic_tests = false ]]; then
   echoplus -v 2 "No tests requested."
-  exit 0
+  return 0
 fi
 
 #cnodes_public_ips=()
