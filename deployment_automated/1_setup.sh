@@ -335,7 +335,7 @@ fi
 
 # adjust for generic style input
 if [[ $generic_size = true ]]; then
-  eval login_instance_size='$'$platform"_"$login_instance_size
+  eval login_instance_size='$'$platform"_"$login_instance_size # use vars to access a var
   eval compute_instance_size='$'$platform"_"$compute_instance_size
 fi
 
