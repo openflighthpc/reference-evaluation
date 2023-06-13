@@ -28,12 +28,12 @@ autoparsematch=""
 # this is the command every time, just need to change the variables
 
 runTest() {
-  bash 0_parent.sh -g -i -p "stackname=${stack_name}" -p "cnode_count=${num_of_compute_nodes}" -p "cluster_type=${cluster_type}" -p "login_instance_size=${node_size}" -p "compute_instance_size=${node_size}" -p "login_disk_size=${node_volume_size}" -p "compute_disk_size=${node_volume_size}" -p "platform=${platform}" -p "standalone=${standalone}" -p "cram_testing=${cram_testing}" -p "run_basic_tests=${basic_testing}" -p "cloud_sharepubkey=${sharepubkey}" -p "cloud_autoparsematch=${autoparsematch}" -p "delete_on_success=${delete_on_success}"
+  bash 0_parent.sh -g -i -p "stackname=${stack_name}" -p "cnode_count=${num_of_compute_nodes}" -p "cluster_type=${cluster_type}" -p "login_instance_size=${node_size}" -p "compute_instance_size=${node_size}" -p "login_disk_size=${node_volume_size}" -p "compute_disk_size=${node_volume_size}" -p "platform=${platform}" -p "standalone=${standalone}" -p "cram_testing=${cram_testing}" -p "run_basic_tests=${basic_testing}" -p "cloud_sharepubkey=${sharepubkey}" -p "cloud_autoparsematch=${autoparsematch}" -p "delete_on_success=${delete_on_success}" | sed  "s/^/[$stack_name] /"
 }
 
-tests=("ss-w-S-T-ip" "js-w-S-T-ip" "ss-o-M-F-") # all the tests we want to run
+tests=("ss-w-S-T-ip" ) # all the tests we want to run # "js-w-M-F-" "sm-w-M-T-ip" "km-w-L-F-" "ss-o-L-T-o" "js-o-S-F-" "sm-o-S-T-o" "km-o-M-F-" "ss-z-M-T-c" "js-z-L-F-" "sm-z-L-T-c" "km-z-S-F-"
 counter=1
-prefix="t1"
+prefix="t3" 
 for t in "${tests[@]}"; do
   echo "starting test $t"
 
