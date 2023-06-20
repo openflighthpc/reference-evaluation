@@ -74,7 +74,7 @@ else # do cram testing
       compute_tests4="cluster_tests/slurm_multinode/anynode cluster_tests/slurm_multinode/compute"
       ;;
     *)
-      echoplus -v 0 -c RED "error: \"${cluster_type}\" is unsuitable cluster type"
+      echoplus -v 0 -c RED "error: \"${cluster_type}\" is unsuitable multinode cluster type"
     ;;
   esac
   # run basic compute tests
@@ -143,7 +143,7 @@ if [[ $delete_on_success = true && $total_test_result = 0 ]]; then
       redirect_out openstack stack delete --wait -y "$compute_stackname"; result=$?
       ;;
     aws)
-      aredirect_out ws cloudformation delete-stack --stack-name $stackname 
+      redirect_out ws cloudformation delete-stack --stack-name $stackname 
       redirect_out aws cloudformation delete-stack --stack-name $compute_stackname
       redirect_out aws cloudformation wait stack-delete-complete --stack-name $stackname; result=$?
       redirect_out aws cloudformation wait stack-delete-complete --stack-name $compute_stackname; result=$?

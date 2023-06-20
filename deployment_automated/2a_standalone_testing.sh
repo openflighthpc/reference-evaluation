@@ -44,7 +44,7 @@ else # do cram testing
       cram_command+=" $cram_slurm_standalone_tests"
       ;;
     *)
-      echoplus -v 0 -c RED "error: \"${cluster_type}\" is unsuitable cluster type"
+      echoplus -v 0 -c RED "error: \"${cluster_type}\" is unsuitable standalone cluster type"
     ;;
   esac
   echoplus -v 3 "cram tests to run (with cluster type added) are: $cram_command"
