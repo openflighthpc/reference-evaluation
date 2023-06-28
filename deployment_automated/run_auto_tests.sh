@@ -1,9 +1,9 @@
 #!/bin/bash -l
 
-. setup/Ivan_testing-openrc.sh
-source setup/openstack/bin/activate
+openstack_rc_filepath="setup/Ivan_testing-openrc.sh"
 
 
+. "$openstack_rc_filepath" ; source setup/openstack/bin/activate
 
 # unchanging
 cram_testing=true
@@ -31,9 +31,9 @@ runTest() {
   bash 0_parent.sh -g -i -p "stackname=${stack_name}" -p "cnode_count=${num_of_compute_nodes}" -p "cluster_type=${cluster_type}" -p "login_instance_size=${node_size}" -p "compute_instance_size=${node_size}" -p "login_disk_size=${node_volume_size}" -p "compute_disk_size=${node_volume_size}" -p "platform=${platform}" -p "standalone=${standalone}" -p "cram_testing=${cram_testing}" -p "run_basic_tests=${basic_testing}" -p "cloud_sharepubkey=${sharepubkey}" -p "cloud_autoparsematch=${autoparsematch}" -p "delete_on_success=${delete_on_success}" | sed  "s/^/[$stack_name] /"
 }
 
-tests=("ss-w-S-T-ip" ) # all the tests we want to run # "js-w-M-F-" "sm-w-M-T-ip" "km-w-L-F-" "ss-o-L-T-o" "js-o-S-F-" "sm-o-S-T-o" "km-o-M-F-" "ss-z-M-T-c" "js-z-L-F-" "sm-z-L-T-c" "km-z-S-F-"
+tests=("ss-w-s--ip" "js-w-m--" "sm-w-m--ip" "km-w-l--" "ss-o-s--o" "js-o-s--" "sm-o-s--o" "km-o-s--" "ss-z-m--c" "js-z-l--" "sm-z-l--c" "km-z-s--") # all the tests we want to run # 
 counter=1
-prefix="t3" 
+prefix="t1" 
 for t in "${tests[@]}"; do
   echo "starting test $t"
 
@@ -81,6 +81,7 @@ for t in "${tests[@]}"; do
       ;;
     z)
       platform="azure"
+      stack_name="${stack_name}-az"
       ;;
   esac
   t=${t#*-} # continue with the rest of the information
