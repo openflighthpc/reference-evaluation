@@ -39,7 +39,7 @@ for i in "${all_public_ips[@]}"; do
   redirect_out ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${i}" 'sudo pip3 install cram; sudo yum install -y nmap' 
   # write to env file, run setup file
   self_info="\nexport self_pub_ip='${i}'\nexport self_label=''\nexport self_prefix=''"
-  redirect_out ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${i}" "echo -e \"${env_contents}${self_info}\" > ${test_env_file}; cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh;" 
+  redirect_out ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@${i}" "echo -e \"${env_contents}${self_info}\" > ${test_env_file}; cd /home/flight/regression_tests; sleep 60; . environment_variables.sh; bash setup.sh;" 
 done
 
 
