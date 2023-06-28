@@ -5,7 +5,7 @@
 # ignore dynamic yaml files
 *changestack.yaml
 # ignore the openstack environment
-deployment_automated/setup
+deployment_automated/setup/openstack
 # ignore cram error files
 *.t.err
 # ignore cram test output files
