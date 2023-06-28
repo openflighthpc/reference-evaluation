@@ -31,9 +31,9 @@ stdout_dir="log/stdout"
 stdout_action="log"
 
 #defaults (all platforms)
-openstack_image="Flight Solo 2023.3"
-aws_image="ami-0d2b4bf281f7eefe2" # instance ami
-azure_image="/subscriptions/a41c5728-46d9-4f9c-aefe-ffd2a83df476/resourceGroups/openflight-images/providers/Microsoft.Compute/images/Flight-Solo-2023.3-rc3-2804231746-westeurope" # source image link
+openstack_image="Flight Solo 2023.4"
+aws_image="ami-0bbaade26b2309566" # instance ami
+azure_image="/subscriptions/a41c5728-46d9-4f9c-aefe-ffd2a83df476/resourceGroups/openflight-images/providers/Microsoft.Compute/images/Flight-Solo-2023.4-westeurope" # source image link
 
 openstack_keyfile="keys/key1.pem"
 aws_keyfile="keys/ivan-keypair.pem"
@@ -308,7 +308,6 @@ redirect_out() {
 
 # final processing and adjusting based on interactive and/or argument input
 
-
 if [[ -z "$cloud_autoparsematch" ]]; then
   bool_autoparsematch=false
 else
@@ -318,6 +317,8 @@ fi
 echoplus -v 2 "sharepubkey: $cloud_sharepubkey"
 echoplus -v 2 "autoparsematch regex: $cloud_autoparsematch"
 echoplus -v 3 "Autoparsing is expected to happen? $bool_autoparsematch"
+
+#login_cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SHAREPUBKEY=${cloud_sharepubkey}\n      AUTOPARSEMATCH=${cloud_autoparsematch}\n      PROFILE_ANSWERS='{  \"cluster_type\": \"openflight-jupyter-standalone\",  \"cluster_name\": \"my-cluster\",  \"default_username\": \"flight\",  \"default_password\": \"0penfl1ght\"}'\n      AUTOAPPLY=\"${cloud_autoparsematch}: all-in-one\"\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\n    users:\n  - default    \n  - name: flight\n    ssh_authorized_keys:\n      - ${openflightkey}\n      "
 
 login_cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SHAREPUBKEY=${cloud_sharepubkey}\n      AUTOPARSEMATCH=${cloud_autoparsematch}\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - default    \n  - name: flight\n    ssh_authorized_keys:\n      - ${openflightkey}\n"     #"#cloud-config\nusers:\n  - default\n  - name: flight\n    ssh_authorized_keys:\n    - ${openflightkey}\n    "
 
