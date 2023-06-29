@@ -56,7 +56,7 @@ module Config
   login_volume_size = prompt.ask("What volume size login node? (GB)", default: "20") #{ |q| q.validate(/\^[0-9]+\$/) }
   
   unless standalone # if it isn't standalone then
-    num_of_compute_nodes = prompt.ask("How many compute nodes?", default: "2") #{ |q| q.validate(/\^[0-9]+\$/) } # accept numbers only
+    num_of_compute_nodes = prompt.ask("How many compute nodes?", default: "2") { |q| q.validate(/^10$|^[1-9]$/)} # accept only numbers from 1 to 10
     compute_size = prompt.select("What instance size compute nodes?", size_choices)
     compute_volume_size = prompt.ask("What volume size compute nodes? (GB)", default: "20") #{ |q| q.validate(/\^[0-9]+\$/) }
   end
