@@ -25,11 +25,11 @@ module Config
   platform_choices = %w(openstack aws azure)
   platform = prompt.select("Launch on what platform?", platform_choices)
   
-  testing_type_choices = %w(basic cram none)
+  testing_type_choices = %w(none basic full )
   testing_type = prompt.select("What testing?", testing_type_choices)
 
   case testing_type
-  when "cram"
+  when "full"
     cram_testing = true
   when "basic"
     basic_testing = true
