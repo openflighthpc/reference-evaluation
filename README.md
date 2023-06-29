@@ -10,8 +10,24 @@ See [here](https://docs.openflighthpc.org/functionality_testing/automatic_tests/
 
 See [here](https://docs.openflighthpc.org/functionality_testing/automatic_tests/#automatic-web-suite-testing) for information about functionality tests for web suite.
 
-If using the ruby cluster launcher, you will need to do these setup steps.
-```
-cd deployment_templates/config/
-gem install tty-prompt
-```
+## Setup and Usage of the Cluster Launcher
+
+### Requirements:
+You will need:
+- the AWS CLI
+- the Azure CLI
+- Python
+- Cram
+- Ruby
+- tty-prompt
+- the openstack CLI
+
+### Setup
+1. Install and configure all the required tools.
+2. Set aws, azure and openstack keypair locations correctly in `1_setup.sh`
+3. Download and set the location of the openstack rc file.
+*See `docs/setup_cluster_launcher.md` for a more in depth guide on setup*
+
+### Usage
+- Run `config.rb` to use the interactive cluster launcher.
+- Run `run_auto_tests.sh` to run a series of Flight Solo tests automatically.
