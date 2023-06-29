@@ -1,3 +1,5 @@
+# How to setup the Cluster Launcher
+
 ## Assumptions
 - It is assumed that the file path of the repo is `~/git/reference-evaluation/`
 - These instructions were tested on a Centos 8 machine,.
