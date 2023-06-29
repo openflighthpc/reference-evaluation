@@ -17,8 +17,7 @@ module Config
 
   openstack_rc_filepath = "setup/Ivan_testing-openrc.sh"
 
-  stack_name = prompt.ask("Name of cluster?", required: true) { |q| q.validate(/^[a-zA-Z][-a-zA-Z0-9]*$/)} # aws says Member must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*|arn:[-a-zA-Z0-9:/._+]*
-  # /\A[^.]+\.[^.]+\Z/
+  stack_name = prompt.ask("Name of cluster?", required: true)  { |q| q.validate(/^[a-z][-a-z0-9]{1,61}[a-z0-9]$/)} # pattern satifies azure and aws requirements
 
   standalone = prompt.no?("Standalone cluster?") { |q| q.convert } # .convert maybe?
   standalone = !standalone
@@ -53,12 +52,12 @@ module Config
   size_choices = %w(small medium large GPU)
 
   login_size = prompt.select("What instance size login node?", size_choices)
-  login_volume_size = prompt.ask("What volume size login node? (GB)", default: "20") #{ |q| q.validate(/\^[0-9]+\$/) }
+  login_volume_size = prompt.ask("What volume size login node? (GB)", default: "20") { |q| q.validate(/^[1-9][0-9]+/)} # accepts >10 GB
   
   unless standalone # if it isn't standalone then
     num_of_compute_nodes = prompt.ask("How many compute nodes?", default: "2") { |q| q.validate(/^10$|^[1-9]$/)} # accept only numbers from 1 to 10
     compute_size = prompt.select("What instance size compute nodes?", size_choices)
-    compute_volume_size = prompt.ask("What volume size compute nodes? (GB)", default: "20") #{ |q| q.validate(/\^[0-9]+\$/) }
+    compute_volume_size = prompt.ask("What volume size compute nodes? (GB)", default: "20") { |q| q.validate(/^[1-9][0-9]+/)} # accepts >10 GB
   end
 
   puts "Cloud init options:"
