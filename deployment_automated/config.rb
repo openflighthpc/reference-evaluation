@@ -24,30 +24,6 @@ module Config
 
   platform_choices = %w(openstack aws azure)
   platform = prompt.select("Launch on what platform?", platform_choices)
-  
-  testing_type_choices = %w(none basic full )
-  testing_type = prompt.select("What testing?", testing_type_choices)
-
-  case testing_type
-  when "full"
-    cram_testing = true
-  when "basic"
-    basic_testing = true
-  end
-
-  if cram_testing or basic_testing
-    delete_on_success = prompt.no?("Delete on success?") { |q| q.convert } 
-    delete_on_success = !delete_on_success # comes in as true its a no, but i want it to be false for no but still default to no
-  end
-
-  if cram_testing 
-    if standalone
-      cluster_type_choices = %w(slurm jupyter)
-    else
-      cluster_type_choices = %w(slurm kubernetes)
-    end
-    cluster_type = prompt.select("What cluster type?", cluster_type_choices)
-  end
 
   size_choices = %w(small medium large GPU)
 
@@ -58,8 +34,11 @@ module Config
     num_of_compute_nodes = prompt.ask("How many compute nodes?", default: "2") { |q| q.validate(/^10$|^[1-9]$/)} # accept only numbers from 1 to 10
     compute_size = prompt.select("What instance size compute nodes?", size_choices)
     compute_volume_size = prompt.ask("What volume size compute nodes? (GB)", default: "20") { |q| q.validate(/^[1-9][0-9]+/)} # accepts >10 GB
+    cluster_type_choices = %w(slurm kubernetes) # cluster type can only be one of these 
+  else
+    cluster_type_choices = %w(slurm jupyter)# if standalone, cluster type can only be one of these 
   end
-  
+
   # user data setup section
   advuserdata = prompt.no?("Configure User Data?") { |q| q.convert } 
   advuserdata = !advuserdata 
@@ -87,10 +66,38 @@ module Config
 
     autoparsematch = prompt.ask("Auto-Parse regex: (leave blank for nothing)", default: "")
     autoapplyrules = prompt.ask("Enter auto-apply rules in the form \"node: compute, controller: login\": (leave blank for none)", default: "")
+
+    auto_config_bool = prompt.no?("Automatically configure profile?") { |q| q.convert } 
+    auto_config_bool = !auto_config_bool
+
+    if auto_config_bool # if automatically configuring, won't ask for data just the cluster type and run from there
+      cluster_type = prompt.select("What cluster type?", cluster_type_choices)
+    end
+  end
+
+  # testing options
+
+  testing_type_choices = %w(none basic full )
+  testing_type = prompt.select("Perform testing?", testing_type_choices)
+
+  case testing_type
+  when "full"
+    cram_testing = true
+  when "basic"
+    basic_testing = true
+  end
+
+  if cram_testing or basic_testing
+    delete_on_success = prompt.no?("Delete on success?") { |q| q.convert } 
+    delete_on_success = !delete_on_success # comes in as true its a no, but i want it to be false for no but still default to no
+  end
+
+  if cram_testing and !auto_config_bool
+    cluster_type = prompt.select("What cluster type?", cluster_type_choices)
   end
 
 
-  #optional -b (basic tests)
+  # actually launch the cluster launching process
   launch_code = "echo 'starting'; . #{openstack_rc_filepath}; source setup/openstack/bin/activate; bash 0_parent.sh -g -i -p 'stackname=#{stack_name}' -p 'cnode_count=#{num_of_compute_nodes}' -p 'cluster_type=#{cluster_type}' -p 'login_instance_size=#{login_size}' -p 'compute_instance_size=#{compute_size}' -p 'login_disk_size=#{login_volume_size}' -p 'compute_disk_size=#{compute_volume_size}' -p 'platform=#{platform}' -p 'standalone=#{standalone}' -p 'cram_testing=#{cram_testing}' -p 'run_basic_tests=#{basic_testing}' -p 'cloud_sharepubkey=#{sharepubkey}' -p 'cloud_autoparsematch=#{autoparsematch}' -p 'delete_on_success=#{delete_on_success}'" 
 
   exec ( launch_code ) 
