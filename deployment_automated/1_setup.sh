@@ -318,7 +318,27 @@ echoplus -v 2 "sharepubkey: $cloud_sharepubkey"
 echoplus -v 2 "autoparsematch regex: $cloud_autoparsematch"
 echoplus -v 3 "Autoparsing is expected to happen? $bool_autoparsematch"
 
+base_userdata="#cloud-config\nwrite_files:\n  - content: |\n"
+login_sharepubkey_userdata="      SHAREPUBKEY=${cloud_sharepubkey}\n"
+login_autoparsematch_userdata="      AUTOPARSEMATCH=${cloud_autoparsematch}\n"
+login_label_userdata=""
+login_prefix_userdata=""
+login_profileanswers_userdata=""
 
+cnode_broadcast_userdata=""
+# cnode_labels_userdata=("") # probably not going to put in individual labels, thats a lot of typing for everyone involved
+cnode_prefix_userdata=""
+cnode_server_userdata=""
+
+# conflicts: 
+# broadcast and sharepubkey
+# broadcast and server
+# labels and prefixes
+
+autoapply_userdata=""
+prefixstarts_userdata="" # e.g: "node: '01', gpu: '1'"
+
+authkey_userdata=""
 
 login_cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SHAREPUBKEY=${cloud_sharepubkey}\n      AUTOPARSEMATCH=${cloud_autoparsematch}\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - default    \n  - name: flight\n    ssh_authorized_keys:\n      - ${openflightkey}\n"
 
