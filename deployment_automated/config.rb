@@ -37,7 +37,7 @@ module Config
 
   if cram_testing or basic_testing
     delete_on_success = prompt.no?("Delete on success?") { |q| q.convert } 
-    delete_on_success = !delete_on_success
+    delete_on_success = !delete_on_success # comes in as true its a no, but i want it to be false for no but still default to no
   end
 
   if cram_testing 
@@ -59,11 +59,35 @@ module Config
     compute_size = prompt.select("What instance size compute nodes?", size_choices)
     compute_volume_size = prompt.ask("What volume size compute nodes? (GB)", default: "20") { |q| q.validate(/^[1-9][0-9]+/)} # accepts >10 GB
   end
+  
+  # user data setup section
+  advuserdata = prompt.no?("Configure User Data?") { |q| q.convert } 
+  advuserdata = !advuserdata 
+ 
+  if advuserdata
+    broadcast = prompt.ask("Compute nodes broadcast? enter address or leave blank for no", default: "") { |q| q.validate(/(^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$)|($^)/)} # regexp to only accept ip address or blank - improvement: make the last "word" 255
+    if broadcast == ""
+      sharepubkey = prompt.no?("Share Public Key?") { |q| q.convert } 
+      sharepubkey = !sharepubkey
+    end
 
-  puts "Cloud init options:"
-  sharepubkey = prompt.no?("Share Pub Key?") { |q| q.convert } 
-  sharepubkey = !sharepubkey
-  autoparsematch = prompt.ask("Auto Parse match regex:", default: "")
+    #labels and prefixes
+    login_label = ""
+    login_prefix = ""
+    login_name_choices = %w(no label prefix)
+    login_name = prompt.select("Should login have a label/prefix?", login_name_choices)
+    case login_name
+    when "label"
+      login_label = prompt.ask("Login label:") 
+    when "prefix"
+      login_prefix = prompt.ask("Login prefix:") 
+    end
+    cnode_prefix = prompt.ask("Enter prefix for compute nodes: (leave blank for no prefix)", default: "")
+    prefix_starts = prompt.ask("Enter prefix start numbers in the form \"node: '01', gpu: '1'\": (leave blank for none)", default: "")
+
+    autoparsematch = prompt.ask("Auto-Parse regex: (leave blank for nothing)", default: "")
+    autoapplyrules = prompt.ask("Enter auto-apply rules in the form \"node: compute, controller: login\": (leave blank for none)", default: "")
+  end
 
 
   #optional -b (basic tests)
