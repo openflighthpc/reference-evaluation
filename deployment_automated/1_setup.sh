@@ -25,6 +25,15 @@ run_basic_tests=true
 generic_size=false
 keyfile="0"
 
+# User data variables   # currently not available in interactive mode
+login_label=""  
+login_prefix=""
+prefix_starts=""
+autoparsematch=""
+autoapplyrules=""
+auto_config_bool=""
+cnode_prefix=""
+userdata_broadcast=""
 
 regression_test_dir="../regression_tests/" # location of the regression tests
 stdout_dir="log/stdout"
@@ -32,7 +41,7 @@ stdout_action="log"
 
 #defaults (all platforms)
 openstack_image="Flight Solo 2023.4"
-aws_image="ami-0bbaade26b2309566" # instance ami
+aws_image="ami-0689ede014b16699f"    #"ami-0bbaade26b2309566" # instance ami
 azure_image="/subscriptions/a41c5728-46d9-4f9c-aefe-ffd2a83df476/resourceGroups/openflight-images/providers/Microsoft.Compute/images/Flight-Solo-2023.4-westeurope" # source image link
 
 openstack_keyfile="keys/key1.pem"
@@ -318,17 +327,58 @@ echoplus -v 2 "sharepubkey: $cloud_sharepubkey"
 echoplus -v 2 "autoparsematch regex: $cloud_autoparsematch"
 echoplus -v 3 "Autoparsing is expected to happen? $bool_autoparsematch"
 
+userdata="#cloud-config\nwrite_files:\n  - content: |\n"
+end_userdata="    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - default    \n  - name: flight\n    ssh_authorized_keys:\n      - ${openflightkey}\n"
+
+if [[ $login_label != "" ]]; then
+  userdata="${userdata}      LABEL=\"$login_label\"\n"
+fi
+if [[ $login_prefix != "" ]]; then
+  userdata="${userdata}      PREFIX=\"$login_prefix\"\n"
+fi
+if [[ $prefix_starts != "" ]]; then
+  userdata="${userdata}      PREFIX_STARTS=\"$prefix_starts\"\n"
+fi
+if [[ $autoparsematch != "" ]]; then
+  userdata="${userdata}      AUTOPARSEMATCH=\"$autoparsematch\"\n"
+fi
+if [[ $autoapplyrules != "" ]]; then
+  userdata="${userdata}      AUTOAPPLY=\"$autoapplyrules\"\n"
+fi
+
+# can just put true or false
+userdata="${userdata}      SHAREPUBKEY=$cloud_sharepubkey\n"
+
+if [[ $auto_config_bool == "true" ]]; then
+  if [[ $standalone == "true" ]]; then
+    case $cluster_type in
+      slurm)
+        userdata="$userdata      PROFILE_ANSWERS='{\"cluster_type\": \"openflight-slurm-standalone\",  \"cluster_name\": \"my-cluster\",  \"default_username\": \"flight\",  \"default_password\": \"0penfl1ght\"}'\n"
+          ;;
+      jupyter)
+        userdata="$userdata      PROFILE_ANSWERS='{\"cluster_type\": \"openflight-jupyter-standalone\",\"cluster_name\": \"my-cluster\",\"default_username\": \"flight\",\"default_password\": \"0penfl1ght\"}'\n"
+        ;;
+    esac
+  else
+    case $cluster_type in 
+      slurm)
+        userdata="$userdata      PROFILE_ANSWERS='{\"cluster_type\": \"openflight-slurm-multinode\",\"cluster_name\": \"my-cluster\",\"default_username\": \"flight\",\"default_password\": \"0penfl1ght\"}'\n"
+        ;;
+      kubernetes)
+        userdata="$userdata      PROFILE_ANSWERS='{\"cluster_type\": \"openflight-kubernetes-multinode\",\"cluster_name\": \"my-cluster\",\"default_username\": \"flight\",\"default_password\": \"0penfl1ght\"}'\n"
+        ;;
+    esac
+  fi
+fi
+
+userdata="$userdata$end_userdata"
 
 
-login_cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SHAREPUBKEY=${cloud_sharepubkey}\n      AUTOPARSEMATCH=${cloud_autoparsematch}\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - default    \n  - name: flight\n    ssh_authorized_keys:\n      - ${openflightkey}\n"
-
-
+login_cloudscript="$userdata"
 spaced_login_cloudscript=$(echo -e "$login_cloudscript")
 spaced_based_login_cloudscript=$(echo -e "$login_cloudscript" | base64 -w0)
 
 openstack_standalone_cloudinit="#cloud-config\nusers:\n  - default\n  - name: flight\n    ssh_authorized_keys:\n    - $openflightkey\n    "
-
-
 
 # in case a compute size isn't put in
 if [[ $compute_instance_size = "0" ]]; then

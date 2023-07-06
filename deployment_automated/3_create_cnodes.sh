@@ -2,16 +2,27 @@
 
 compute_stackname="compute-${stackname}"
 # shared code
+# if cnode_prefix == "" then don't add to user data, other wise add line for that  in
 login_root_contents=$(ssh -i "$keyfile" -o 'StrictHostKeyChecking=no' "flight@$login_public_ip" "sudo /bin/bash -l -c 'echo -n'; sudo cat /root/.ssh/id_alcescluster.pub")
 
-# openstack vars
-if [[ $cloud_sharepubkey = true ]]; then
-  compute_cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SERVER=${login_private_ip}\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - default  - name: flight\n    ssh_authorized_keys:\n    - ${openflightkey}\n    "
-else
-  compute_cloudscript="#cloud-config\nwrite_files:\n  - content: |\n      SERVER=${login_private_ip}\n    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - default\n  - name: root\n    ssh_authorized_keys:\n    - ${login_root_contents}\n  - name: flight\n    ssh_authorized_keys:\n    - ${openflightkey}\n    "
+userdata="#cloud-config\nwrite_files:\n  - content: |\n      SERVER=${login_private_ip}\n"
+
+echo "$cnode_prefix"
+echo "$userdata_broadcast"
+if [[ $cnode_prefix != "" ]]; then
+  userdata="$userdata      PREFIX=${cnode_prefix}\n"
+fi
+if [[ $userdata_broadcast != "" ]]; then
+  userdata="${userdata}      BROADCAST_ADDRESS=\"$userdata_broadcast\"\n"
 fi
 
 
+if [[ $cloud_sharepubkey = true ]]; then
+  end_userdata="    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - default\n  - name: flight\n    ssh_authorized_keys:\n    - ${openflightkey}\n    "
+else
+  end_userdata="    path: /opt/flight/cloudinit.in\n    permissions: '0644'\n    owner: root:root\nusers:\n  - default\n  - name: root\n    ssh_authorized_keys:\n    - ${login_root_contents}\n  - name: flight\n    ssh_authorized_keys:\n    - ${openflightkey}\n    "
+fi
+userdata="$userdata$end_userdata"
 
 openstack_cnode_base_file="openstack_templates/base.yaml"
 openstack_computetemplate="log/templates/${stackname}_openstack_cnode_template.yaml"
@@ -24,8 +35,8 @@ aws_compute_template="log/templates/${stackname}_aws_cnode_template.yaml"
 azure_compute_template="azure_templates/multinode_azure.json"
 
 
-spaced_cloudscript=$(echo -e "$compute_cloudscript")
-spaced_based_cloudscript=$(echo -e "$compute_cloudscript" | base64 -w0) #cloudinit data spaced properly and in base64
+spaced_cloudscript=$(echo -e "$userdata")
+spaced_based_cloudscript=$(echo -e "$userdata" | base64 -w0) #cloudinit data spaced properly and in base64
 
 # arrays containing ips regardless of platform
 cnodes_public_ips=()
