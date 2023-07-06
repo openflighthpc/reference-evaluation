@@ -1,0 +1,15 @@
+#!/bin/bash -l
+stack_name="test-t2"
+num_of_compute_nodes="2"
+cluster_type=""
+node_size="t2.medium"
+node_volume_size="20"
+platform="aws"
+standalone="true"
+cram_testing="false"
+basic_testing="false"
+sharepubkey="false"
+autoparsematch=""
+delete_on_success="false"
+
+bash 0_parent.sh -i -p "stackname=${stack_name}" -p "cnode_count=${num_of_compute_nodes}" -p "cluster_type=${cluster_type}" -p "login_instance_size=${node_size}" -p "compute_instance_size=${node_size}" -p "login_disk_size=${node_volume_size}" -p "compute_disk_size=${node_volume_size}" -p "platform=${platform}" -p "standalone=${standalone}" -p "cram_testing=${cram_testing}" -p "run_basic_tests=${basic_testing}" -p "cloud_sharepubkey=${sharepubkey}" -p "cloud_autoparsematch=${autoparsematch}" -p "delete_on_success=${delete_on_success}" | sed  "s/^/[$stack_name] /"
