@@ -61,17 +61,18 @@ module Config
     login_name = prompt.select("Should login have a label/prefix?", login_name_choices)
     case login_name
     when "label"
-      login_label = prompt.ask("Login label:") 
+      login_label = prompt.ask("Login label:").delete_prefix('"').delete_suffix('"')
     when "prefix"
-      login_prefix = prompt.ask("Login prefix:") 
+      login_prefix = prompt.ask("Login prefix:").delete_prefix('"').delete_suffix('"')
     end
     unless standalone
-      cnode_prefix = prompt.ask("Enter prefix for compute nodes: (leave blank for no prefix)", default: "")
+      cnode_prefix = prompt.ask("Enter prefix for compute nodes: (leave blank for no prefix)", default: "").delete_prefix('"').delete_suffix('"')
     end
     prefix_starts = prompt.ask("Enter prefix start numbers in the form \"node: '01', gpu: '1'\": (leave blank for none)", default: "").delete_prefix('"').delete_suffix('"')
 
     autoparsematch = prompt.ask("Auto-Parse regex: (leave blank for nothing)", default: "")
     autoapplyrules = prompt.ask("Enter auto-apply rules in the form \"node: compute, controller: login\": (leave blank for none)", default: "").delete_prefix('"').delete_suffix('"')
+    
 
     auto_config_bool = prompt.no?("Automatically configure profile?") { |q| q.convert } 
     auto_config_bool = !auto_config_bool
@@ -102,18 +103,6 @@ module Config
     cluster_type = prompt.select("What cluster type?", cluster_type_choices)
   end
 
-
-#login_label
-#login_prefix
-#prefix_starts
-#autoparsematch
-#autoapplyrules
-#auto_config_bool  
-#cluster_type
-#cnode_prefix
-
- 
-
   # actually launch the cluster launching process
   launch_code = "echo 'starting'; . #{openstack_rc_filepath}; source setup/openstack/bin/activate; bash 0_parent.sh -g -i -p 'stackname=#{stack_name}' -p 'cnode_count=#{num_of_compute_nodes}' -p 'cluster_type=#{cluster_type}' -p 'login_instance_size=#{login_size}' -p 'compute_instance_size=#{compute_size}' -p 'login_disk_size=#{login_volume_size}' -p 'compute_disk_size=#{compute_volume_size}' -p 'platform=#{platform}' -p 'standalone=#{standalone}' -p 'cram_testing=#{cram_testing}' -p 'run_basic_tests=#{basic_testing}' -p 'cloud_sharepubkey=#{sharepubkey}' -p 'cloud_autoparsematch=#{autoparsematch}' -p 'delete_on_success=#{delete_on_success}' -p 'login_label=#{login_label}' -p 'login_prefix=#{login_prefix}' -p 'prefix_starts=#{prefix_starts}' -p 'autoparsematch=#{autoparsematch}' -p 'autoapplyrules=#{autoapplyrules}' -p 'auto_config_bool=#{auto_config_bool}' -p 'cnode_prefix=#{cnode_prefix}' -p 'userdata_broadcast=#{broadcast}'" 
 
@@ -121,9 +110,3 @@ module Config
 
   # end of class
 end
-
-# TODO: fix number validation, currently lets no answers through so commented it out since only i use this
-
-
-
-
