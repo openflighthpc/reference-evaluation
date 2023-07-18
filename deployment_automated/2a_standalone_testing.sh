@@ -24,7 +24,9 @@ cram_slurm_standalone_tests="profile_tests/slurm_standalone cluster_tests/slurm_
 # copy across cram tests
 redirect_out scp -i "$keyfile" -r "$regression_test_dir" "flight@${login_public_ip}:/home/flight/"
 # install necessary tools: cram and nmap, write to env file, run setup script
-redirect_out ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "sudo pip3 install cram; sudo yum install -y nmap; echo -e \"${env_contents}\" > ${test_env_file}; sleep 60; cd $test_location; . environment_variables.sh; bash setup.sh" 
+redirect_out ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "sudo pip3 install cram; sudo yum install -y nmap; echo -e \"${env_contents}\" > ${test_env_file}; cd $test_location; . environment_variables.sh; bash setup.sh" 
+
+sleep 60 # because the program runs faster than solo can keep up
 
 if [[ $run_basic_tests = true ]]; then
   # run basic cram tests and get output
