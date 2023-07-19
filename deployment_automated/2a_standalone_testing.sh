@@ -11,10 +11,7 @@ test_result=1
 test_location="/home/flight/regression_tests/"
 test_env_file="/home/flight/regression_tests/environment_variables.sh"
 
-
-
 env_contents="#!/bin/bash\nexport dirlocation='${test_location}'\nexport varlocation='${test_env_file}'\nexport all_nodes_count='1'\nexport computenodescount='0'\nexport ip_range='0'\nexport kube_pod_range='0'\nexport login_priv_ip='${login_private_ip}'\nexport login_pub_ip='${login_public_ip}'\nexport all_nodes_priv_ips=( '${login_private_ip}' )\nexport autoparsematch='${bool_autoparsematch}'\nexport sharepubkey='${cloud_sharepubkey}'\nexport self_pub_ip='${login_public_ip}'\nexport self_label=''\nexport self_prefix=''"
-
 
 basic_test_command="cram -v generic_launch_tests/all flight_launch_tests/"
 
@@ -27,7 +24,9 @@ cram_slurm_standalone_tests="profile_tests/slurm_standalone cluster_tests/slurm_
 # copy across cram tests
 redirect_out scp -i "$keyfile" -r "$regression_test_dir" "flight@${login_public_ip}:/home/flight/"
 # install necessary tools: cram and nmap, write to env file, run setup script
-redirect_out ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "sudo pip3 install cram; sudo yum install -y nmap; echo -e \"${env_contents}\" > ${test_env_file}; sleep 60; cd $test_location; . environment_variables.sh; bash setup.sh" 
+redirect_out ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$login_public_ip" "sudo pip3 install cram; sudo yum install -y nmap; echo -e \"${env_contents}\" > ${test_env_file}; cd $test_location; . environment_variables.sh; bash setup.sh" 
+
+sleep 60 # because the program runs faster than solo can keep up
 
 if [[ $run_basic_tests = true ]]; then
   # run basic cram tests and get output
