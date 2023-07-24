@@ -73,6 +73,9 @@ azure_compute_template="azure_templates/multinode_azure.json"
 openflightkey='ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDWD9MAHnS5o6LrNaCb5gshU4BIpYfqoE2DCW9T2u3v4xOh04JkaMsIzwGc+BNnCh+NlkSE9sPVyPODCVnLnHdyyNfUkLBIUGCM/h9Ox7CTnsbmhnv3tMp4OD2dnGl+wOXWo/0YrWA0cpcl5UchCpZYMGscR4ohg8+/panBJ0//wmQZmCUZkQ20TLumYlL9HdmFl2SO2vraY+nBQCoHtPC80t4BmbPg5atEnQVMngpsRqSykIoUEQKh49t649cF3rBboZT+AmW+O1GWVYu7qlUxqIsdTRJbqbhZ/W2n3rraQh5CR/hOyYikkdn3xqm7Rom5iURvWd6QBh0LhP1UPRIT'
 
 # unique to a platform
+#openstack
+openstack_rc_filepath="setup/Ivan_testing-openrc.sh"
+
 #aws
 aws_sgroup="sg-0f771e548fa4183ab"
 aws_subnet="subnet-55d8582f"
@@ -414,4 +417,8 @@ if [[ "$platform" = "azure" ]]; then
   azure_resourcegroup="${stackname}_resource_group"
   az group create --location "$azure_location" --name "$azure_resourcegroup"
   az group wait --name "$azure_resourcegroup" --created
+fi
+
+if [[ "$platform" = "openstack" ]]; then
+  . "$openstack_rc_filepath"; source setup/openstack/bin/activate
 fi
