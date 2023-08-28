@@ -48,12 +48,49 @@ case $platform in
 
     # openstack make compute node template
     cat $openstack_cnode_base_file > "$openstack_computetemplate"
+    echo "
+      cluster-sg:
+        type: OS::Neutron::SecurityGroup
+        properties:
+          name: cluster-sg-test
+          rules:
+            - direction: egress
+              remote_ip_prefix: 0.0.0.0/0
+            - direction: ingress
+              remote_ip_prefix: 11.11.11.0/24
+            - direction: ingress
+              protocol: icmp
+              remote_ip_prefix: 0.0.0.0/0
+            - direction: ingress
+              port_range_min: 22
+              port_range_max: 22
+              protocol: tcp
+              remote_ip_prefix: 0.0.0.0/0
+            - direction: ingress
+              port_range_min: 80
+              port_range_max: 80
+              protocol: tcp
+              remote_ip_prefix: 0.0.0.0/0
+            - direction: ingress
+              port_range_min: 443
+              port_range_max: 443
+              protocol: tcp
+              remote_ip_prefix: 0.0.0.0/0
+            - direction: ingress
+              port_range_min: 5901
+              port_range_max: 5911
+              protocol: tcp
+              remote_ip_prefix: 0.0.0.0/0 " >> "$openstack_computetemplate"
+
     for x in `seq 1 $cnode_count`; do
     echo "
       node_port${x}:
         properties:
           network: { get_param: network }
+          security_groups:
+            - { get_resource: cluster-sg }
         type: OS::Neutron::Port
+
 
       node${x}_floating_ip:
         type: OS::Neutron::FloatingIP
@@ -93,7 +130,7 @@ case $platform in
         value: { get_attr: [ node${x}_floating_ip, floating_ip_address ] }" >> "$openstack_computetemplate"
     done
     # openstack compute template made
-
+    echo "$openstack_computetemplate"
     # make a stack with the compute nodes
     redirect_out openstack stack create --wait --template "$openstack_computetemplate" --parameter "key_name=$openstack_key" --parameter "flavor=$openstack_compute_size" --parameter "image=$openstack_image" --parameter "login_node_ip=$login_private_ip" --parameter "login_node_key=$login_root_contents" "$compute_stackname" --parameter "custom_data=$spaced_cloudscript" --parameter "disk_size=$compute_disk_size"; result=$?
 

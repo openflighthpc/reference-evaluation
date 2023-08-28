@@ -54,6 +54,39 @@ parameters:
 
 resources:
 
+  cluster-sg:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: cluster-sg-test
+      rules:
+        - direction: egress
+          remote_ip_prefix: 0.0.0.0/0
+        - direction: ingress
+          remote_ip_prefix: 11.11.11.0/24
+        - direction: ingress
+          protocol: icmp
+          remote_ip_prefix: 0.0.0.0/0
+        - direction: ingress
+          port_range_min: 22
+          port_range_max: 22
+          protocol: tcp
+          remote_ip_prefix: 0.0.0.0/0
+        - direction: ingress
+          port_range_min: 80
+          port_range_max: 80
+          protocol: tcp
+          remote_ip_prefix: 0.0.0.0/0
+        - direction: ingress
+          port_range_min: 443
+          port_range_max: 443
+          protocol: tcp
+          remote_ip_prefix: 0.0.0.0/0
+        - direction: ingress
+          port_range_min: 5901
+          port_range_max: 5911
+          protocol: tcp
+          remote_ip_prefix: 0.0.0.0/0 
+
   head:
     properties:
       flavor: { get_param: flavor }
@@ -80,6 +113,8 @@ resources:
   standalone_port:
     properties:
       network: { get_param: network }
+      security_groups:
+        - { get_resource: cluster-sg }
     type: OS::Neutron::Port
 
   standalone_floating_ip:
