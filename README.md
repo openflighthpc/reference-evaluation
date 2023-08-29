@@ -23,10 +23,31 @@ You will need:
 - the openstack CLI
 
 ### Setup
-1. Install and configure all the required tools.
-2. Set aws, azure and openstack keypair locations correctly in `1_setup.sh`
-3. Download and set the location of the openstack rc file.
-*See `docs/setup_cluster_launcher.md` for a more in depth guide on setup*
+Installation and usage of reference-evaluation is done in 5 steps.
+1. Install all the required cli for this repository to work.
+2. Configure the credentials, openrc and web login to make sure cli is able to connect cloud providers successfully.
+3. Verify the keypairs and images for release under test is available in the cloud and also updated in `setup_1.sh`
+4. Build and test the clusters.
+5. Verify the results.
+
+#### 1. Install the required tools
+Install the tools required for this repository to work like ruby, python, aws, azure and openstack cli.
+```
+cd reference-evaluation/
+sudo bash tools-installation-scripts.sh
+```
+
+#### 2. Configure credentials(aws), openrc(openstack) and web authentication(azure)
+TBD 
+
+#### 3. Verify cluster resources are placed in cloud environments
+TBD
+
+#### 4. Cluster building and testing
+TBD
+
+#### 5. Result Verification
+TBD
 
 ### Usage
 - Run `config.rb` to use the interactive cluster launcher.
