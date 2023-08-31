@@ -31,7 +31,9 @@ pip install -U pip
 pip install python-openstackclient==6.0.0
 pip install python-heatclient==2.5.0
 deactivate
+touch ~/.openrc
 echo ""
+
 
 echo "Cloud Providers cli installed:"
 echo "------------------------------"
