@@ -43,6 +43,7 @@ stdout_action="log"
 openstack_image="Flight Solo 2023.4"
 aws_image="ami-0689ede014b16699f"    #"ami-0bbaade26b2309566" # instance ami
 azure_image="/subscriptions/a41c5728-46d9-4f9c-aefe-ffd2a83df476/resourceGroups/openflight-images/providers/Microsoft.Compute/images/Flight-Solo-2023.4-westeurope" # source image link
+openstack_public_net="dmz"
 
 openstack_keyfile="keys/key1.pem"
 aws_keyfile="keys/ivan-keypair.pem"
@@ -74,7 +75,7 @@ openflightkey='ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDWD9MAHnS5o6LrNaCb5gshU4BIp
 
 # unique to a platform
 #openstack
-openstack_rc_filepath="setup/Ivan_testing-openrc.sh"
+# openstack_rc_filepath="setup/Ivan_testing-openrc.sh"
 
 #aws
 aws_sgroup="sg-0f771e548fa4183ab"
@@ -420,5 +421,5 @@ if [[ "$platform" = "azure" ]]; then
 fi
 
 if [[ "$platform" = "openstack" ]]; then
-  . "$openstack_rc_filepath"; source setup/openstack/bin/activate
+  . ~/.openrc; source ~/.openstack/bin/activate
 fi

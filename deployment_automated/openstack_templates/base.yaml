@@ -30,13 +30,6 @@ parameters:
         description: Must identify an image known to Glance
     default: "Flight Solo 2022.4"
 
-  network:
-    default: 9644040a-6f39-4d8f-b108-9ccbd9145feb
-    type: string
-    description: The network for the VM
-    constraints:
-      - {custom_constraint: neutron.network}
-
   public_net:
     default: c5febef5-6081-44de-b723-79f069be479d
     type: string

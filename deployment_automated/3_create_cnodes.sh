@@ -52,7 +52,9 @@ case $platform in
     echo "
       node_port${x}:
         properties:
-          network: { get_param: network }
+          network: ${stackname}-network
+          security_groups:
+            - ${stackname}-sg
         type: OS::Neutron::Port
 
       node${x}_floating_ip:
@@ -95,7 +97,7 @@ case $platform in
     # openstack compute template made
 
     # make a stack with the compute nodes
-    redirect_out openstack stack create --wait --template "$openstack_computetemplate" --parameter "key_name=$openstack_key" --parameter "flavor=$openstack_compute_size" --parameter "image=$openstack_image" --parameter "login_node_ip=$login_private_ip" --parameter "login_node_key=$login_root_contents" "$compute_stackname" --parameter "custom_data=$spaced_cloudscript" --parameter "disk_size=$compute_disk_size"; result=$?
+    redirect_out openstack stack create --wait --template "$openstack_computetemplate" --parameter "key_name=$openstack_key" --parameter "flavor=$openstack_compute_size" --parameter "image=$openstack_image" --parameter "login_node_ip=$login_private_ip" --parameter "login_node_key=$login_root_contents" "$compute_stackname" --parameter "custom_data=$spaced_cloudscript" --parameter "public_net=$openstack_public_net"  --parameter "disk_size=$compute_disk_size"; result=$?
 
     # confirm that cluster created successfully
     if [[ $result != 0 ]]; then
