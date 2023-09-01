@@ -85,7 +85,11 @@ openstack server list
 ```
 
 #### 3. Verify cluster resources are placed in cloud environments
-TBD
+Validate the existence of below resources in cloud providers as per the release and user.
+
+- `Release Image` : Correct image should be present in cloud provider.
+- `Keypair`: Either we can create a keypair or add our existing public key in cloud provider.
+- `Public Network`: 
 
 #### 4. Cluster building and testing
 TBD

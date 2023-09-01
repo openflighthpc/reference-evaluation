@@ -30,15 +30,7 @@ parameters:
         description: Must identify an image known to Glance
     default: "Flight Solo 2022.4"
 
-  network:
-    default: 9644040a-6f39-4d8f-b108-9ccbd9145feb
-    type: string
-    description: The network for the VM
-    constraints:
-      - {custom_constraint: neutron.network}
-
   public_net:
-    default: c5febef5-6081-44de-b723-79f069be479d
     type: string
     description: >
       ID of public network for which floating IP addresses will be allocated
@@ -54,8 +46,90 @@ parameters:
 
 resources:
 
-  head:
+  router:
+    type: OS::Neutron::Router
     properties:
+      external_gateway_info: { network: {get_param: public_net}}
+      name: 
+        list_join: ['-', [ {get_param: OS::stack_name }, 'router']]
+
+  network:
+    type: OS::Neutron::Net
+    properties:
+      name:
+        list_join: ['-', [ {get_param: OS::stack_name }, 'network']]
+
+  subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      name:
+        list_join: ['-', [ {get_param: OS::stack_name }, 'subnet']]
+      network_id: { get_resource: network }
+      cidr: 99.99.0.0/16
+      gateway_ip: 99.99.0.1
+      allocation_pools: 
+        - {end: 99.99.0.150, start: 99.99.0.10}
+      dns_nameservers:
+        - 8.8.8.8
+
+  router_interface:
+    depends_on: [ network, router ]
+    type: OS::Neutron::RouterInterface
+    properties:
+      router_id: { get_resource: router }
+      subnet_id: { get_resource: subnet }
+
+  cluster-sg:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: 
+        list_join: ['-', [ {get_param: OS::stack_name }, 'sg']]
+      rules:
+        - direction: egress
+          remote_ip_prefix: 0.0.0.0/0
+        - direction: ingress
+          remote_ip_prefix: 99.99.0.0/16
+        - direction: ingress
+          protocol: icmp
+          remote_ip_prefix: 0.0.0.0/0
+        - direction: ingress
+          port_range_min: 22
+          port_range_max: 22
+          protocol: tcp
+          remote_ip_prefix: 0.0.0.0/0
+        - direction: ingress
+          port_range_min: 80
+          port_range_max: 80
+          protocol: tcp
+          remote_ip_prefix: 0.0.0.0/0
+        - direction: ingress
+          port_range_min: 443
+          port_range_max: 443
+          protocol: tcp
+          remote_ip_prefix: 0.0.0.0/0
+        - direction: ingress
+          port_range_min: 5901
+          port_range_max: 5911
+          protocol: tcp
+          remote_ip_prefix: 0.0.0.0/0
+        - direction: ingress
+          remote_ip_prefix: 99.99.0.0/16
+
+
+  standalone_port:
+    properties:
+      network: { get_resource: network }
+      security_groups:
+            - { get_resource: cluster-sg }
+      name: 
+        list_join: ['-', [ {get_param: OS::stack_name }, 'port']]
+    type: OS::Neutron::Port
+
+  head:
+    depends_on: [ router_interface, cluster-sg, standalone_port ]
+    properties:
+      name: 
+        list_join: ['-', [ {get_param: OS::stack_name }, 'head']]
       flavor: { get_param: flavor }
       image: { get_param: image }
       key_name: { get_param: key_name }
@@ -74,15 +148,14 @@ resources:
   standalone_volume:
     type: OS::Cinder::Volume
     properties:
+      name: 
+        list_join: ['-', [ {get_param: OS::stack_name }, 'volume']]
       size: { get_param: disk_size }
       image: { get_param: image }
 
-  standalone_port:
-    properties:
-      network: { get_param: network }
-    type: OS::Neutron::Port
 
   standalone_floating_ip:
+    depends_on: [ router_interface, standalone_port ]
     type: OS::Neutron::FloatingIP
     properties:
       floating_network_id: { get_param: public_net }

@@ -12,7 +12,7 @@ case $platform in
 
   openstack)
     # create standalone/login node on Openstack
-    redirect_out openstack stack create --wait --template "$openstack_login_template" --parameter "key_name=$openstack_key" --parameter "flavor=$login_instance_size" --parameter "image=$openstack_image"  --parameter "disk_size=$login_disk_size" --parameter "cloud_config=$spaced_login_cloudscript" "$stackname"; result=$?
+    redirect_out openstack stack create --wait --template "$openstack_login_template" --parameter "public_net=$openstack_public_net" --parameter "key_name=$openstack_key" --parameter "flavor=$login_instance_size" --parameter "image=$openstack_image"  --parameter "disk_size=$login_disk_size" --parameter "cloud_config=$spaced_login_cloudscript" "$stackname"; result=$?
 
     if [[ $result != 0 ]]; then
       echoplus -v 0 -c RED "Creation failed. Exiting."
