@@ -75,7 +75,7 @@ openflightkey='ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDWD9MAHnS5o6LrNaCb5gshU4BIp
 
 # unique to a platform
 #openstack
-openstack_rc_filepath="setup/Ivan_testing-openrc.sh"
+# openstack_rc_filepath="setup/Ivan_testing-openrc.sh"
 
 #aws
 aws_sgroup="sg-0f771e548fa4183ab"
@@ -421,5 +421,5 @@ if [[ "$platform" = "azure" ]]; then
 fi
 
 if [[ "$platform" = "openstack" ]]; then
-  . "$openstack_rc_filepath"; source setup/openstack/bin/activate
+  . ~/.openrc; source ~/.openstack/bin/activate
 fi

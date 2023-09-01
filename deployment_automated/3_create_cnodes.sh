@@ -52,9 +52,9 @@ case $platform in
     echo "
       node_port${x}:
         properties:
-          network: { get_param: ${stackname}-network }
+          network: ${stackname}-network
           security_groups:
-            - { get_param: ${stackname}-sg }
+            - ${stackname}-sg
         type: OS::Neutron::Port
 
       node${x}_floating_ip:
