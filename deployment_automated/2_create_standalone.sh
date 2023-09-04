@@ -39,7 +39,7 @@ case $platform in
     # AWS
 
     # make the standalone/login node
-    redirect_out aws cloudformation create-stack --template-body "$(cat $aws_login_template)" --stack-name "$stackname" --parameters "ParameterKey=KeyPair,ParameterValue=${aws_key},UsePreviousValue=false" "ParameterKey=InstanceAmi,ParameterValue=${aws_image},UsePreviousValue=false" "ParameterKey=InstanceSize,ParameterValue=${login_instance_size},UsePreviousValue=false" "ParameterKey=SecurityGroup,ParameterValue=${aws_sgroup},UsePreviousValue=false" "ParameterKey=InstanceSubnet,ParameterValue=${aws_subnet},UsePreviousValue=false" "ParameterKey=InstanceDiskSize,ParameterValue=${login_disk_size},UsePreviousValue=false" "ParameterKey=CloudInit,ParameterValue=${spaced_based_login_cloudscript},UsePreviousValue=false"
+    redirect_out aws cloudformation create-stack --template-body "$(cat $aws_login_template)" --stack-name "$stackname" --parameters "ParameterKey=KeyPair,ParameterValue=${aws_key},UsePreviousValue=false" "ParameterKey=InstanceAmi,ParameterValue=${aws_image},UsePreviousValue=false" "ParameterKey=InstanceSize,ParameterValue=${login_instance_size},UsePreviousValue=false" "ParameterKey=InstanceDiskSize,ParameterValue=${login_disk_size},UsePreviousValue=false" "ParameterKey=CloudInit,ParameterValue=${spaced_based_login_cloudscript},UsePreviousValue=false"
 
     echoplus -v 2 "Checking that stack was created. . ."
 
@@ -47,6 +47,9 @@ case $platform in
 
     login_public_ip=$(aws cloudformation describe-stacks --stack-name $stackname --output text | grep "PublicIp" | grep -Pom 1 '[0-9.]{7,15}')
     login_private_ip=$(aws cloudformation describe-stacks --stack-name $stackname --output text | grep "PrivateIp" | grep -Pom 1 '[0-9.]{7,15}')
+    aws_security_group=$(aws cloudformation describe-stack-resources --stack-name $stackname --query 'StackResources[?ResourceType==`AWS::EC2::SecurityGroup`]' | grep "PhysicalResourceId" | grep -o '"PhysicalResourceId": "[^"]*"' | grep -o 'sg-[^"]*')
+    aws_subnet=$(aws cloudformation describe-stack-resources --stack-name $stackname --query 'StackResources[?ResourceType==`AWS::EC2::Subnet`]' | grep "PhysicalResourceId" | grep -o '"PhysicalResourceId": "[^"]*"' | grep -o 'subnet-[^"]*')
+
     ;;
 
   azure) # azure

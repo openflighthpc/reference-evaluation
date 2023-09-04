@@ -142,8 +142,8 @@ case $platform in
           KeyName: 
             Ref: KeyPair 
           SecurityGroupIds: 
-            - sg-099219b43ee588b21
-          SubnetId: subnet-55d8582f
+            - $aws_security_group
+          SubnetId: $aws_subnet
           BlockDeviceMappings:
             - DeviceName: /dev/sda1
               Ebs:
