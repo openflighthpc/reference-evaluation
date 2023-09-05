@@ -40,18 +40,20 @@ stdout_dir="log/stdout"
 stdout_action="log"
 
 #defaults (all platforms)
-openstack_image="Flight Solo 2023.4"
-aws_image="ami-0689ede014b16699f"    #"ami-0bbaade26b2309566" # instance ami
-azure_image="/subscriptions/a41c5728-46d9-4f9c-aefe-ffd2a83df476/resourceGroups/openflight-images/providers/Microsoft.Compute/images/Flight-Solo-2023.4-westeurope" # source image link
-openstack_public_net="dmz"
+# openstack_image="Flight Solo 2023.4"
+# aws_image="ami-0689ede014b16699f"    #"ami-0bbaade26b2309566" # instance ami
+# azure_image="/subscriptions/a41c5728-46d9-4f9c-aefe-ffd2a83df476/resourceGroups/openflight-images/providers/Microsoft.Compute/images/Flight-Solo-2023.4-westeurope" # source image link
+# openstack_public_net="dmz"
 
-openstack_keyfile="keys/key1.pem"
-aws_keyfile="keys/ivan-keypair.pem"
-azure_keyfile="keys/ivan-azure_key.pem"
+# openstack_keyfile="keys/key1.pem"
+# aws_keyfile="keys/ivan-keypair.pem"
+# azure_keyfile="keys/ivan-azure_key.pem"
 
-openstack_key="keytest1"
-aws_key="ivan-keypair"
-azure_key="ivan-azure_key"
+# openstack_key="keytest1"
+# aws_key="ivan-keypair"
+# azure_key="ivan-azure_key"
+
+# cluster flavor on various cloud provider
 
 openstack_login_size="m1.medium"
 aws_login_size="t3.small"
@@ -61,6 +63,8 @@ openstack_compute_size="m1.medium"
 aws_compute_size="t3.small"
 azure_compute_size="Standard_F2s_v2"
 
+
+# cluster templates for standalone and multinode clusters 
 openstack_login_template="openstack_templates/login-node-template.yaml"
 aws_login_template="aws_templates/aws_standalone.yaml"
 azure_login_template="azure_templates/standalone_azure.json"
@@ -68,6 +72,8 @@ azure_login_template="azure_templates/standalone_azure.json"
 openstack_compute_template="openstack_templates/changestack.yaml"
 aws_compute_template="aws_templates/changestack.yaml" 
 azure_compute_template="azure_templates/multinode_azure.json" 
+
+
 
 
 # unchanging
@@ -78,14 +84,14 @@ openflightkey='ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDWD9MAHnS5o6LrNaCb5gshU4BIp
 # openstack_rc_filepath="setup/Ivan_testing-openrc.sh"
 
 #aws
-aws_sgroup="sg-0f771e548fa4183ab"
-aws_subnet="subnet-55d8582f"
+# aws_sgroup="sg-0f771e548fa4183ab"
+# aws_subnet="subnet-55d8582f"
 
 #azure
 azure_location="westeurope" #"uksouth"
-azure_adminkey="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDWD9MAHnS5o6LrNaCb5gshU4BIpYfqoE2DCW9T2u3v4xOh04JkaMsIzwGc+BNnCh+NlkSE9sPVyPODCVnLnHdyyNfUkLBIUGCM/h9Ox7CTnsbmhnv3tMp4OD2dnGl+wOXWo/0YrWA0cpcl5UchCpZYMGscR4ohg8+/panBJ0//wmQZmCUZkQ20TLumYlL9HdmFl2SO2vraY+nBQCoHtPC80t4BmbPg5atEnQVMngpsRqSykIoUEQKh49t649cF3rBboZT+AmW+O1GWVYu7qlUxqIsdTRJbqbhZ/W2n3rraQh5CR/hOyYikkdn3xqm7Rom5iURvWd6QBh0LhP1UPRIT"
+# azure_adminkey="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDWD9MAHnS5o6LrNaCb5gshU4BIpYfqoE2DCW9T2u3v4xOh04JkaMsIzwGc+BNnCh+NlkSE9sPVyPODCVnLnHdyyNfUkLBIUGCM/h9Ox7CTnsbmhnv3tMp4OD2dnGl+wOXWo/0YrWA0cpcl5UchCpZYMGscR4ohg8+/panBJ0//wmQZmCUZkQ20TLumYlL9HdmFl2SO2vraY+nBQCoHtPC80t4BmbPg5atEnQVMngpsRqSykIoUEQKh49t649cF3rBboZT+AmW+O1GWVYu7qlUxqIsdTRJbqbhZ/W2n3rraQh5CR/hOyYikkdn3xqm7Rom5iURvWd6QBh0LhP1UPRIT"
 azure_adminname="flight"
-azure_resourcegroup="Regression-Testing"
+# azure_resourcegroup="Regression-Testing"
 
 # note for autoparse: 
 # aws hostnames are: ip-<private ip address>.eu-west-2.compute.internal
@@ -118,9 +124,9 @@ azure_large="Standard_HC44rs"
 azure_gpu="0"
 
 # platform node ranges
-openstack_node_range="10.50.0.0/16"
-aws_node_range="172.31.0.0/16"
-azure_node_range="10.10.0.0/16"
+# openstack_node_range="10.50.0.0/16"
+# aws_node_range="172.31.0.0/16"
+# azure_node_range="10.10.0.0/16"
 
 # process arguments
 
@@ -410,7 +416,7 @@ if [[ $standalone = true ]]; then
 fi
 
 # set keyfile to be the keyfile for this platform
-eval keyfile='$'$platform"_keyfile"
+eval keyfile='$'$platform"_private_key_path"
 
 
 # make a new resource group for each cluster (this should probably be in the azure template)
