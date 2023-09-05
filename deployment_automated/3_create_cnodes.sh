@@ -142,8 +142,8 @@ case $platform in
           KeyName: 
             Ref: KeyPair 
           SecurityGroupIds: 
-            - sg-099219b43ee588b21
-          SubnetId: subnet-55d8582f
+            - $aws_security_group
+          SubnetId: $aws_subnet
           BlockDeviceMappings:
             - DeviceName: /dev/sda1
               Ebs:
@@ -187,7 +187,7 @@ case $platform in
 
     # azure make stack with compute nodes
     
-    redirect_out az deployment group create --name "$compute_stackname" --debug --resource-group "$azure_resourcegroup" --template-file "$azure_compute_template" --parameters sourceimage="$azure_image" clustername="$stackname" customdatanode="$spaced_based_cloudscript" computeNodesCount="$cnode_count" computeinstancetype="$compute_instance_size" computedisksize="$compute_disk_size"
+    redirect_out az deployment group create --name "$compute_stackname" --debug --resource-group "$azure_resourcegroup" --template-file "$azure_compute_template" --parameters adminPublicKey="$azure_adminkey" sourceimage="$azure_image" clustername="$stackname" customdatanode="$spaced_based_cloudscript" computeNodesCount="$cnode_count" computeinstancetype="$compute_instance_size" computedisksize="$compute_disk_size"
 
     #  computeinstancetype="$computetype" adminUsername="$adminname" adminPublicKey="$adminkey"
 
