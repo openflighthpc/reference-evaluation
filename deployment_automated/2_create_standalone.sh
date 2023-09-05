@@ -54,7 +54,7 @@ case $platform in
 
   azure) # azure
 
-    redirect_out az deployment group create  --name "$login_name"  --resource-group "$azure_resourcegroup"  --template-file "$azure_login_template" --parameters sourceimage=$azure_image clustername="$stackname" cheadinstancetype=$login_instance_size customdatanode="$spaced_based_login_cloudscript"; success=$?
+    redirect_out az deployment group create  --name "$login_name"  --resource-group "$azure_resourcegroup"  --template-file "$azure_login_template" --parameters adminPublicKey="$azure_adminkey" sourceimage=$azure_image clustername="$stackname" cheadinstancetype=$login_instance_size customdatanode="$spaced_based_login_cloudscript"; success=$?
     echoplus -v 3 "$login_name"
 
     if [[ $success != "0" ]];then

@@ -26,16 +26,6 @@ Parameters:
     Default: t3.small
     Description: Enter an instance size.
 
-  # SecurityGroup:
-  #   Type: String
-  #   Default: sg-099219b43ee588b21
-  #   Description: The security group that has already been set up.
-
-  # InstanceSubnet:
-  #   Type:  String
-  #   Description: The subnet to be used.
-  #   Default: subnet-55d8582f
-
   InstanceDiskSize:
     Type:  Number
     Description: The disk size of this instance.
