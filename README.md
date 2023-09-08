@@ -22,6 +22,7 @@ You will need:
 - tty-prompt
 - the openstack CLI
 
+----
 ### Setup
 Installation and usage of reference-evaluation is done in 5 steps.
 1. Install all the required cli for this repository to work.
@@ -30,12 +31,14 @@ Installation and usage of reference-evaluation is done in 5 steps.
 4. Build and test the clusters.
 5. Verify the results.
 
+----
 #### 1. Install the required tools
 Install the tools required for this repository to work like ruby, python, aws, azure and openstack cli.
 ```
 cd reference-evaluation/deployment_automated/scripts
 sudo bash tools-installation-scripts.sh
 ```
+---
 
 #### 2. Configure credentials(aws), openrc(openstack) and web authentication(azure)
 
@@ -83,6 +86,7 @@ Once all the information are added you can validate cloud access by running the 
 source ~/.openrc
 openstack server list
 ```
+---
 
 #### 3. Verify cluster resources are placed in cloud environments and local configuration
 Validate the existence of below resources in cloud providers as per the release and user.
@@ -110,6 +114,7 @@ Then populated the configuration by taking information from cloud providers
 
 We also need to create private key files with name `os_key`, `aws_key`, `azure_key` at path `reference-evaluation/deployment_automated/keys/`, once files are created copy the content of private key to those files.
 
+---
 
 #### 4. Cluster building and testing
 Assuming that you are in the git repository's top level directory, change into the `deployment_automated` directory and run `ruby config.rb`
@@ -141,9 +146,12 @@ Note:
 - Any tests run will have an output file stored on the instance, but also in `deployment_automated/log/tests`
 - The template used to launch an instance will be stored in `deployment_automated/log/templates`
 
+---
 
 #### Testing 
 TBD
+
+---
 
 #### 5. Result Verification
 TBD
