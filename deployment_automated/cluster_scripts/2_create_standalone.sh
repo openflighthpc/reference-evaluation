@@ -12,7 +12,7 @@ case $platform in
 
   openstack)
     # create standalone/login node on Openstack
-    redirect_out openstack stack create --wait --template "$openstack_login_template" --parameter "public_net=$openstack_public_net" --parameter "key_name=$openstack_key" --parameter "flavor=$login_instance_size" --parameter "image=$openstack_image"  --parameter "disk_size=$login_disk_size" --parameter "cloud_config=$spaced_login_cloudscript" "$stackname"; result=$?
+    redirect_out openstack stack create --wait --template "$openstack_login_template" --parameter "public_net=$openstack_public_network_name" --parameter "key_name=$openstack_public_key_name" --parameter "flavor=$login_instance_size" --parameter "image=$openstack_image_name"  --parameter "disk_size=$login_disk_size" --parameter "cloud_config=$spaced_login_cloudscript" "$stackname"; result=$?
 
     if [[ $result != 0 ]]; then
       echoplus -v 0 -c RED "Creation failed. Exiting."
@@ -39,7 +39,7 @@ case $platform in
     # AWS
 
     # make the standalone/login node
-    redirect_out aws cloudformation create-stack --template-body "$(cat $aws_login_template)" --stack-name "$stackname" --parameters "ParameterKey=KeyPair,ParameterValue=${aws_key},UsePreviousValue=false" "ParameterKey=InstanceAmi,ParameterValue=${aws_image},UsePreviousValue=false" "ParameterKey=InstanceSize,ParameterValue=${login_instance_size},UsePreviousValue=false" "ParameterKey=InstanceDiskSize,ParameterValue=${login_disk_size},UsePreviousValue=false" "ParameterKey=CloudInit,ParameterValue=${spaced_based_login_cloudscript},UsePreviousValue=false"
+    redirect_out aws cloudformation create-stack --template-body "$(cat $aws_login_template)" --stack-name "$stackname" --parameters "ParameterKey=KeyPair,ParameterValue=${aws_key},UsePreviousValue=false" "ParameterKey=InstanceAmi,ParameterValue=${aws_image_name},UsePreviousValue=false" "ParameterKey=InstanceSize,ParameterValue=${login_instance_size},UsePreviousValue=false" "ParameterKey=InstanceDiskSize,ParameterValue=${login_disk_size},UsePreviousValue=false" "ParameterKey=CloudInit,ParameterValue=${spaced_based_login_cloudscript},UsePreviousValue=false"
 
     echoplus -v 2 "Checking that stack was created. . ."
 
@@ -54,7 +54,7 @@ case $platform in
 
   azure) # azure
 
-    redirect_out az deployment group create  --name "$login_name"  --resource-group "$azure_resourcegroup"  --template-file "$azure_login_template" --parameters adminPublicKey="$azure_adminkey" sourceimage=$azure_image clustername="$stackname" cheadinstancetype=$login_instance_size customdatanode="$spaced_based_login_cloudscript"; success=$?
+    redirect_out az deployment group create  --name "$login_name"  --resource-group "$azure_resourcegroup"  --template-file "$azure_login_template" --parameters adminPublicKey="$azure_adminkey" sourceimage=$azure_image_name clustername="$stackname" cheadinstancetype=$login_instance_size customdatanode="$spaced_based_login_cloudscript"; success=$?
     echoplus -v 3 "$login_name"
 
     if [[ $success != "0" ]];then

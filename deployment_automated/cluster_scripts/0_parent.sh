@@ -1,7 +1,13 @@
 #!/bin/bash -l
 
 # setup variables, handle input
-source "./1_setup.sh" "$@"; result=$? # run the setup script with all the parameters that this script gets
+source "./etc/regression.conf"; result=$?
+
+if [[ $result != 0 ]];then
+  exit $result
+fi
+
+source "./cluster_scripts/1_setup.sh" "$@"; result=$? # run the setup script with all the parameters that this script gets
 
 case $result in
 
@@ -16,22 +22,22 @@ esac
 
 # create standalone/login, confirm creation, get IP
 
-source "./2_create_standalone.sh"; result=$?
+source "./cluster_scripts/2_create_standalone.sh"; result=$?
 
 if [[ $result != 0 ]];then
   exit $result
 fi
 
 if [[ $standalone = true ]];then
-  source "./2a_standalone_testing.sh"; result=$?
+  source "./cluster_scripts/2a_standalone_testing.sh"; result=$?
   echoplus -v 0 "Login public IP: $login_public_ip"
   echoplus -v 0 "Login private IP: $login_private_ip"
   exit $result
 fi
 
-source "./3_create_cnodes.sh"; result=$?
+source "./cluster_scripts/3_create_cnodes.sh"; result=$?
 echo "compute node deployment: $result"
-source "./4_cnode_testing.sh"; result=$?
+source "./cluster_scripts/4_cnode_testing.sh"; result=$?
 
 echoplus -v 0 "login_public_ip=${login_public_ip}"
 echoplus -v 0 "login_private_ip=${login_private_ip}"
