@@ -1,5 +1,6 @@
 # ignore all private key files
 *.pem
+*key*
 #ignore the openstack project rc file
 *openrc.sh
 # ignore dynamic yaml files
@@ -15,3 +16,4 @@ deployment_automated/log/templates/*.yaml
 deployment_automated/log/stdout/*.out
 # ignore vim temporary files
 *.swp
+

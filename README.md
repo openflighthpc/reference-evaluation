@@ -33,7 +33,7 @@ Installation and usage of reference-evaluation is done in 5 steps.
 #### 1. Install the required tools
 Install the tools required for this repository to work like ruby, python, aws, azure and openstack cli.
 ```
-cd reference-evaluation/
+cd reference-evaluation/deployment_automated/scripts
 sudo bash tools-installation-scripts.sh
 ```
 
@@ -84,19 +84,66 @@ source ~/.openrc
 openstack server list
 ```
 
-#### 3. Verify cluster resources are placed in cloud environments
+#### 3. Verify cluster resources are placed in cloud environments and local configuration
 Validate the existence of below resources in cloud providers as per the release and user.
 
+##### OpenStack
 - `Release Image` : Correct image should be present in cloud provider.
 - `Keypair`: Either we can create a keypair or add our existing public key in cloud provider.
-- `Public Network`: 
+- `Public Network`: Check whether external/public network is placed in the environment.
+
+##### AWS
+- `Release Image` : Correct image should be present in cloud provider.
+- `Keypair`: Either we can create a keypair or add our existing public key in cloud provider.
+
+##### Azure
+- `Release Image` : Correct image should be present in cloud provider.
+- `Keypair`: Either we can create a keypair or add our existing public key in cloud provider.
+
+Once we have verified the resources in the cloud providers, next we need to check the local configuration.
+
+Create a copy of configutation with below command
+```
+cp reference-evaluation/deployment_automated/etc/regression.conf.example reference-evaluation/deployment_automated/etc/regression.conf
+```
+Then populated the configuration by taking information from cloud providers
+
+We also need to create private key files with name `os_key`, `aws_key`, `azure_key` at path `reference-evaluation/deployment_automated/keys/`, once files are created copy the content of private key to those files.
+
 
 #### 4. Cluster building and testing
+Assuming that you are in the git repository's top level directory, change into the `deployment_automated` directory and run `ruby config.rb`
+e.g.
+```
+cd deployment_automated
+ruby config.rb
+```
+
+##### Answer cluster configuration questions
+
+After running `config.rb` you will be presented with a series of questions for setting up a cluster.
+
+1. `Name of cluster?` - What should the name of the cluster be?
+2. `Standalone cluster? (y/N)` - Is this going to be a standalone cluster? This can only be answered as a yes or no, and by default is no.
+3. `Launch on what platform?` - A dropdown menu of platform options.
+4. `What testing?` - A dropdown menu of testing options. `basic` means only basic tests. `full` means all tests. `none` means no tests. More information about tests can be found on the testing doc page.
+5. `What instance size login node?` - A dropdown menu of instance sizes. These correspond to cloud platform instance sizes.
+6. `What volume size login node? (GB) (20)` - What disk size in gigabytes, should the login node be?
+7. `Share Pub Key?` - Should the Flight Solo user data option to share a public key between login nodes and compute nodes be used? This can only be answered as a yes or no.
+8. `Auto Parse match regex` - Enter a regular expression to be passed as Flight Solo user data.
+9. `How many compute nodes? (2)` - If launching a multinode cluster, the number of compute nodes can be changed
+10. `What instance size compute nodes?` - A drop down menu of instance sizes for the compute nodes in the cluster. These correspond to cloud platform sizes.
+11. `What volume size compute nodes (GB) (20)` - What disk size in gigabytes, should each of the compute nodes be?
+12. `Delete on success?` - If testing, if all tests pass then the cluster will be deleted on "yes". On "no" then nothing will be deleted regardless of testing outcome.
+After finishing the questions, the cluster will start launching. When it is done, it will print out the ip addresses of all nodes in the cluster.
+Note:
+- A lot of information from commands being run is sent to a log file instead of displayed, this is kept in `deployment_automated/log/stdout`
+- Any tests run will have an output file stored on the instance, but also in `deployment_automated/log/tests`
+- The template used to launch an instance will be stored in `deployment_automated/log/templates`
+
+
+#### Testing 
 TBD
 
 #### 5. Result Verification
 TBD
-
-### Usage
-- Run `config.rb` to use the interactive cluster launcher.
-- Run `run_auto_tests.sh` to run a series of Flight Solo tests automatically.
