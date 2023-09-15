@@ -187,7 +187,7 @@ case $platform in
 
     # azure make stack with compute nodes
     
-    redirect_out az deployment group create --name "$compute_stackname" --debug --resource-group "$azure_resourcegroup" --template-file "$azure_compute_template" --parameters adminPublicKey="$azure_adminkey" sourceimage="$azure_image_name" clustername="$stackname" customdatanode="$spaced_based_cloudscript" computeNodesCount="$cnode_count" computeinstancetype="$compute_instance_size" computedisksize="$compute_disk_size"
+    redirect_out az deployment group create --name "$compute_stackname" --debug --resource-group "$azure_resourcegroup" --template-file "$azure_compute_template" --parameters adminPublicKey="$azure_public_key_data" sourceimage="$azure_image_name" clustername="$stackname" customdatanode="$spaced_based_cloudscript" computeNodesCount="$cnode_count" computeinstancetype="$compute_instance_size" computedisksize="$compute_disk_size"
 
     #  computeinstancetype="$computetype" adminUsername="$adminname" adminPublicKey="$adminkey"
 
