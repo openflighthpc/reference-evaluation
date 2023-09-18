@@ -6,7 +6,7 @@ openstack_rc_filepath="setup/Ivan_testing-openrc.sh"
 . "$openstack_rc_filepath" ; source setup/openstack/bin/activate
 
 # unchanging
-cram_testing=true
+pytest_testing=true
 basic_testing=false
 num_of_compute_nodes=2
 node_volume_size=20
@@ -28,7 +28,7 @@ autoparsematch=""
 # this is the command every time, just need to change the variables
 
 runTest() {
-  bash 0_parent.sh -g -i -p "stackname=${stack_name}" -p "cnode_count=${num_of_compute_nodes}" -p "cluster_type=${cluster_type}" -p "login_instance_size=${node_size}" -p "compute_instance_size=${node_size}" -p "login_disk_size=${node_volume_size}" -p "compute_disk_size=${node_volume_size}" -p "platform=${platform}" -p "standalone=${standalone}" -p "cram_testing=${cram_testing}" -p "run_basic_tests=${basic_testing}" -p "cloud_sharepubkey=${sharepubkey}" -p "cloud_autoparsematch=${autoparsematch}" -p "delete_on_success=${delete_on_success}" | sed  "s/^/[$stack_name] /"
+  bash 0_parent.sh -g -i -p "stackname=${stack_name}" -p "cnode_count=${num_of_compute_nodes}" -p "cluster_type=${cluster_type}" -p "login_instance_size=${node_size}" -p "compute_instance_size=${node_size}" -p "login_disk_size=${node_volume_size}" -p "compute_disk_size=${node_volume_size}" -p "platform=${platform}" -p "standalone=${standalone}" -p "pytest_testing=${pytest_testing}" -p "run_basic_tests=${basic_testing}" -p "cloud_sharepubkey=${sharepubkey}" -p "cloud_autoparsematch=${autoparsematch}" -p "delete_on_success=${delete_on_success}" | sed  "s/^/[$stack_name] /"
 }
 
 tests=("ss-w-s--ip" "js-w-m--" "sm-w-m--ip" "km-w-l--" "ss-o-s--o" "js-o-s--" "sm-o-s--o" "km-o-s--" "ss-z-m--c" "js-z-l--" "sm-z-l--c" "km-z-s--") # all the tests we want to run # 

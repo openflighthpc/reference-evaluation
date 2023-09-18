@@ -3,36 +3,29 @@ import os
 import re
 from testinfra import get_host
 from time import sleep 
-
-@pytest.fixture
-def hosts():
-    local = get_host("local://", sudo=True)
-    login = get_host("paramiko://flight@10.151.15.55", ssh_identity_file="/home/centos/v3/reference-evaluation/deployment_automated/keys/os_key")
-    cnode1 = get_host("paramiko://flight@10.151.15.223", ssh_identity_file="/home/centos/v3/reference-evaluation/deployment_automated/keys/os_key")
-    cnode2 = get_host("paramiko://flight@10.151.15.147", ssh_identity_file="/home/centos/v3/reference-evaluation/deployment_automated/keys/os_key")
-    return {'local': [local], 'login': [login], 'compute': [cnode1, cnode2]}
+from utils import hosts, cluster_type, is_standalone
 
 class TestPostProfile():
 
-    @pytest.mark.run(order=70)       
+    @pytest.mark.run(order=601)       
     def test_password_set(self, hosts): 
         test_host = hosts['login'][0]
         cmd = test_host.run("sudo passwd flight --status")
         assert 'Password set' in cmd.stdout
 
-    @pytest.mark.run(order=71)       
+    @pytest.mark.run(order=602)       
     def test_prepare_kde(self, hosts): 
         test_host = hosts['login'][0]
         cmd = test_host.run("sudo su - root -c 'flight desktop prepare kde'")
         assert 'Desktop type kde has been prepared' in cmd.stdout 
 
-    @pytest.mark.run(order=72)       
+    @pytest.mark.run(order=603)       
     def test_prepare_xfce(self, hosts): 
         test_host = hosts['login'][0]
         cmd = test_host.run("sudo su - root -c 'flight desktop prepare xfce'")
         assert 'Desktop type xfce has been prepared' in  cmd.stdout 
 
-    @pytest.mark.run(order=73)       
+    @pytest.mark.run(order=604)       
     def test_launch_gnome(self, hosts): 
         test_host = hosts['login'][0]
         cmd = test_host.run("unset LS_COLORS; export TERM=vt220; flight desktop start gnome")
@@ -50,7 +43,7 @@ class TestPostProfile():
 
 
 
-    @pytest.mark.run(order=74)       
+    @pytest.mark.run(order=605)       
     def test_launch_kde(self, hosts): 
         test_host = hosts['login'][0]
         cmd = test_host.run("unset LS_COLORS; export TERM=vt220; flight desktop start kde")
@@ -67,7 +60,7 @@ class TestPostProfile():
         assert "has been terminated" in cmd.stdout
 
 
-    @pytest.mark.run(order=75)       
+    @pytest.mark.run(order=606)       
     def test_launch_xfce(self, hosts): 
         test_host = hosts['login'][0]
         cmd = test_host.run("unset LS_COLORS; export TERM=vt220; flight desktop start xfce")
@@ -83,7 +76,7 @@ class TestPostProfile():
         assert "Terminating session" in cmd.stdout
         assert "has been terminated" in cmd.stdout
 
-    @pytest.mark.run(order=76)       
+    @pytest.mark.run(order=607)       
     def test_install_conda(self, hosts): 
         test_host = hosts['login'][0]
         cmd = test_host.run("unset LS_COLORS; export TERM=vt220; flight env create conda")
@@ -97,7 +90,7 @@ class TestPostProfile():
         assert cmd.rc == 0 
         
 
-    @pytest.mark.run(order=77)       
+    @pytest.mark.run(order=608)       
     def test_install_easybuild(self, hosts): 
         test_host = hosts['login'][0]
         cmd = test_host.run("unset LS_COLORS; export TERM=vt220; flight env create easybuild")
@@ -111,7 +104,7 @@ class TestPostProfile():
         assert cmd.rc == 0 
 
 
-    @pytest.mark.run(order=78)       
+    @pytest.mark.run(order=609)       
     def test_install_modules(self, hosts): 
         test_host = hosts['login'][0]
         cmd = test_host.run("unset LS_COLORS; export TERM=vt220; flight env create modules")
@@ -124,7 +117,7 @@ class TestPostProfile():
         cmd = test_host.run("flight env purge --yes modules@default")
         assert cmd.rc == 0 
 
-    @pytest.mark.run(order=79)       
+    @pytest.mark.run(order=610)       
     def test_install_singularity(self, hosts): 
         test_host = hosts['login'][0]
         cmd = test_host.run("unset LS_COLORS; export TERM=vt220; flight env create singularity")
@@ -137,7 +130,7 @@ class TestPostProfile():
         cmd = test_host.run("flight env purge --yes singularity@default")
         assert cmd.rc == 0 
 
-    @pytest.mark.run(order=80)       
+    @pytest.mark.run(order=611)       
     def test_install_spack(self, hosts): 
         test_host = hosts['login'][0]
         cmd = test_host.run("unset LS_COLORS; export TERM=vt220; flight env create spack")

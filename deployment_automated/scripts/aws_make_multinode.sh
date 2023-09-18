@@ -18,7 +18,7 @@ logindisksize=20
 computedisksize=20
 nodecount=2
 standalone=false
-cram_testing=false
+pytest_testing=false
 cluster_type="slurm"
 
 # vars for options
@@ -154,7 +154,7 @@ if [[ $input = true ]]; then
   echo "Do cram testing?"
   read temp
   if [[ $temp != "" ]] ;then
-    cram_testing=true
+    pytest_testing=true
     echo "Type of cluster? (slurm/kubernetes/jupyter)"
     read temp
     if [[ $temp != "" ]]; then
@@ -249,7 +249,7 @@ if [[ $standalone = true ]];then
     cram_command="cram -v generic_launch_tests/allnode-generic_launch_tests generic_launch_tests/login-check_root_login.t flight_launch_tests/allnode-flight_launch_tests flight_launch_tests/login-hunter_info.t"
     ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; $cram_command > /home/flight/cram_test_\$?.out"
     exit 0
-  elif [[ $cram_testing = false ]]; then
+  elif [[ $pytest_testing = false ]]; then
     exit 0
   fi
   # setup cram testing
@@ -388,7 +388,7 @@ default_kube_range="192.168.0.0/16"
 default_node_range="172.31.0.0/16"
 
 
-if [[ $only_basic_tests = true && $cram_testing = false ]]; then
+if [[ $only_basic_tests = true && $pytest_testing = false ]]; then
   # setup cram testing
   scp -i "$keyfile" -r "../../regression_tests" "flight@${pubIP}:/home/flight/" &>/dev/null
   ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" 'sudo pip3 install cram; sudo yum install -y nmap' &>/dev/null
@@ -416,7 +416,7 @@ if [[ $only_basic_tests = true && $cram_testing = false ]]; then
     echo "node0${x}_private_ip: ${cnodeprivateips[$x-1]}"
   done
   exit
-elif [[ $cram_testing = false ]]; then
+elif [[ $pytest_testing = false ]]; then
     # print out ips
     echoplus -v 0 "login_public_ip=$pubIP"
     echoplus -v 0 "login_private_ip=$privIP"

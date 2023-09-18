@@ -39,7 +39,7 @@ case $platform in
     # AWS
 
     # make the standalone/login node
-    redirect_out aws cloudformation create-stack --template-body "$(cat $aws_login_template)" --stack-name "$stackname" --parameters "ParameterKey=KeyPair,ParameterValue=${aws_key},UsePreviousValue=false" "ParameterKey=InstanceAmi,ParameterValue=${aws_image_name},UsePreviousValue=false" "ParameterKey=InstanceSize,ParameterValue=${login_instance_size},UsePreviousValue=false" "ParameterKey=InstanceDiskSize,ParameterValue=${login_disk_size},UsePreviousValue=false" "ParameterKey=CloudInit,ParameterValue=${spaced_based_login_cloudscript},UsePreviousValue=false"
+    redirect_out aws cloudformation create-stack --template-body "$(cat $aws_login_template)" --stack-name "$stackname" --parameters "ParameterKey=KeyPair,ParameterValue=${aws_public_key_name},UsePreviousValue=false" "ParameterKey=InstanceAmi,ParameterValue=${aws_image_name},UsePreviousValue=false" "ParameterKey=InstanceSize,ParameterValue=${login_instance_size},UsePreviousValue=false" "ParameterKey=InstanceDiskSize,ParameterValue=${login_disk_size},UsePreviousValue=false" "ParameterKey=CloudInit,ParameterValue=${spaced_based_login_cloudscript},UsePreviousValue=false"
 
     echoplus -v 2 "Checking that stack was created. . ."
 

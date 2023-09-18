@@ -30,10 +30,29 @@ source ~/.openstack/bin/activate
 pip install -U pip
 pip install python-openstackclient==6.0.0
 pip install python-heatclient==2.5.0
+pip install pytest==7.4.2
+pip install pytest-ordering==0.6
+pip install bcrypt==4.0.1
+pip install cffi==1.15.1
+pip install cryptography==41.0.3
+pip install exceptiongroup==1.1.3
+pip install iniconfig==2.0.0
+pip install packaging==23.1
+pip install paramiko==3.3.1
+pip install pluggy==1.3.0
+pip install pycparser==2.21
+pip install PyNaCl==1.5.0
+pip install pytest-testinfra==9.0.0
+pip install PyYAML==6.0.1
+pip install tomli==2.0.1
+pip install pytest-reportlog-0.4.0
 deactivate
 touch ~/.openrc
 echo ""
 
+echo "Making dir echo Cloud Providers cli installed:"
+echo "----------------------------------------------"
+mkdir -p /var/log/reference-evaluation
 
 echo "Cloud Providers cli installed:"
 echo "------------------------------"
@@ -53,3 +72,5 @@ source ~/.openstack/bin/activate
 openstack --version
 deactivate
 echo ""
+
+

@@ -1,14 +1,7 @@
 import pytest
 import os 
 from testinfra import get_host
-
-@pytest.fixture
-def hosts():
-    local = get_host("local://", sudo=True)
-    login = get_host("paramiko://flight@10.151.15.55", ssh_identity_file="/home/centos/v3/reference-evaluation/deployment_automated/keys/os_key")
-    cnode1 = get_host("paramiko://flight@10.151.15.223", ssh_identity_file="/home/centos/v3/reference-evaluation/deployment_automated/keys/os_key")
-    cnode2 = get_host("paramiko://flight@10.151.15.147", ssh_identity_file="/home/centos/v3/reference-evaluation/deployment_automated/keys/os_key")
-    return {'local': [local], 'login': [login], 'compute': [cnode1, cnode2]}
+from utils import hosts, cluster_type, is_standalone
 
 class TestGenericLaunch():
 
@@ -17,6 +10,8 @@ class TestGenericLaunch():
         test_hosts = []
         test_hosts.extend(hosts['login'])
         test_hosts.extend(hosts['compute'])
+        print(hosts['login'])
+        print(hosts['compute'])
 
         for host in test_hosts:
             google = host.addr("8.8.8.8")
