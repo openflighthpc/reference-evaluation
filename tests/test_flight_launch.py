@@ -2,18 +2,11 @@ import pytest
 import os 
 import re
 from testinfra import get_host
-
-@pytest.fixture
-def hosts():
-    local = get_host("local://", sudo=True)
-    login = get_host("paramiko://flight@10.151.15.55", ssh_identity_file="/home/centos/v3/reference-evaluation/deployment_automated/keys/os_key")
-    cnode1 = get_host("paramiko://flight@10.151.15.223", ssh_identity_file="/home/centos/v3/reference-evaluation/deployment_automated/keys/os_key")
-    cnode2 = get_host("paramiko://flight@10.151.15.147", ssh_identity_file="/home/centos/v3/reference-evaluation/deployment_automated/keys/os_key")
-    return {'local': [local], 'login': [login], 'compute': [cnode1, cnode2]}
+from utils import hosts, cluster_type, is_standalone
 
 class TestFlightLaunch():
 
-    @pytest.mark.run(order=7)       
+    @pytest.mark.run(order=151)       
     def test_flight_packages(self, hosts): 
         test_hosts = []
         test_hosts.extend(hosts['login'])
@@ -34,7 +27,7 @@ class TestFlightLaunch():
             for package in packages_list:
                 assert True == host.package(package).is_installed
     
-    @pytest.mark.run(order=8)       
+    @pytest.mark.run(order=152)       
     def test_gnome_available(self, hosts): 
         test_hosts = []
         test_hosts.extend(hosts['login'])
@@ -45,7 +38,7 @@ class TestFlightLaunch():
             assert 'gnome' in cmd.stdout
             assert 'Verified' in cmd.stdout
     
-    @pytest.mark.run(order=9)       
+    @pytest.mark.run(order=153)       
     def test_hunter_cmd_execution(self, hosts): 
         test_hosts = []
         test_hosts.extend(hosts['login'])
@@ -55,7 +48,7 @@ class TestFlightLaunch():
             assert cmd.rc == 0
             assert 'flight hunter' in cmd.stdout
        
-    @pytest.mark.run(order=10)       
+    @pytest.mark.run(order=154)       
     def test_websuite_cmd_execution(self, hosts): 
         test_hosts = []
         test_hosts.extend(hosts['login'])
@@ -65,7 +58,7 @@ class TestFlightLaunch():
             assert cmd.rc == 0
             assert 'profile' in cmd.stdout
     
-    @pytest.mark.run(order=11)       
+    @pytest.mark.run(order=155)       
     def test_env_cmd_execution(self, hosts): 
         test_hosts = []
         test_hosts.extend(hosts['login'])
@@ -75,7 +68,7 @@ class TestFlightLaunch():
             assert cmd.rc == 0
             assert 'flight env' in cmd.stdout
 
-    @pytest.mark.run(order=12)       
+    @pytest.mark.run(order=156)       
     def test_silo_cmd_execution(self, hosts): 
         test_hosts = []
         test_hosts.extend(hosts['login'])
@@ -85,7 +78,7 @@ class TestFlightLaunch():
             assert cmd.rc == 0
             assert 'flight silo' in cmd.stdout
 
-    @pytest.mark.run(order=13)       
+    @pytest.mark.run(order=157)       
     def test_pdsh_cmd_execution(self, hosts): 
         test_hosts = []
         test_hosts.extend(hosts['login'])
@@ -95,7 +88,7 @@ class TestFlightLaunch():
             assert cmd.rc == 0
             assert 'pdsh-' in cmd.stdout
     
-    @pytest.mark.run(order=14)       
+    @pytest.mark.run(order=158)       
     def test_flight_gather_collect(self, hosts):
         test_hosts = []
         test_hosts.extend(hosts['login'])
@@ -105,7 +98,7 @@ class TestFlightLaunch():
             cmd = host.run("flight gather collect")
             assert cmd.rc == 0
 
-    @pytest.mark.run(order=15)       
+    @pytest.mark.run(order=159)       
     def test_flight_gather_show(self, hosts):
         test_hosts = []
         test_hosts.extend(hosts['login'])
@@ -130,7 +123,7 @@ class TestFlightLaunch():
             assert re.search(r':gpus:', cmd1.stdout)
             assert re.search(r':platform: .*', cmd1.stdout)
 
-    @pytest.mark.run(order=16)       
+    @pytest.mark.run(order=160)       
     def test_silo_type_repo_openflight(self, hosts):
         test_hosts = []
         test_hosts.extend(hosts['login'])
@@ -140,7 +133,7 @@ class TestFlightLaunch():
             assert cmd.rc == 0
             assert cmd.stdout.strip() == '0'
             
-    @pytest.mark.run(order=17)       
+    @pytest.mark.run(order=161)       
     def test_silo_type_repo_aws(self, hosts):
         test_hosts = []
         test_hosts.extend(hosts['login'])
@@ -150,7 +143,7 @@ class TestFlightLaunch():
             assert cmd.rc == 0
             assert cmd.stdout.strip() == '0'
     
-    @pytest.mark.run(order=18)       
+    @pytest.mark.run(order=162)       
     def test_silo_pull(self, hosts):
         test_hosts = []
         test_hosts.extend(hosts['login'])
@@ -162,7 +155,7 @@ class TestFlightLaunch():
             assert host.file("/home/flight/cavity-example.sh").exists
             host.run("rm /home/flight/cavity-example.sh")
 
-    @pytest.mark.run(order=19)       
+    @pytest.mark.run(order=163)       
     def test_nodes_in_buffer(self, hosts):
         all_hosts = []
         all_hosts.extend(hosts['login'])
@@ -182,7 +175,7 @@ class TestFlightLaunch():
             for node_ip in cluster_node_ips:
                 assert node_ip in cmd.stdout
             
-    @pytest.mark.run(order=20)       
+    @pytest.mark.run(order=164)       
     def test_nodes_in_parsed(self, hosts):
         all_hosts = []
         all_hosts.extend(hosts['login'])

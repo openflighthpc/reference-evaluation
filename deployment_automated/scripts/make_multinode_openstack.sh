@@ -23,7 +23,7 @@ computesize="m1.medium"
 computedisksize="20"
 cluster_type="slurm"
 nodecount=2
-cram_testing=false # do cram testing
+pytest_testing=false # do pytest testing
 generic_size="small"
 small="m1.medium"
 medium="m1.large"
@@ -153,10 +153,10 @@ if [[ "$noinput" == "0" && $config == "0" ]]; then
   echoplus -v 0 "Perform cram testing?"
   read temp
   if [[ temp != "" ]]; then
-    cram_testing=true
+    pytest_testing=true
   fi
 
-  if [[ $cram_testing = true ]]; then
+  if [[ $pytest_testing = true ]]; then
     echoplus -v 0 "What cluster type? (slurm/jupyter/kube)"
     read temp
     if [[ temp != "" ]]; then
@@ -283,7 +283,7 @@ if [[ $standalone = true ]];then
     cram_command="cram -v generic_launch_tests/allnode-generic_launch_tests generic_launch_tests/login-check_root_login.t flight_launch_tests/allnode-flight_launch_tests flight_launch_tests/login-hunter_info.t"
     ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; $cram_command > /home/flight/cram_test_\$?.out"
     exit
-  elif [[ $cram_testing = false ]]; then
+  elif [[ $pytest_testing = false ]]; then
     exit
   fi
   # setup cram testing
@@ -447,7 +447,7 @@ for x in `seq 1 $nodecount`; do
   all_nodes_privIP+=("$nodeprivIP")
 done
 
-if [[ $only_basic_tests = true && $cram_testing = false ]]; then
+if [[ $only_basic_tests = true && $pytest_testing = false ]]; then
   # setup cram testing
   scp -i "$keyfile" -r "../../regression_tests" "flight@${pubIP}:/home/flight/" &>/dev/null
   ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$pubIP" 'sudo pip3 install cram; sudo yum install -y nmap' &>/dev/null
@@ -471,7 +471,7 @@ if [[ $only_basic_tests = true && $cram_testing = false ]]; then
     ssh -i "$keyfile" -q -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' "flight@$nodepubIP" "cd /home/flight/regression_tests; . environment_variables.sh; bash setup.sh; $compute_cram_command > /home/flight/cram_test_\$?.out" &>/dev/null
   done
   exit
-elif [[ $cram_testing = false ]]; then
+elif [[ $pytest_testing = false ]]; then
   exit
 fi
 

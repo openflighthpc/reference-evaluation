@@ -16,4 +16,5 @@ deployment_automated/log/templates/*.yaml
 deployment_automated/log/stdout/*.out
 # ignore vim temporary files
 *.swp
-
+# ignore __pycache__, pytest_cache
+*cache*

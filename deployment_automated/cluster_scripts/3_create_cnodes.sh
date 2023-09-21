@@ -170,7 +170,7 @@ case $platform in
     done
 
     # create stack
-    redirect_out aws cloudformation create-stack --template-body "$(cat "$aws_compute_template")" --stack-name "$compute_stackname" --parameters "ParameterKey=KeyPair,ParameterValue=ivan-keypair,UsePreviousValue=false" "ParameterKey=InstanceAmi,ParameterValue=$aws_image_name,UsePreviousValue=false" "ParameterKey=InstanceSize,ParameterValue=$compute_instance_size,UsePreviousValue=false" "ParameterKey=SecurityGroup,ParameterValue=$aws_sgroup,UsePreviousValue=false" "ParameterKey=InstanceSubnet,ParameterValue=$aws_subnet,UsePreviousValue=false" "ParameterKey=IpData,ParameterValue=$login_private_ip,UsePreviousValue=false" "ParameterKey=KeyData,ParameterValue=$login_root_contents,UsePreviousValue=false" "ParameterKey=UserData,ParameterValue=$spaced_based_cloudscript,UsePreviousValue=false"
+    redirect_out aws cloudformation create-stack --template-body "$(cat "$aws_compute_template")" --stack-name "$compute_stackname" --parameters "ParameterKey=KeyPair,ParameterValue=${aws_public_key_name},UsePreviousValue=false" "ParameterKey=InstanceAmi,ParameterValue=$aws_image_name,UsePreviousValue=false" "ParameterKey=InstanceSize,ParameterValue=$compute_instance_size,UsePreviousValue=false" "ParameterKey=SecurityGroup,ParameterValue=$aws_sgroup,UsePreviousValue=false" "ParameterKey=InstanceSubnet,ParameterValue=$aws_subnet,UsePreviousValue=false" "ParameterKey=IpData,ParameterValue=$login_private_ip,UsePreviousValue=false" "ParameterKey=KeyData,ParameterValue=$login_root_contents,UsePreviousValue=false" "ParameterKey=UserData,ParameterValue=$spaced_based_cloudscript,UsePreviousValue=false"
 
     redirect_out aws cloudformation wait stack-create-complete --stack-name "$compute_stackname"
 

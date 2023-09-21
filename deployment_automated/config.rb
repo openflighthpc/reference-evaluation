@@ -11,7 +11,7 @@ module Config
   num_of_compute_nodes = 0
   compute_instance_size = "0"
   compute_volume_size = "0"
-  cram_testing = false
+  pytest_testing = false
   basic_testing = false
   delete_on_success = false
   sharepubkey = false
@@ -89,22 +89,22 @@ module Config
 
   case testing_type
   when "full"
-    cram_testing = true
+    pytest_testing = true
   when "basic"
     basic_testing = true
   end
 
-  if cram_testing or basic_testing
+  if pytest_testing or basic_testing
     delete_on_success = prompt.no?("Delete on success?") { |q| q.convert } 
     delete_on_success = !delete_on_success # comes in as true its a no, but i want it to be false for no but still default to no
   end
 
-  if cram_testing and !auto_config_bool
+  if pytest_testing and !auto_config_bool
     cluster_type = prompt.select("What cluster type?", cluster_type_choices)
   end
 
   # actually launch the cluster launching process
-  launch_code = "echo 'starting'; bash cluster_scripts/0_parent.sh -g -i -p 'stackname=#{stack_name}' -p 'cnode_count=#{num_of_compute_nodes}' -p 'cluster_type=#{cluster_type}' -p 'login_instance_size=#{login_size}' -p 'compute_instance_size=#{compute_size}' -p 'login_disk_size=#{login_volume_size}' -p 'compute_disk_size=#{compute_volume_size}' -p 'platform=#{platform}' -p 'standalone=#{standalone}' -p 'cram_testing=#{cram_testing}' -p 'run_basic_tests=#{basic_testing}' -p 'cloud_sharepubkey=#{sharepubkey}' -p 'cloud_autoparsematch=#{autoparsematch}' -p 'delete_on_success=#{delete_on_success}' -p 'login_label=#{login_label}' -p 'login_prefix=#{login_prefix}' -p 'prefix_starts=#{prefix_starts}' -p 'autoparsematch=#{autoparsematch}' -p 'autoapplyrules=#{autoapplyrules}' -p 'auto_config_bool=#{auto_config_bool}' -p 'cnode_prefix=#{cnode_prefix}' -p 'userdata_broadcast=#{broadcast}' -p 'openstack_rc_filepath=#{openstack_rc_filepath}'" 
+  launch_code = "echo 'starting'; bash cluster_scripts/0_parent.sh -g -i -p 'stackname=#{stack_name}' -p 'cnode_count=#{num_of_compute_nodes}' -p 'cluster_type=#{cluster_type}' -p 'login_instance_size=#{login_size}' -p 'compute_instance_size=#{compute_size}' -p 'login_disk_size=#{login_volume_size}' -p 'compute_disk_size=#{compute_volume_size}' -p 'platform=#{platform}' -p 'standalone=#{standalone}' -p 'pytest_testing=#{pytest_testing}' -p 'run_basic_tests=#{basic_testing}' -p 'cloud_sharepubkey=#{sharepubkey}' -p 'cloud_autoparsematch=#{autoparsematch}' -p 'delete_on_success=#{delete_on_success}' -p 'login_label=#{login_label}' -p 'login_prefix=#{login_prefix}' -p 'prefix_starts=#{prefix_starts}' -p 'autoparsematch=#{autoparsematch}' -p 'autoapplyrules=#{autoapplyrules}' -p 'auto_config_bool=#{auto_config_bool}' -p 'cnode_prefix=#{cnode_prefix}' -p 'userdata_broadcast=#{broadcast}' -p 'openstack_rc_filepath=#{openstack_rc_filepath}'" 
 
   exec ( launch_code ) 
 
