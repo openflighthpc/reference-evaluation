@@ -14,7 +14,7 @@ fi
 
 keypath="$(pwd)/keys/"
 cluster_data_file=$(mktemp)
-config="cluster_type: $cluster_type\nstandalone: $standalone\nplatform: $platform\nkeypath: $keypath\nlogin_public_ip:\n"
+config="cluster_name: $stackname\ncluster_type: $cluster_type\nstandalone: $standalone\nimage_name: $image_name\nplatform: $platform\nkeypath: $keypath\nlogin_public_ip:\n"
 config+="  - ${login_public_ip}"
 config+="\ncompute_public_ip:\n"
 

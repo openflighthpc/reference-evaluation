@@ -23,8 +23,23 @@ def cluster_type(request):
     path = request.config.getoption("--clusterinfo")
     with open(path) as f:
         data = yaml.load(f, Loader=SafeLoader)
-    print(data['cluster_type'])
     return data['cluster_type']
+
+@pytest.fixture
+def image_name(request):
+    data = None
+    path = request.config.getoption("--clusterinfo")
+    with open(path) as f:
+        data = yaml.load(f, Loader=SafeLoader)
+    return data['image_name']
+
+@pytest.fixture
+def platform(request):
+    data = None
+    path = request.config.getoption("--clusterinfo")
+    with open(path) as f:
+        data = yaml.load(f, Loader=SafeLoader)
+    return data['platform']
 
 @pytest.fixture
 def hosts(request):
@@ -51,7 +66,7 @@ def hosts(request):
         node_info['login'].append(login)
 
     node_info.update({'compute': []})  
-    for ip in data['login_public_ip']:
+    for ip in data.get('compute_public_ip', []):
         compute = get_host(f"paramiko://flight@{ip}", ssh_identity_file=keypath)
-        node_info['login'].append(compute)
+        node_info['compute'].append(compute)
     return node_info

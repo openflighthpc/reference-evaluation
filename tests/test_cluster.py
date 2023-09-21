@@ -339,15 +339,51 @@ class TestCluster():
             cmd = host.run('rm testjob.sh')
             assert cmd.rc == 0
 
+
     @pytest.mark.run(order=769)       
+    def test_run_multiple_job_slurm_multinode(self, hosts, is_standalone, cluster_type): 
+        if not (not is_standalone and cluster_type == 'slurm'):
+            pytest.skip("Cluster type is not slurm standalone")
+
+        test_hosts = []
+        test_hosts.extend(hosts['login'])
+        
+        for host in test_hosts:
+            script_string ='#!/bin/bash -l\necho "Starting running on host $HOSTNAME"\nsleep 10\necho "Finished running - goodbye from $HOSTNAME"'
+            cmd = host.run(f"echo -e '{script_string}' > testjob.sh")
+            assert cmd.rc == 0
+            for i in range(2):
+                cmd = host.run('sbatch testjob.sh')
+                assert cmd.rc == 0
+                assert 'Submitted batch job' in cmd.stdout
+
+            cmd = host.run('squeue -t RUNNING -h -o "%N" | sort -u')
+            assert cmd.rc == 0
+            assert 'node1' in cmd.stdout
+            assert 'node2' in cmd.stdout
+            assert 'testjob' not in cmd.stdout
+
+            sleep(30)
+
+            cmd = host.run('rm testjob.sh')
+            assert cmd.rc == 0
+
+
+    @pytest.mark.run(order=770)       
     def test_share_files_slurm_mutlinode(self, hosts, is_standalone, cluster_type): 
         if not (not is_standalone and cluster_type == 'slurm'):
             pytest.skip("Cluster type is not slurm standalone")
 
+        file_name = 'shareable-file'
         test_host = hosts['login'][0]
-        test_host.run("cd ~; touch shareable-file")
+        test_host.run(f"cd ~; touch {file_name}")
 
         test_hosts = []
+        sleep(30)
         test_hosts.extend(hosts['compute'])
         for host in test_hosts:
-            assert host.file("~/shareable-file").exists
+            cmd = host.run('ls')
+            assert cmd.rc == 0
+            assert file_name in cmd.stdout
+        
+        test_host.run(f"cd ~; rm {file_name}")
