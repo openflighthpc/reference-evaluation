@@ -13,6 +13,28 @@ class TestPreProfile():
         assert cmd.rc == 0
 
     @pytest.mark.run(order=302)       
+    def test_nodes_in_parsed(self, hosts):
+        all_hosts = []
+        all_hosts.extend(hosts['login'])
+        all_hosts.extend(hosts['compute'])
+        cluster_node_ips = []
+        for host in all_hosts:
+            interface = host.interface.default().name
+            cluster_node_ips.extend([host.interface(interface).addresses[0]])
+
+        test_hosts = []
+        test_hosts.extend(hosts['login'])
+
+        for host in test_hosts:
+            cmd = host.run("flight hunter list --plain")
+            assert cmd.rc == 0
+
+            for node_ip in cluster_node_ips:
+                assert node_ip in cmd.stdout
+            
+
+
+    @pytest.mark.run(order=303)       
     def test_add_gender(self, hosts):
         test_host = hosts['login'][0]
         cmd = test_host.run("flight hunter list --plain")
