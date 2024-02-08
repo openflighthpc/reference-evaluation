@@ -65,10 +65,10 @@ resources:
       name:
         list_join: ['-', [ {get_param: OS::stack_name }, 'subnet']]
       network_id: { get_resource: network }
-      cidr: 99.99.0.0/16
-      gateway_ip: 99.99.0.1
+      cidr: 10.10.0.0/16
+      gateway_ip: 10.10.0.1
       allocation_pools: 
-        - {end: 99.99.0.150, start: 99.99.0.10}
+        - {end: 10.10.0.150, start: 10.10.0.10}
       dns_nameservers:
         - 8.8.8.8
 
@@ -88,7 +88,7 @@ resources:
         - direction: egress
           remote_ip_prefix: 0.0.0.0/0
         - direction: ingress
-          remote_ip_prefix: 99.99.0.0/16
+          remote_ip_prefix: 10.10.0.0/16
         - direction: ingress
           protocol: icmp
           remote_ip_prefix: 0.0.0.0/0
@@ -118,7 +118,7 @@ resources:
           protocol: tcp
           remote_ip_prefix: 0.0.0.0/0
         - direction: ingress
-          remote_ip_prefix: 99.99.0.0/16
+          remote_ip_prefix: 10.10.0.0/16
 
 
   standalone_port:

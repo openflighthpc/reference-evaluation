@@ -69,20 +69,20 @@
       "properties": {
         "addressSpace": {
           "addressPrefixes": [
-            "99.99.0.0/16"
+            "10.10.0.0/16"
           ]
         },
         "subnets": [
           {
             "name": "flightsub1",
             "properties": {
-              "addressPrefix": "99.99.0.0/24"
+              "addressPrefix": "10.10.0.0/24"
             }
           },
           {
             "name": "flightsub2",
             "properties": {
-              "addressPrefix": "99.99.1.0/24"
+              "addressPrefix": "10.10.10.0/24"
             }
           }
         ]
@@ -100,7 +100,7 @@
             "properties": {
               "addressPrefix": "0.0.0.0/0",
               "nextHopType": "VirtualAppliance",
-              "nextHopIpAddress": "99.99.0.11"
+              "nextHopIpAddress": "10.10.0.11"
             }
           }
         ]
@@ -188,7 +188,7 @@
               "sourcePortRange": "*",
               "destinationPortRange": "*",
               "sourceAddressPrefix": "*",
-              "destinationAddressPrefix": "99.99.0.0/24",
+              "destinationAddressPrefix": "10.10.0.0/24",
               "access": "Allow",
               "priority": 1011,
               "direction": "Inbound"
@@ -231,7 +231,7 @@
           "name": "[variables('ipconfigname')]",
           "properties": {
             "privateIPAllocationMethod": "Static",
-            "privateIPAddress": "99.99.0.11",
+            "privateIPAddress": "10.10.0.11",
             "publicIPAddress": {
               "id": "[resourceId('Microsoft.Network/publicIpAddresses', variables('pubIPname'))]"
             },
