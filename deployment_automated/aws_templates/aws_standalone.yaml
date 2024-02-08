@@ -40,7 +40,7 @@ Resources:
   MyVPC:
     Type: AWS::EC2::VPC
     Properties:
-      CidrBlock: 99.99.0.0/16
+      CidrBlock: 10.10.0.0/16
       EnableDnsSupport: true
       EnableDnsHostnames: true
 
@@ -48,7 +48,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref MyVPC
-      CidrBlock: 99.99.99.0/24
+      CidrBlock: 10.10.10.0/24
       MapPublicIpOnLaunch: true
 
   MySecurityGroup:
@@ -77,10 +77,10 @@ Resources:
           FromPort: 5900
           ToPort: 5911
           CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
+        - IpProtocol: -1
           FromPort: 0
           ToPort: 65535
-          CidrIp: 99.99.99.0/24
+          CidrIp: 10.10.10.0/24
       SecurityGroupEgress:
         - CidrIp: 0.0.0.0/0
           IpProtocol: -1
